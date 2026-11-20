@@ -33,12 +33,19 @@ button:disabled{opacity:.4;cursor:default}
 canvas#wave{width:100%;height:56px;display:block;margin-top:10px;border-radius:10px;background:light-dark(#fbeee4,#22171a)}
 /* toy piano body */
 .piano{background:linear-gradient(180deg,var(--body),var(--body2));border-radius:22px;padding:22px 14px 16px;box-shadow:0 10px 0 #7d1612,0 18px 30px rgba(0,0,0,.18);margin-bottom:22px;position:relative}
-.piano .name{color:#fff;font-weight:800;font-size:14px;letter-spacing:.02em;margin:-8px 0 10px 6px;opacity:.9}
-.keys{position:relative;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:4px;height:clamp(180px,34vw,260px);user-select:none;-webkit-user-select:none;touch-action:none}
-.w{background:var(--key);border-radius:0 0 10px 10px;box-shadow:inset 0 -8px 0 #e8dccb;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding-bottom:12px;color:#2a1712;font-weight:800;font-size:clamp(14px,3vw,19px);cursor:pointer;transition:transform .05s}
+.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin:-8px 4px 12px}
+.piano .name{color:#fff;font-weight:800;font-size:14px;opacity:.9}
+.ctl{display:flex;align-items:center;gap:6px;color:#fff}
+.ctl button{min-height:40px;width:40px;padding:0;justify-content:center;background:rgba(255,255,255,.18);color:#fff}
+.ctl b{min-width:5.5em;text-align:center;font-size:14px}
+.ctl select{font:inherit;font-size:16px;min-height:40px;border-radius:999px;border:0;padding:0 10px;background:#fff;color:#2a1712}
+.keyscroll{overflow-x:auto;padding-bottom:4px}
+.keys{position:relative;display:grid;gap:3px;height:clamp(180px,34vw,260px);user-select:none;-webkit-user-select:none;touch-action:none}
+.w{background:var(--key);border-radius:0 0 10px 10px;box-shadow:inset 0 -8px 0 #e8dccb;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding-bottom:12px;color:#2a1712;font-weight:800;font-size:clamp(11px,2.2vw,17px);cursor:pointer;transition:transform .05s}
 .w small{font-size:11px;font-weight:500;color:#9a7f72}
 .w.down{transform:translateY(3px);box-shadow:inset 0 -3px 0 #e8dccb;background:#fff1c7}
-.b{position:absolute;top:0;width:calc(100%/8*.6);height:58%;background:linear-gradient(#333,#111);border-radius:0 0 7px 7px;box-shadow:inset 0 -6px 0 #000;cursor:pointer;z-index:2}
+.w.c4{box-shadow:inset 0 -8px 0 var(--acc)}
+.b{position:absolute;top:0;height:58%;background:linear-gradient(#333,#111);border-radius:0 0 7px 7px;box-shadow:inset 0 -6px 0 #000;cursor:pointer;z-index:2}
 .b.down{background:#444;box-shadow:inset 0 -2px 0 #000}
 .w.hit,.b.hit{background:var(--acc)}
 /* sequence */
@@ -69,15 +76,17 @@ input[type=range]{accent-color:var(--body);width:160px}
   </div>
 
   <div class="piano">
-    <div class="name">ARCH VOICE PIANO</div>
-    <div class="keys" id="keys"></div>
+    <div class="top"><div class="name">ARCH VOICE PIANO</div>
+      <div class="ctl"><button id="down" aria-label="1オクターブ下へ">◀</button><b id="range"></b><button id="up" aria-label="1オクターブ上へ">▶</button>
+      <select id="count" aria-label="鍵盤の数"><option value="1">1オクターブ</option><option value="2">2オクターブ</option><option value="3" selected>3オクターブ</option><option value="4">4オクターブ</option></select></div></div>
+    <div class="keyscroll"><div class="keys" id="keys"></div></div>
   </div>
 
   <div class="panel">
     <label for="seq">ドレミを入力して演奏</label>
     <div class="presets" id="presets"></div>
     <textarea id="seq">ドレミファソラシド</textarea>
-    <p class="hint">「ー」でのばす・スペースや「、」で休み・シのあとのドは高いドになります（「ド↑」でも指定可）。♯は「ド#」のように。PCなら A S D F G H J K でも弾けます。</p>
+    <p class="hint">「ー」でのばす・スペースや「、」で休み。シのあとのドは高いドになります。「ド↑」で1オクターブ上、「ソ↓」で下、♯は「ド#」。黄色い線の鍵盤が真ん中のド。PCなら Z〜M（下の段）と Q〜U（上の段）でも弾けます。</p>
     <div class="row">
       <button id="play">▶ 演奏</button>
       <button id="stop" class="ghost">■ 止める</button>
@@ -88,12 +97,10 @@ input[type=range]{accent-color:var(--body);width:160px}
 
 <script>
 {
-const NOTES=[
- {n:'ド',k:'a',s:0},{n:'ド#',s:1,b:true},{n:'レ',k:'s',s:2},{n:'レ#',s:3,b:true},{n:'ミ',k:'d',s:4},
- {n:'ファ',k:'f',s:5},{n:'ファ#',s:6,b:true},{n:'ソ',k:'g',s:7},{n:'ソ#',s:8,b:true},{n:'ラ',k:'h',s:9},
- {n:'ラ#',s:10,b:true},{n:'シ',k:'j',s:11},{n:'ド↑',k:'k',s:12}];
 const C4=261.63, freq=s=>C4*2**(s/12);
 const NAMES=['ド','ド#','レ','レ#','ミ','ファ','ファ#','ソ','ソ#','ラ','ラ#','シ'];
+const PCKEYS='zsxdcvgbhnjmq2w3er5t6y7ui';
+let oct=-1, count=3;
 let ctx, buf=null, srcHz=C4, timers=[], recorder=null;
 const $=id=>document.getElementById(id);
 const status=t=>$('status').innerHTML=t;
@@ -101,9 +108,23 @@ const ac=()=>{if(!ctx)ctx=new (window.AudioContext||window.webkitAudioContext)()
 
 // keyboard
 const keysEl=$('keys');
-const whites=NOTES.filter(x=>!x.b);
-keysEl.innerHTML=whites.map(x=>`<div class="w" data-s="${x.s}">${x.n.replace('↑','')}<small>${x.k?x.k.toUpperCase():''}</small></div>`).join('')+
- NOTES.filter(x=>x.b).map(x=>{const wi=whites.findIndex(w=>w.s===x.s-1)+1;return `<div class="b" data-s="${x.s}" style="left:calc(100%/8*${wi} - 100%/8*.3)"></div>`}).join('');
+function build(){
+  const base=oct*12, n=count*12, ks=[];
+  for(let s=base;s<=base+n;s++)ks.push({s,b:[1,3,6,8,10].includes(((s%12)+12)%12)});
+  const wh=ks.filter(k=>!k.b), W=wh.length;
+  keysEl.style.gridTemplateColumns=`repeat(${W},minmax(0,1fr))`;
+  keysEl.style.minWidth=(W*30)+'px';
+  keysEl.innerHTML=wh.map(k=>{const nm=NAMES[((k.s%12)+12)%12],o=4+Math.floor(k.s/12),pk=PCKEYS[k.s-base]||'';
+    return `<div class="w${k.s===0?' c4':''}" data-s="${k.s}">${nm}<small>${nm==='ド'?o:(pk?pk.toUpperCase():'')}</small></div>`}).join('')+
+   ks.filter(k=>k.b).map(k=>{const wi=wh.findIndex(w=>w.s===k.s-1)+1;return `<div class="b" data-s="${k.s}" style="left:calc(100%/${W}*${wi} - 100%/${W}*.3);width:calc(100%/${W}*.6)"></div>`}).join('');
+  $('range').textContent=`ド${4+oct}〜ド${4+oct+count}`;
+  $('down').disabled=oct<=-3; $('up').disabled=oct+count>=4;
+}
+$('down').onclick=()=>{oct--;build()};
+$('up').onclick=()=>{oct++;build()};
+$('count').onchange=e=>{count=+e.target.value;if(oct+count>4)oct=4-count;if(count===1&&oct<0)oct=0;build()};
+if(innerWidth<600){count=2;$('count').value='2'}
+build();
 const keyEl=s=>keysEl.querySelector(`[data-s="${s}"]`);
 
 function play(s,dur){
@@ -131,7 +152,7 @@ keysEl.addEventListener('pointerdown',e=>{down=true;press(hitAt(e))});
 keysEl.addEventListener('pointermove',e=>{if(down)press(hitAt(e))});
 const up=()=>{down=false;if(last)last.classList.remove('down');last=null};
 addEventListener('pointerup',up);addEventListener('pointercancel',up);
-addEventListener('keydown',e=>{if(e.target.tagName==='TEXTAREA'||e.repeat)return;const n=NOTES.find(x=>x.k===e.key.toLowerCase());if(n)play(n.s)});
+addEventListener('keydown',e=>{if(e.target.tagName==='TEXTAREA'||e.repeat)return;const i=PCKEYS.indexOf(e.key.toLowerCase());if(i>=0)play(oct*12+i)});
 
 // sample prep: trim silence, detect pitch
 function prep(raw){
@@ -213,6 +234,7 @@ function parse(txt){
     i+=m[0].length; let s=m[1];
     if(txt[i]==='#'||txt[i]==='♯'){s++;i++}
     if(txt[i]==='↑'||txt[i]==="'"){s+=12;i++}
+    else if(txt[i]==='↓'){s-=12;i++}
     else if(s===0&&prev!==null&&prev>=9)s=12;
     out.push({s,len:1}); prev=s%12===0&&s===12?12:s;
   }
