@@ -32,6 +32,7 @@ button{font-family:inherit;cursor:pointer}
 .pad.recording{background:var(--rec)!important;color:#fff}
 .pad .num{font-weight:800}
 .pad .pt{font-weight:700}
+.pad .nm{position:absolute;top:6px;left:8px;right:14px;font-size:9px;font-weight:800;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pad.arming{background:#ff9500!important;color:#000}
 .banks button{flex:1;position:relative;font-size:14px;letter-spacing:.1em}
 .banks button i{position:absolute;top:6px;right:8px;width:5px;height:5px;border-radius:50%}
@@ -100,6 +101,7 @@ input[type=range]{width:100%;accent-color:var(--acc);height:28px}
       </div>
       <div class="btns">
         <button id="loadBtn">音声ファイル読込</button>
+        <button id="drumBtn">ドラムキットをDに入れ直す</button>
         <button id="clearBtn" class="danger">消去</button>
       </div>
       <input type="file" id="file" accept="audio/*" class="hidden">
@@ -137,7 +139,7 @@ let copySrc = -1;
 let bpm = 100, swing = 0, playing = false, live = false;
 let curStep = 0, nextTime = 0, timer = null, schedQ = [];
 
-const pads = Array.from({length: N}, () => ({data: null, sr: 44100, buf: null, rbuf: null, pitch: 0, fine: 0, vol: 100, rev: false, mono: false, start: 0, end: 1000, voice: null}));
+const pads = Array.from({length: N}, () => ({name: '', data: null, sr: 44100, buf: null, rbuf: null, pitch: 0, fine: 0, vol: 100, rev: false, mono: false, start: 0, end: 1000, voice: null}));
 let steps = Array.from({length: N}, () => new Array(STEPS).fill(false));
 const color = i => `hsl(${(i * 37) % 360} 78% 62%)`;
 
@@ -211,9 +213,20 @@ async function ensureMic() {
     const d = ev.inputBuffer.getChannelData(0);
     let pk = 0; for (let k = 0; k < d.length; k += 4) { const a = Math.abs(d[k]); if (a > pk) pk = a; }
     recLevel = recLevel * 0.6 + pk * 0.4;
+    const dt = d.length / ctx.sampleRate;
     if (recPad >= 0) {
       recChunks.push(new Float32Array(d)); recLen += d.length;
-      if (recLen / ctx.sampleRate >= MAX_REC) finishRec();
+      if (pk > recPeak) recPeak = pk;
+      const silTh = Math.max(noiseFloor * 2.5, recPeak * 0.06, 0.012);
+      silentFor = pk < silTh ? silentFor + dt : 0;
+      if (silentFor >= SILENCE_STOP || recLen / ctx.sampleRate >= MAX_REC) finishRec();
+    } else if (recWant >= 0 && listening) {
+      // 待機中：直前の音を少し残しておき（アタックを逃さない）、音が出たら録音開始
+      preroll.push(new Float32Array(d)); if (preroll.length > 4) preroll.shift();
+      listenTime += dt;
+      if (listenTime < 0.2) { noiseFloor = Math.max(noiseFloor, pk); return; }
+      if (pk > Math.max(0.04, noiseFloor * 3)) beginRec(recWant);
+      else if (listenTime > 20) cancelRec('音が検出されなかったので中止しました');
     }
   };
   micSrc.connect(micProc); micProc.connect(ctx.destination);
@@ -228,30 +241,40 @@ function releaseMic() {
   if (had) resetCtx();
 }
 function stopMic() {
-  recWant = -1; clearArming();
-  if (recPad >= 0) finishRec(); else releaseMic();
+  if (recPad >= 0) finishRec(); else cancelRec();
 }
-let recWant = -1;
+let recWant = -1, listening = false, listenTime = 0, noiseFloor = 0, preroll = [], recPeak = 0, silentFor = 0;
+const SILENCE_STOP = 0.8; // 音が止んでからこの秒数で自動停止
 function clearArming() { padEls.forEach(e => e.classList.remove('arming')); }
 function startRec(i) {
-  recWant = i;
+  recWant = i; listening = false;
   const el = elOf(i); el && el.classList.add('arming');
-  hint('準備中… 赤くなったら録音開始');
-  if (micProc) { beginRec(i); return; }
+  hint('待機中… 音を出すと自動で録音（もう一度タップで中止）');
   ensureMic().then(ok => {
-    if (ok && recWant === i) beginRec(i);
-    else { clearArming(); if (ok) releaseMic(); else return; defaultHint(); }
+    if (!ok) { recWant = -1; clearArming(); return; }
+    if (recWant !== i) return;
+    listenTime = 0; noiseFloor = 0; preroll = []; listening = true;
+    meterLoop();
   });
+}
+function cancelRec(msg) {
+  recWant = -1; listening = false; preroll = [];
+  clearArming(); padEls.forEach(e => e.querySelector('.lv').style.height = '0');
+  releaseMic();
+  if (msg) hint(msg, true); else defaultHint();
 }
 function beginRec(i) {
   clearArming();
-  recPad = i; recChunks = []; recLen = 0;
+  listening = false;
+  recPad = i; recChunks = preroll; preroll = [];
+  recLen = recChunks.reduce((a, c) => a + c.length, 0);
+  recPeak = 0; silentFor = 0;
   const el = elOf(i); el && el.classList.add('recording');
-  hint('● 録音中… 指を離すと停止');
-  meterLoop();
+  hint('● 録音中… 音が止むと自動で停止（タップでも停止）');
 }
 function meterLoop() {
-  if (recPad < 0) return;
+  if (recPad < 0 && recWant < 0) return;
+  if (recPad < 0) { const el = elOf(recWant); if (el) el.querySelector('.lv').style.height = Math.min(100, recLevel * 140) + '%'; requestAnimationFrame(meterLoop); return; }
   const el = elOf(recPad); if (el) el.querySelector('.lv').style.height = Math.min(100, recLevel * 140) + '%';
   requestAnimationFrame(meterLoop);
 }
@@ -285,7 +308,7 @@ function trimNorm(d, sr) {
 }
 function setSample(i, data, sr) {
   const p = pads[i];
-  Object.assign(p, {data, sr, buf: null, rbuf: null, start: 0, end: 1000, rev: false});
+  Object.assign(p, {name: '', data, sr, buf: null, rbuf: null, start: 0, end: 1000, rev: false});
   savePad(i); select(i); renderPads();
 }
 
@@ -325,7 +348,7 @@ for (let r = 4; r >= 0; r--) for (let c = 0; c < 4; c++) rowOrder.push(r * 4 + c
 for (const k of rowOrder) {
   const el = document.createElement('div');
   el.className = 'pad';
-  el.innerHTML = `<div class="lv"></div><span class="seqdot"></span><span class="num"></span><span class="pt"></span>`;
+  el.innerHTML = `<div class="lv"></div><span class="nm"></span><span class="seqdot"></span><span class="num"></span><span class="pt"></span>`;
   el.addEventListener('pointerdown', ev => padDown(bank * PER + k, ev));
   el.addEventListener('pointerup', () => padUp(bank * PER + k));
   el.addEventListener('pointercancel', () => padUp(bank * PER + k));
@@ -351,15 +374,16 @@ function padDown(i, ev) {
   try { ev.target.closest('.pad').setPointerCapture(ev.pointerId); } catch (_) {}
   ensureCtx();
   if (copySrc >= 0) { doPaste(i); return; }
-  if (mode === 'rec') { select(i); startRec(i); return; }
+  if (mode === 'rec') {
+    if (recPad === i) { finishRec(); return; }          // 録音中にタップ → 停止
+    if (recWant === i) { cancelRec(); return; }          // 待機中にタップ → 中止
+    if (recPad >= 0) finishRec(); else if (recWant >= 0) cancelRec();
+    select(i); startRec(i); return;
+  }
   trigger(i); liveRecord(i);
   if (sel !== i) select(i);
 }
-function padUp(i) {
-  if (mode !== 'rec') return;
-  if (recPad === i) finishRec();
-  else if (recWant === i) { recWant = -1; clearArming(); defaultHint(); }
-}
+function padUp(i) {}
 function flash(i) { const el = elOf(i); if (!el) return; el.classList.add('hit'); setTimeout(() => el.classList.remove('hit'), 90); }
 function renderPads() {
   for (let k = 0; k < PER; k++) {
@@ -369,6 +393,7 @@ function renderPads() {
     el.classList.toggle('sel', i === sel);
     el.classList.toggle('hasseq', steps[i].some(Boolean));
     el.querySelector('.num').textContent = BANK_NAMES[bank] + (k + 1);
+    el.querySelector('.nm').textContent = p.data ? p.name || '' : '';
     el.querySelector('.pt').textContent = p.data && p.pitch ? (p.pitch > 0 ? '+' : '') + p.pitch : '';
   }
   [...bankEl.children].forEach((btn, b) => {
@@ -379,12 +404,12 @@ function renderPads() {
   });
 }
 function hint(t, warn) { hintEl.textContent = t; hintEl.classList.toggle('warn', !!warn); }
-function defaultHint() { hint(mode === 'rec' ? 'パッドを押している間だけ録音（最大20秒・無音は自動カット）' : 'パッドをタップで再生'); }
+function defaultHint() { hint(mode === 'rec' ? 'パッドをタップ → 音を出すと自動で録音・音が止むと自動で停止' : 'パッドをタップで再生'); }
 
 function select(i) {
   sel = i; const p = pads[i];
   $('selName').textContent = $('seqName').textContent = padName(i);
-  $('selInfo').textContent = p.data ? (p.data.length / p.sr).toFixed(2) + '秒' : '空';
+  $('selInfo').textContent = p.data ? (p.name ? p.name + ' · ' : '') + (p.data.length / p.sr).toFixed(2) + '秒' : '空';
   setCtl('pitch', p.pitch); setCtl('fine', p.fine); setCtl('vol', p.vol); setCtl('start', p.start); setCtl('end', p.end);
   $('revBtn').classList.toggle('on', p.rev); $('monoBtn').classList.toggle('on', p.mono);
   renderPads(); drawWave(); renderSteps();
@@ -420,7 +445,7 @@ function doPaste(i) {
   const s = copySrc; copySrc = -1; document.getElementById('app').classList.remove('paste');
   if (i === s) { defaultHint(); return; }
   const a = pads[s], b = pads[i];
-  Object.assign(b, {data: a.data, sr: a.sr, buf: a.buf, rbuf: a.rbuf, pitch: a.pitch, fine: a.fine, vol: a.vol, rev: a.rev, mono: a.mono, start: a.start, end: a.end});
+  Object.assign(b, {name: a.name, data: a.data, sr: a.sr, buf: a.buf, rbuf: a.rbuf, pitch: a.pitch, fine: a.fine, vol: a.vol, rev: a.rev, mono: a.mono, start: a.start, end: a.end});
   savePad(i); select(i); renderPads();
   hint(`${padName(s)} → ${padName(i)} にコピー。ピッチを変えて音階にできます`);
 }
@@ -428,8 +453,14 @@ $('clearBtn').onclick = () => {
   const p = pads[sel]; if (!p.data) return;
   if ($('clearBtn').dataset.arm !== '1') { $('clearBtn').dataset.arm = '1'; $('clearBtn').textContent = 'もう一度で消去'; setTimeout(() => { $('clearBtn').dataset.arm = ''; $('clearBtn').textContent = '消去'; }, 2000); return; }
   $('clearBtn').dataset.arm = ''; $('clearBtn').textContent = '消去';
-  Object.assign(p, {data: null, buf: null, rbuf: null, pitch: 0, fine: 0, vol: 100, rev: false, mono: false, start: 0, end: 1000});
+  Object.assign(p, {name: '', data: null, buf: null, rbuf: null, pitch: 0, fine: 0, vol: 100, rev: false, mono: false, start: 0, end: 1000});
   savePad(sel); select(sel);
+};
+$('drumBtn').onclick = () => {
+  const b = $('drumBtn');
+  if (b.dataset.arm !== '1') { b.dataset.arm = '1'; b.textContent = 'Dを上書きします。もう一度タップ'; setTimeout(() => { b.dataset.arm = ''; b.textContent = 'ドラムキットをDに入れ直す'; }, 2500); return; }
+  b.dataset.arm = ''; b.textContent = 'ドラムキットをDに入れ直す';
+  installDrums(); setBank(3); hint('バンクDにドラムキットを入れました');
 };
 $('loadBtn').onclick = () => { ensureCtx(); $('file').click(); };
 $('file').onchange = async e => {
@@ -501,6 +532,84 @@ function drawWave() {
 }
 window.addEventListener('resize', drawWave);
 
+// ---------- ドラムキット（その場で合成、バンクD） ----------
+const DRUM_SR = 44100;
+function synthDrums() {
+  const sr = DRUM_SR, TAU = Math.PI * 2;
+  const buf = sec => new Float32Array(Math.floor(sr * sec));
+  const noise = () => Math.random() * 2 - 1;
+  function biquad(x, type, f, q = 0.707) {
+    const w = TAU * f / sr, c = Math.cos(w), al = Math.sin(w) / (2 * q);
+    let b0, b1, b2;
+    if (type === 'lp') { b0 = (1 - c) / 2; b1 = 1 - c; b2 = b0; }
+    else if (type === 'hp') { b0 = (1 + c) / 2; b1 = -(1 + c); b2 = b0; }
+    else { b0 = al; b1 = 0; b2 = -al; }
+    const a0 = 1 + al, a1 = -2 * c, a2 = 1 - al;
+    let x1 = 0, x2 = 0, y1 = 0, y2 = 0; const y = new Float32Array(x.length);
+    for (let n = 0; n < x.length; n++) {
+      const v = (b0 * x[n] + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2) / a0;
+      x2 = x1; x1 = x[n]; y2 = y1; y1 = v; y[n] = v;
+    }
+    return y;
+  }
+  const env = (t, d) => Math.exp(-t / d);
+  function finish(x) {
+    let pk = 0; for (const v of x) pk = Math.max(pk, Math.abs(v));
+    const g = pk ? 0.9 / pk : 1, f = Math.min(400, x.length >> 2);
+    for (let n = 0; n < x.length; n++) { x[n] *= g; if (n >= x.length - f) x[n] *= (x.length - n) / f; }
+    return x;
+  }
+  function sweepSine(sec, f0, f1, sweepT, decay, drive = 1) {
+    const x = buf(sec); let ph = 0;
+    for (let n = 0; n < x.length; n++) {
+      const t = n / sr, f = f1 + (f0 - f1) * Math.exp(-t / sweepT);
+      ph += TAU * f / sr; x[n] = Math.tanh(Math.sin(ph) * drive) * env(t, decay);
+    }
+    return x;
+  }
+  function metal(sec) { // 808風の金属音（6つの矩形波）
+    const fr = [205.3, 304.4, 369.6, 522.7, 540, 800], x = buf(sec);
+    for (let n = 0; n < x.length; n++) { const t = n / sr; let v = 0; for (const f of fr) v += Math.sign(Math.sin(TAU * f * t)); x[n] = v / 6; }
+    return x;
+  }
+  const mix = (...arr) => { const L = Math.max(...arr.map(a => a.length)), y = new Float32Array(L); for (const a of arr) for (let n = 0; n < a.length; n++) y[n] += a[n]; return y; };
+  const shape = (x, fn) => { for (let n = 0; n < x.length; n++) x[n] *= fn(n / sr); return x; };
+  const noiseBuf = sec => { const x = buf(sec); for (let n = 0; n < x.length; n++) x[n] = noise(); return x; };
+
+  const kick = () => { const k = sweepSine(0.6, 160, 48, 0.035, 0.18, 1.6); for (let n = 0; n < 200; n++) k[n] += noise() * (1 - n / 200) * 0.5; return k; };
+  const k808 = () => sweepSine(1.4, 120, 45, 0.05, 0.55, 2.2);
+  const snare = (tone, nd, hp) => mix(shape(mix(sweepSine(0.3, tone * 1.4, tone, 0.01, 0.06), sweepSine(0.3, tone * 2.6, tone * 1.8, 0.01, 0.04)), () => 0.6),
+    shape(biquad(noiseBuf(0.35), 'hp', hp), t => env(t, nd)));
+  const clap = () => shape(biquad(noiseBuf(0.4), 'bp', 1200, 1.2), t => (t < 0.03 ? env(t % 0.01, 0.003) : env(t - 0.03, 0.09)));
+  const hat = d => shape(biquad(biquad(metal(d * 6), 'hp', 7000), 'hp', 7000), t => env(t, d));
+  const tom = f => mix(sweepSine(0.7, f * 1.6, f, 0.04, 0.22), shape(biquad(noiseBuf(0.1), 'lp', 2000), t => env(t, 0.01) * 0.3));
+  const cym = (d, f, q) => mix(shape(biquad(metal(d * 4), 'hp', f), t => env(t, d)), shape(biquad(noiseBuf(d * 4), 'bp', f * 1.2, q), t => env(t, d * 0.8) * 0.6));
+  const ride = () => mix(cym(0.9, 5000, 1), shape(mix(sweepSine(2, 3200, 3200, 1, 0.5), sweepSine(2, 4700, 4700, 1, 0.4)), () => 0.15));
+  const cowbell = () => { const x = buf(0.5); for (let n = 0; n < x.length; n++) { const t = n / sr; x[n] = (Math.sign(Math.sin(TAU * 540 * t)) + Math.sign(Math.sin(TAU * 800 * t))) * (t < 0.02 ? 1 : 0.6) * env(t, 0.12); } return biquad(x, 'bp', 800, 1.5); };
+  const clave = () => sweepSine(0.15, 2500, 2500, 1, 0.025);
+  const rim = () => mix(sweepSine(0.1, 1700, 1700, 1, 0.012), shape(biquad(noiseBuf(0.1), 'bp', 3000, 2), t => env(t, 0.008)));
+  const shaker = () => shape(biquad(noiseBuf(0.2), 'hp', 6000), t => Math.min(1, t / 0.02) * env(t, 0.05));
+  const conga = f => sweepSine(0.5, f * 1.15, f, 0.01, 0.12);
+  const zap = () => sweepSine(0.35, 2500, 90, 0.05, 0.12);
+  const bass = () => sweepSine(1.8, 65.4 * 1.5, 65.4, 0.01, 0.6, 1.8); // C2 → ピッチで音階に
+
+  return [
+    ['KICK', kick()], ['808 KICK', k808()], ['SNARE', snare(185, 0.13, 1500)], ['CLAP', clap()],
+    ['HH CLOSE', hat(0.045)], ['HH OPEN', hat(0.3)], ['RIM', rim()], ['SNARE 2', snare(260, 0.08, 3000)],
+    ['TOM LOW', tom(85)], ['TOM MID', tom(125)], ['TOM HI', tom(175)], ['CRASH', cym(1.3, 4000, 0.8)],
+    ['RIDE', ride()], ['COWBELL', cowbell()], ['CLAVE', clave()], ['SHAKER', shaker()],
+    ['CONGA LO', conga(190)], ['CONGA HI', conga(290)], ['ZAP', zap()], ['808 BASS', bass()],
+  ].map(([name, x]) => [name, finish(x)]);
+}
+function installDrums() {
+  synthDrums().forEach(([name, data], k) => {
+    const g = 3 * PER + k;
+    Object.assign(pads[g], {name, data, sr: DRUM_SR, buf: null, rbuf: null, pitch: 0, fine: 0, vol: 100, rev: false, mono: k === 4 || k === 5, start: 0, end: 1000});
+    savePad(g);
+  });
+  try { localStorage.setItem('arch-sampler-drums', '1'); } catch (_) {}
+}
+
 // ---------- persistence (IndexedDB, optional) ----------
 let db = null; const saveTimers = {};
 function openDB() {
@@ -511,7 +620,7 @@ function openDB() {
 }
 function put(k, v) { try { db && db.transaction('kv', 'readwrite').objectStore('kv').put(v, k); } catch (_) {} }
 function get(k) { return new Promise(res => { try { const r = db.transaction('kv').objectStore('kv').get(k); r.onsuccess = () => res(r.result); r.onerror = () => res(null); } catch (_) { res(null); } }); }
-function savePad(i) { const p = pads[i]; put('pad' + i, {data: p.data, sr: p.sr, pitch: p.pitch, fine: p.fine, vol: p.vol, rev: p.rev, mono: p.mono, start: p.start, end: p.end}); }
+function savePad(i) { const p = pads[i]; put('pad' + i, {name: p.name || '', data: p.data, sr: p.sr, pitch: p.pitch, fine: p.fine, vol: p.vol, rev: p.rev, mono: p.mono, start: p.start, end: p.end}); }
 function savePadSoon(i) { clearTimeout(saveTimers[i]); saveTimers[i] = setTimeout(() => savePad(i), 400); }
 function saveSeq() { put('seq', {steps, bpm, swing}); }
 async function load() {
@@ -522,7 +631,11 @@ async function load() {
 }
 
 try { const b = +localStorage.getItem('arch-sampler-bank'); if (b >= 0 && b < BANKS) bank = b; } catch (_) {}
-load().then(() => { select(bank * PER); renderPads(); });
+load().then(() => {
+  let done = false; try { done = localStorage.getItem('arch-sampler-drums') === '1'; } catch (_) {}
+  if (!done && !pads.slice(3 * PER).some(p => p.data)) installDrums();
+  select(bank * PER); renderPads();
+});
 select(bank * PER);
 })();
 </script>
