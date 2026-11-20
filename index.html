@@ -8,7 +8,7 @@
 <title>ARCH SAMPLER</title>
 <style>
 :root{--bg:#0d0e10;--panel:#16181b;--line:#2a2d32;--text:#ececec;--dim:#8a8f98;--rec:#ff3b30;--acc:#ffb020}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+*{box-sizing:border-box;touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;min-height:100%;overscroll-behavior:none}
 body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
 .app{max-width:560px;margin:0 auto;padding:10px;display:flex;flex-direction:column;gap:10px}
@@ -24,6 +24,7 @@ button{font-family:inherit;cursor:pointer}
 .play.on{background:var(--acc);color:#000;border-color:var(--acc)}
 .hint{font-size:12px;color:var(--dim);min-height:17px;padding:0 2px}
 .hint.warn{color:var(--acc)}
+.pads,.pads *{touch-action:none!important}
 .pads{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;touch-action:none}
 .pad{position:relative;aspect-ratio:1/1;border-radius:12px;background:#1b1e22;border:1px solid var(--line);box-shadow:inset 0 -4px 0 rgba(0,0,0,.35);display:flex;align-items:flex-end;justify-content:space-between;padding:6px 8px;font-size:11px;color:#5b6068;transition:transform .04s,filter .04s;touch-action:none;overflow:hidden}
 .pad.has{background:var(--c);color:rgba(0,0,0,.72);border-color:transparent}
@@ -631,6 +632,16 @@ async function load() {
 }
 
 try { const b = +localStorage.getItem('arch-sampler-bank'); if (b >= 0 && b < BANKS) bank = b; } catch (_) {}
+// iPad/iPhoneのダブルタップ拡大・ピンチ拡大を防ぐ
+let lastTouchEnd = 0;
+document.addEventListener('touchend', e => {
+  const now = Date.now();
+  if (e.target.closest('.pad')) e.preventDefault();                       // パッドはpointerdownで鳴らすのでOK
+  else if (now - lastTouchEnd < 350 && !e.target.closest('input')) { e.preventDefault(); e.target.click && e.target.closest('button') && e.target.closest('button').click(); }
+  lastTouchEnd = now;
+}, {passive: false});
+document.addEventListener('dblclick', e => e.preventDefault(), {passive: false});
+['gesturestart', 'gesturechange'].forEach(t => document.addEventListener(t, e => e.preventDefault(), {passive: false}));
 load().then(() => {
   let done = false; try { done = localStorage.getItem('arch-sampler-drums') === '1'; } catch (_) {}
   if (!done && !pads.slice(3 * PER).some(p => p.data)) installDrums();
