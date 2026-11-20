@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>いま話題サーチ</title>
+<style>
+  :root{--bg:#0e0f12;--card:#17191e;--line:#262a31;--text:#eceef2;--sub:#8b919c;--accent:#ff5a36;--chip:#20232a}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;-webkit-font-smoothing:antialiased}
+  header{position:sticky;top:0;z-index:5;background:rgba(14,15,18,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:14px 16px 10px}
+  h1{margin:0 0 10px;font-size:20px;letter-spacing:.02em}
+  h1 span{color:var(--accent)}
+  .searchbar{display:flex;gap:8px}
+  .searchbar input{flex:1;min-width:0;background:var(--card);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:10px 12px;font-size:16px}
+  .searchbar button{background:var(--accent);border:0;color:#fff;font-weight:700;border-radius:10px;padding:0 14px;font-size:15px}
+  .tabs{display:flex;gap:6px;overflow-x:auto;margin-top:10px;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{flex:none;background:var(--chip);border:1px solid var(--line);color:var(--sub);border-radius:999px;padding:6px 12px;font-size:13px}
+  .tab.on{background:var(--text);color:var(--bg);border-color:var(--text);font-weight:700}
+  main{padding:12px 16px 80px;max-width:760px;margin:0 auto}
+  .meta{display:flex;justify-content:space-between;align-items:center;color:var(--sub);font-size:12px;margin:4px 0 10px}
+  .meta button{background:none;border:1px solid var(--line);color:var(--text);border-radius:8px;padding:5px 10px;font-size:12px}
+  section{margin-bottom:22px}
+  section h2{font-size:14px;margin:0 0 8px;display:flex;align-items:center;gap:8px}
+  section h2 small{color:var(--sub);font-weight:400}
+  ol{list-style:none;margin:0;padding:0;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  li{display:flex;align-items:center;gap:10px;padding:11px 12px;border-top:1px solid var(--line);cursor:pointer}
+  li:first-child{border-top:0}
+  li:active{background:#1f2228}
+  .rank{width:24px;text-align:right;color:var(--sub);font-variant-numeric:tabular-nums;font-size:13px;flex:none}
+  li:nth-child(-n+3) .rank{color:var(--accent);font-weight:800}
+  .body{flex:1;min-width:0}
+  .title{font-size:15px;line-height:1.35;word-break:break-word}
+  .sub{color:var(--sub);font-size:12px;margin-top:2px}
+  .src{font-size:10px;color:var(--sub);border:1px solid var(--line);border-radius:4px;padding:1px 5px;flex:none}
+  .msg{color:var(--sub);font-size:13px;padding:14px;background:var(--card);border:1px solid var(--line);border-radius:12px}
+  .links{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .links a{display:block;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;color:var(--text);text-decoration:none;font-size:14px}
+  .links a small{display:block;color:var(--sub);font-size:11px;margin-top:2px}
+  /* sheet */
+  .sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;z-index:10}
+  .sheet{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-radius:16px 16px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .2s;z-index:11;max-width:760px;margin:0 auto}
+  .sheet.on{transform:none}
+  .sheet h3{margin:0 0 12px;font-size:16px;word-break:break-word}
+  .sheet .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .sheet a{display:block;text-align:center;background:var(--chip);border:1px solid var(--line);border-radius:10px;padding:12px 6px;color:var(--text);text-decoration:none;font-size:14px}
+  .sheet .close{width:100%;margin-top:10px;background:none;border:1px solid var(--line);color:var(--sub);border-radius:10px;padding:10px;font-size:14px}
+</style>
+</head>
+<body>
+<header>
+  <h1>いま<span>話題</span>サーチ</h1>
+  <form class="searchbar" id="searchForm">
+    <input id="q" type="search" placeholder="キーワードで検索" autocomplete="off">
+    <button type="submit">検索</button>
+  </form>
+  <div class="tabs" id="tabs">
+    <button class="tab on" data-f="all">総合</button>
+    <button class="tab" data-f="wiki">Wikipedia</button>
+    <button class="tab" data-f="bsky">Bluesky</button>
+    <button class="tab" data-f="hatena">はてブ</button>
+    <button class="tab" data-f="hn">海外テック</button>
+    <button class="tab" data-f="links">外部トレンド</button>
+  </div>
+</header>
+
+<main>
+  <div class="meta"><span id="updated">読み込み中…</span><button id="reload">↻ 更新</button></div>
+  <div id="content"></div>
+</main>
+
+<div class="sheet-bg" id="sheetBg"></div>
+<div class="sheet" id="sheet">
+  <h3 id="sheetTitle"></h3>
+  <div class="grid" id="sheetLinks"></div>
+  <button class="close" id="sheetClose">閉じる</button>
+</div>
+
+<script>
+const SOURCES = {
+  wiki:   {name:"Wikipedia 日本語版 閲覧数", note:"昨日いちばん読まれた記事"},
+  bsky:   {name:"Bluesky トレンド", note:"いま投稿が急増中"},
+  hatena: {name:"はてなブックマーク 総合", note:"人気エントリー"},
+  hn:     {name:"Hacker News", note:"海外テック界隈の話題"},
+};
+const data = {wiki:null,bsky:null,hatena:null,hn:null};
+let filter = "all";
+
+const enc = encodeURIComponent;
+const SEARCHES = [
+  ["Google", q=>`https://www.google.com/search?q=${enc(q)}`],
+  ["Googleニュース", q=>`https://news.google.com/search?q=${enc(q)}&hl=ja&gl=JP&ceid=JP:ja`],
+  ["X（最新）", q=>`https://x.com/search?q=${enc(q)}&f=live`],
+  ["Yahoo!リアルタイム", q=>`https://search.yahoo.co.jp/realtime/search?p=${enc(q)}`],
+  ["YouTube", q=>`https://www.youtube.com/results?search_query=${enc(q)}`],
+  ["Wikipedia", q=>`https://ja.wikipedia.org/w/index.php?search=${enc(q)}`],
+];
+
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function num(n){return n>=10000?(n/10000).toFixed(1)+"万":n.toLocaleString()}
+
+async function getJSON(url, ms=10000){
+  const c = new AbortController(); const t=setTimeout(()=>c.abort(),ms);
+  try{const r=await fetch(url,{signal:c.signal}); if(!r.ok) throw new Error(r.status); return await r.json();}
+  finally{clearTimeout(t)}
+}
+
+/* ---- Wikipedia（昨日→一昨日の順に試す） ---- */
+const WIKI_SKIP = /^(メインページ|特別:|Wikipedia:|ファイル:|Help:|ヘルプ:|Portal:|-$)/;
+async function loadWiki(){
+  for(let back=1; back<=3; back++){
+    const d=new Date(Date.now()-back*86400000);
+    const y=d.getUTCFullYear(), m=String(d.getUTCMonth()+1).padStart(2,"0"), dd=String(d.getUTCDate()).padStart(2,"0");
+    try{
+      const j=await getJSON(`https://wikimedia.org/api/rest_v1/metrics/pageviews/top/ja.wikipedia.org/all-access/${y}/${m}/${dd}`);
+      const arts=j.items[0].articles.filter(a=>!WIKI_SKIP.test(a.article)).slice(0,20);
+      return {when:`${+m}/${+dd}`, items:arts.map(a=>({
+        title:a.article.replace(/_/g," "), sub:`${num(a.views)} 閲覧`,
+        url:`https://ja.wikipedia.org/wiki/${enc(a.article)}`}))};
+    }catch(e){}
+  }
+  throw new Error("取得できませんでした");
+}
+
+/* ---- Bluesky ---- */
+async function loadBsky(){
+  try{
+    const j=await getJSON("https://public.api.bsky.app/xrpc/app.bsky.unspecced.getTrends?limit=20");
+    return {items:j.trends.map(t=>({title:t.displayName||t.topic,
+      sub:[t.postCount?`${num(t.postCount)} 投稿`:"", t.status==="hot"?"🔥急上昇":""].filter(Boolean).join(" ・ "),
+      url:"https://bsky.app"+t.link}))};
+  }catch(e){
+    const j=await getJSON("https://public.api.bsky.app/xrpc/app.bsky.unspecced.getTrendingTopics?limit=20");
+    return {items:j.topics.map(t=>({title:t.displayName||t.topic, sub:"", url:"https://bsky.app"+t.link}))};
+  }
+}
+
+/* ---- はてなブックマーク（RSSを中継サービス経由で取得。失敗することあり） ---- */
+async function loadHatena(){
+  const rss="https://b.hatena.ne.jp/hotentry/all.rss";
+  const proxies=[u=>`https://api.allorigins.win/raw?url=${enc(u)}`, u=>`https://corsproxy.io/?url=${enc(u)}`];
+  for(const p of proxies){
+    try{
+      const c=new AbortController(); const t=setTimeout(()=>c.abort(),10000);
+      const r=await fetch(p(rss),{signal:c.signal}); clearTimeout(t);
+      if(!r.ok) continue;
+      const xml=new DOMParser().parseFromString(await r.text(),"text/xml");
+      const items=[...xml.getElementsByTagName("item")].slice(0,20).map(it=>{
+        const g=n=>(it.getElementsByTagName(n)[0]||{}).textContent||"";
+        const users=g("hatena:bookmarkcount");
+        let host=""; try{host=new URL(g("link")).hostname}catch(e){}
+        return {title:g("title"), sub:[users?`${users} users`:"",host].filter(Boolean).join(" ・ "), url:g("link")};
+      });
+      if(items.length) return {items};
+    }catch(e){}
+  }
+  throw new Error("中継サービスに接続できませんでした");
+}
+
+/* ---- Hacker News ---- */
+async function loadHN(){
+  const j=await getJSON("https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=20");
+  return {items:j.hits.sort((a,b)=>b.points-a.points).map(h=>({title:h.title,
+    sub:`${h.points} pt ・ ${h.num_comments||0} コメント`,
+    url:h.url||`https://news.ycombinator.com/item?id=${h.objectID}`}))};
+}
+
+const LOADERS={wiki:loadWiki,bsky:loadBsky,hatena:loadHatena,hn:loadHN};
+
+function listHTML(key,items,limit){
+  return `<ol>${items.slice(0,limit).map((it,i)=>`
+    <li data-src="${key}" data-i="${i}">
+      <span class="rank">${i+1}</span>
+      <div class="body"><div class="title">${esc(it.title)}</div>${it.sub?`<div class="sub">${esc(it.sub)}</div>`:""}</div>
+    </li>`).join("")}</ol>`;
+}
+
+function sectionHTML(key,limit){
+  const s=SOURCES[key], d=data[key];
+  const when = d&&d.when ? `（${d.when}）` : "";
+  let inner;
+  if(d===null) inner=`<div class="msg">読み込み中…</div>`;
+  else if(d.error) inner=`<div class="msg">⚠️ ${esc(d.error)}</div>`;
+  else inner=listHTML(key,d.items,limit);
+  return `<section><h2>${s.name}<small>${s.note}${when}</small></h2>${inner}</section>`;
+}
+
+function linksHTML(){
+  const L=[
+    ["Googleトレンド","日本の急上昇ワード","https://trends.google.co.jp/trending?geo=JP"],
+    ["Yahoo!リアルタイム検索","Xで盛り上がり中","https://search.yahoo.co.jp/realtime"],
+    ["X トレンド","日本のトレンド","https://x.com/explore/tabs/trending"],
+    ["YouTube 急上昇","話題の動画","https://www.youtube.com/feed/trending"],
+    ["Yahoo!ニュース","アクセスランキング","https://news.yahoo.co.jp/ranking/access/news"],
+    ["TikTok トレンド","Creative Center","https://ads.tiktok.com/business/creativecenter/inspiration/popular/hashtag/pc/ja"],
+  ];
+  return `<section><h2>外部のトレンドページ<small>アプリ内で取得できないもの</small></h2>
+    <div class="links">${L.map(([t,s,u])=>`<a href="${u}" target="_blank" rel="noopener">${t}<small>${s}</small></a>`).join("")}</div></section>`;
+}
+
+function render(){
+  const el=document.getElementById("content");
+  if(filter==="links"){el.innerHTML=linksHTML();return;}
+  if(filter==="all"){
+    el.innerHTML=["wiki","bsky","hatena","hn"].map(k=>sectionHTML(k,10)).join("")+linksHTML();
+  }else{
+    el.innerHTML=sectionHTML(filter,20);
+  }
+}
+
+async function loadAll(){
+  for(const k in data) data[k]=null;
+  document.getElementById("updated").textContent="読み込み中…";
+  render();
+  await Promise.all(Object.keys(LOADERS).map(async k=>{
+    try{data[k]=await LOADERS[k]()}catch(e){data[k]={error:e.message||"取得に失敗しました"}}
+    render();
+  }));
+  const n=new Date();
+  document.getElementById("updated").textContent=`最終更新 ${n.getHours()}:${String(n.getMinutes()).padStart(2,"0")}`;
+}
+
+/* ---- 検索シート ---- */
+function openSheet(q, originUrl){
+  document.getElementById("sheetTitle").textContent=q;
+  const links=SEARCHES.map(([n,f])=>[n,f(q)]);
+  if(originUrl) links.unshift(["元のページ",originUrl]);
+  document.getElementById("sheetLinks").innerHTML=links.map(([n,u])=>`<a href="${esc(u)}" target="_blank" rel="noopener">${esc(n)}</a>`).join("");
+  document.getElementById("sheetBg").style.display="block";
+  requestAnimationFrame(()=>document.getElementById("sheet").classList.add("on"));
+}
+function closeSheet(){
+  document.getElementById("sheet").classList.remove("on");
+  document.getElementById("sheetBg").style.display="none";
+}
+
+document.getElementById("content").addEventListener("click",e=>{
+  const li=e.target.closest("li"); if(!li) return;
+  const it=data[li.dataset.src].items[+li.dataset.i];
+  openSheet(it.title,it.url);
+});
+document.getElementById("tabs").addEventListener("click",e=>{
+  const b=e.target.closest(".tab"); if(!b) return;
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t===b));
+  filter=b.dataset.f; render(); window.scrollTo(0,0);
+});
+document.getElementById("searchForm").addEventListener("submit",e=>{
+  e.preventDefault(); const q=document.getElementById("q").value.trim(); if(q) openSheet(q);
+});
+document.getElementById("sheetBg").onclick=closeSheet;
+document.getElementById("sheetClose").onclick=closeSheet;
+document.getElementById("reload").onclick=loadAll;
+
+loadAll();
+</script>
+</body>
+</html>
