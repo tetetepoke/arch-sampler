@@ -32,6 +32,10 @@ button{font-family:inherit;cursor:pointer}
 .pad.recording{background:var(--rec)!important;color:#fff}
 .pad .num{font-weight:800}
 .pad .pt{font-weight:700}
+.pad.arming{background:#ff9500!important;color:#000}
+.banks button{flex:1;position:relative;font-size:14px;letter-spacing:.1em}
+.banks button i{position:absolute;top:6px;right:8px;width:5px;height:5px;border-radius:50%}
+.banks button i.used{background:#8a8f98}.banks button i.seq{background:var(--acc)}
 .pad .seqdot{position:absolute;top:7px;right:7px;width:6px;height:6px;border-radius:50%;background:rgba(0,0,0,.55);display:none}
 .pad.hasseq .seqdot{display:block}
 .pad .lv{position:absolute;left:0;bottom:0;width:100%;height:0;background:rgba(255,255,255,.35);pointer-events:none}
@@ -63,7 +67,7 @@ input[type=range]{width:100%;accent-color:var(--acc);height:28px}
 <body>
 <div class="app" id="app">
   <header>
-    <h1>ARCH SAMPLER<small>20 PAD RHYTHM SAMPLER</small></h1>
+    <h1>ARCH SAMPLER<small>4 BANKS × 20 PADS</small></h1>
     <button class="play" id="playBtn" aria-label="再生">▶</button>
     <div class="seg" id="modeSeg">
       <button data-mode="play" class="on">PLAY</button>
@@ -71,6 +75,7 @@ input[type=range]{width:100%;accent-color:var(--acc);height:28px}
     </div>
   </header>
   <div class="hint" id="hint">パッドをタップで再生</div>
+  <div class="seg banks" id="banks"></div>
   <div class="pads" id="pads"></div>
 
   <section class="panel">
@@ -118,7 +123,10 @@ input[type=range]{width:100%;accent-color:var(--acc);height:28px}
 
 <script>
 (() => {
-const N = 20, STEPS = 16, MAX_REC = 20;
+const PER = 20, BANKS = 4, N = PER * BANKS, STEPS = 16, MAX_REC = 20, BANK_NAMES = 'ABCD';
+let bank = 0;
+const padName = g => 'PAD ' + BANK_NAMES[Math.floor(g / PER)] + (g % PER + 1);
+const elOf = g => (Math.floor(g / PER) === bank ? padEls[g % PER] : null);
 const $ = id => document.getElementById(id);
 const hintEl = $('hint');
 let ctx = null, master = null;
@@ -134,6 +142,18 @@ let steps = Array.from({length: N}, () => new Array(STEPS).fill(false));
 const color = i => `hsl(${(i * 37) % 360} 78% 62%)`;
 
 // ---------- audio ----------
+function setSession(type) { try { if (navigator.audioSession) navigator.audioSession.type = type; } catch (_) {} }
+function resetCtx() {
+  // iOSはマイク使用後に再生が通話用の小さい音量のまま戻らないことがあるので、AudioContextを作り直す
+  const wasPlaying = playing;
+  if (wasPlaying) togglePlay();
+  try { ctx && ctx.close(); } catch (_) {}
+  ctx = null; master = null;
+  pads.forEach(p => { p.buf = null; p.rbuf = null; p.voice = null; });
+  setSession('playback');
+  ensureCtx();
+  if (wasPlaying) togglePlay();
+}
 function ensureCtx() {
   if (!ctx) {
     ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -179,6 +199,7 @@ function trigger(i, when) {
 // ---------- mic / recording ----------
 async function ensureMic() {
   if (micProc) return true;
+  setSession('play-and-record');
   ensureCtx();
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { hint('このブラウザではマイクが使えません（https で開いてください）', true); return false; }
   try {
@@ -198,37 +219,55 @@ async function ensureMic() {
   micSrc.connect(micProc); micProc.connect(ctx.destination);
   return true;
 }
-function stopMic() {
-  if (recPad >= 0) finishRec();
+// マイクを閉じて再生用の音量に戻す
+function releaseMic() {
+  const had = !!micStream;
   try { micSrc && micSrc.disconnect(); micProc && micProc.disconnect(); } catch (_) {}
   if (micStream) micStream.getTracks().forEach(t => t.stop());
   micStream = micSrc = micProc = null;
+  if (had) resetCtx();
 }
+function stopMic() {
+  recWant = -1; clearArming();
+  if (recPad >= 0) finishRec(); else releaseMic();
+}
+let recWant = -1;
+function clearArming() { padEls.forEach(e => e.classList.remove('arming')); }
 function startRec(i) {
-  if (!micProc) { ensureMic().then(ok => ok && hint('準備OK。パッドを長押しで録音')); return; }
+  recWant = i;
+  const el = elOf(i); el && el.classList.add('arming');
+  hint('準備中… 赤くなったら録音開始');
+  if (micProc) { beginRec(i); return; }
+  ensureMic().then(ok => {
+    if (ok && recWant === i) beginRec(i);
+    else { clearArming(); if (ok) releaseMic(); else return; defaultHint(); }
+  });
+}
+function beginRec(i) {
+  clearArming();
   recPad = i; recChunks = []; recLen = 0;
-  padEls[i].classList.add('recording');
-  hint('録音中… 指を離すと停止');
+  const el = elOf(i); el && el.classList.add('recording');
+  hint('● 録音中… 指を離すと停止');
   meterLoop();
 }
 function meterLoop() {
   if (recPad < 0) return;
-  padEls[recPad].querySelector('.lv').style.height = Math.min(100, recLevel * 140) + '%';
+  const el = elOf(recPad); if (el) el.querySelector('.lv').style.height = Math.min(100, recLevel * 140) + '%';
   requestAnimationFrame(meterLoop);
 }
 function finishRec() {
   if (recPad < 0) return;
-  const i = recPad; recPad = -1;
-  padEls[i].classList.remove('recording');
-  padEls[i].querySelector('.lv').style.height = '0';
+  const i = recPad; recPad = -1; recWant = -1;
+  padEls.forEach(e => { e.classList.remove('recording'); e.querySelector('.lv').style.height = '0'; });
   const all = new Float32Array(recLen); let o = 0;
   for (const c of recChunks) { all.set(c, o); o += c.length; }
   recChunks = [];
   const sr = ctx.sampleRate;
+  releaseMic(); // 録音のたびにマイクを閉じる → 音量が小さくならない
   const data = trimNorm(all, sr);
   if (!data) { hint('音が小さすぎるか短すぎたので保存しませんでした', true); return; }
   setSample(i, data, sr);
-  hint(`PAD ${i + 1} に録音しました（${(data.length / sr).toFixed(2)}秒）`);
+  hint(`${padName(i)} に録音しました（${(data.length / sr).toFixed(2)}秒）`);
 }
 function trimNorm(d, sr) {
   let pk = 0; for (let k = 0; k < d.length; k++) { const a = Math.abs(d[k]); if (a > pk) pk = a; }
@@ -283,15 +322,29 @@ function liveRecord(i) {
 const padsEl = $('pads'); const padEls = [];
 const rowOrder = []; // display top row = pads 17-20 like MPC
 for (let r = 4; r >= 0; r--) for (let c = 0; c < 4; c++) rowOrder.push(r * 4 + c);
-for (const i of rowOrder) {
+for (const k of rowOrder) {
   const el = document.createElement('div');
-  el.className = 'pad'; el.style.setProperty('--c', color(i));
-  el.innerHTML = `<div class="lv"></div><span class="seqdot"></span><span class="num">${i + 1}</span><span class="pt"></span>`;
-  el.addEventListener('pointerdown', ev => padDown(i, ev));
-  el.addEventListener('pointerup', () => padUp(i));
-  el.addEventListener('pointercancel', () => padUp(i));
+  el.className = 'pad';
+  el.innerHTML = `<div class="lv"></div><span class="seqdot"></span><span class="num"></span><span class="pt"></span>`;
+  el.addEventListener('pointerdown', ev => padDown(bank * PER + k, ev));
+  el.addEventListener('pointerup', () => padUp(bank * PER + k));
+  el.addEventListener('pointercancel', () => padUp(bank * PER + k));
   el.addEventListener('contextmenu', e => e.preventDefault());
-  padsEl.appendChild(el); padEls[i] = el;
+  padsEl.appendChild(el); padEls[k] = el;
+}
+// バンク切替
+const bankEl = $('banks');
+for (let b = 0; b < BANKS; b++) {
+  const btn = document.createElement('button');
+  btn.innerHTML = `${BANK_NAMES[b]}<i></i>`;
+  btn.onclick = () => setBank(b);
+  bankEl.appendChild(btn);
+}
+function setBank(b) {
+  if (recPad >= 0 || recWant >= 0) return;
+  bank = b;
+  select(bank * PER + (sel % PER));
+  try { localStorage.setItem('arch-sampler-bank', b); } catch (_) {}
 }
 function padDown(i, ev) {
   ev.preventDefault();
@@ -302,23 +355,35 @@ function padDown(i, ev) {
   trigger(i); liveRecord(i);
   if (sel !== i) select(i);
 }
-function padUp(i) { if (mode === 'rec' && recPad === i) finishRec(); }
-function flash(i) { const el = padEls[i]; el.classList.add('hit'); setTimeout(() => el.classList.remove('hit'), 90); }
+function padUp(i) {
+  if (mode !== 'rec') return;
+  if (recPad === i) finishRec();
+  else if (recWant === i) { recWant = -1; clearArming(); defaultHint(); }
+}
+function flash(i) { const el = elOf(i); if (!el) return; el.classList.add('hit'); setTimeout(() => el.classList.remove('hit'), 90); }
 function renderPads() {
-  for (let i = 0; i < N; i++) {
-    const p = pads[i], el = padEls[i];
+  for (let k = 0; k < PER; k++) {
+    const i = bank * PER + k, p = pads[i], el = padEls[k];
+    el.style.setProperty('--c', color(i));
     el.classList.toggle('has', !!p.data);
     el.classList.toggle('sel', i === sel);
     el.classList.toggle('hasseq', steps[i].some(Boolean));
+    el.querySelector('.num').textContent = BANK_NAMES[bank] + (k + 1);
     el.querySelector('.pt').textContent = p.data && p.pitch ? (p.pitch > 0 ? '+' : '') + p.pitch : '';
   }
+  [...bankEl.children].forEach((btn, b) => {
+    btn.classList.toggle('on', b === bank);
+    const used = pads.slice(b * PER, b * PER + PER).some(p => p.data);
+    const seq = steps.slice(b * PER, b * PER + PER).some(r => r.some(Boolean));
+    btn.querySelector('i').className = seq ? 'seq' : used ? 'used' : '';
+  });
 }
 function hint(t, warn) { hintEl.textContent = t; hintEl.classList.toggle('warn', !!warn); }
 function defaultHint() { hint(mode === 'rec' ? 'パッドを押している間だけ録音（最大20秒・無音は自動カット）' : 'パッドをタップで再生'); }
 
 function select(i) {
   sel = i; const p = pads[i];
-  $('selName').textContent = $('seqName').textContent = 'PAD ' + (i + 1);
+  $('selName').textContent = $('seqName').textContent = padName(i);
   $('selInfo').textContent = p.data ? (p.data.length / p.sr).toFixed(2) + '秒' : '空';
   setCtl('pitch', p.pitch); setCtl('fine', p.fine); setCtl('vol', p.vol); setCtl('start', p.start); setCtl('end', p.end);
   $('revBtn').classList.toggle('on', p.rev); $('monoBtn').classList.toggle('on', p.mono);
@@ -349,7 +414,7 @@ $('monoBtn').onclick = () => { const p = pads[sel]; p.mono = !p.mono; $('monoBtn
 $('copyBtn').onclick = () => {
   if (!pads[sel].data) { hint('コピーする音がありません', true); return; }
   copySrc = sel; document.getElementById('app').classList.add('paste');
-  hint(`PAD ${sel + 1} のコピー先をタップ（同じパッドでキャンセル）`, true);
+  hint(`${padName(sel)} のコピー先をタップ（バンク切替OK・同じパッドでキャンセル）`, true);
 };
 function doPaste(i) {
   const s = copySrc; copySrc = -1; document.getElementById('app').classList.remove('paste');
@@ -357,7 +422,7 @@ function doPaste(i) {
   const a = pads[s], b = pads[i];
   Object.assign(b, {data: a.data, sr: a.sr, buf: a.buf, rbuf: a.rbuf, pitch: a.pitch, fine: a.fine, vol: a.vol, rev: a.rev, mono: a.mono, start: a.start, end: a.end});
   savePad(i); select(i); renderPads();
-  hint(`PAD ${s + 1} → PAD ${i + 1} にコピー。ピッチを変えて音階にできます`);
+  hint(`${padName(s)} → ${padName(i)} にコピー。ピッチを変えて音階にできます`);
 }
 $('clearBtn').onclick = () => {
   const p = pads[sel]; if (!p.data) return;
@@ -377,7 +442,7 @@ $('file').onchange = async e => {
     for (let c = 0; c < buf.numberOfChannels; c++) { const ch = buf.getChannelData(c); for (let k = 0; k < len; k++) d[k] += ch[k] / buf.numberOfChannels; }
     const out = trimNorm(d, buf.sampleRate) || d;
     setSample(sel, out, buf.sampleRate);
-    hint(`PAD ${sel + 1} に「${f.name}」を読み込みました`);
+    hint(`${padName(sel)} に「${f.name}」を読み込みました`);
   } catch (err) { hint('このファイルは読み込めませんでした', true); }
 };
 
@@ -388,7 +453,7 @@ $('modeSeg').onclick = async e => {
   [...$('modeSeg').children].forEach(x => x.classList.toggle('on', x === b));
   document.getElementById('app').classList.toggle('mode-rec', mode === 'rec');
   defaultHint();
-  if (mode === 'rec') { const ok = await ensureMic(); if (ok) defaultHint(); }
+  if (mode === 'rec') { const ok = await ensureMic(); if (ok) { releaseMic(); defaultHint(); } } // 許可だけ先に取ってすぐ閉じる
   else stopMic(); // マイクを閉じて再生音量を元に戻す
 };
 $('tabSeg').onclick = e => {
@@ -453,11 +518,12 @@ async function load() {
   await openDB(); if (!db) return;
   for (let i = 0; i < N; i++) { const v = await get('pad' + i); if (v) Object.assign(pads[i], v, {buf: null, rbuf: null}); }
   const s = await get('seq');
-  if (s) { if (s.steps) steps = s.steps; bpm = s.bpm || 100; swing = s.swing || 0; $('bpm').value = bpm; $('bpmO').textContent = bpm; $('swing').value = swing; $('swingO').textContent = swing + '%'; }
+  if (s) { if (s.steps) s.steps.forEach((r, i) => { if (i < N && Array.isArray(r)) steps[i] = r.slice(0, STEPS); }); bpm = s.bpm || 100; swing = s.swing || 0; $('bpm').value = bpm; $('bpmO').textContent = bpm; $('swing').value = swing; $('swingO').textContent = swing + '%'; }
 }
 
-load().then(() => { select(0); renderPads(); });
-select(0);
+try { const b = +localStorage.getItem('arch-sampler-bank'); if (b >= 0 && b < BANKS) bank = b; } catch (_) {}
+load().then(() => { select(bank * PER); renderPads(); });
+select(bank * PER);
 })();
 </script>
 </body>
