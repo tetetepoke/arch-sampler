@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ボイスピアノ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: 遊び心、でも道具としてきちんと
+   IDEA: 古いトイピアノ — 赤い筐体に白黒鍵
+   PICTURE: 鍵盤そのもの（大きく、押せる）
+   COLOUR and TYPE: 朱赤の筐体 #d8322b、象牙の鍵、黒鍵、アクセントに黄 #ffc83a / M PLUS Rounded 1c
+   LAYOUT: タイトル → 録音パネル → 鍵盤 → ドレミ入力 */
+:root{color-scheme:light dark;--bg:light-dark(#fff6ec,#1a1210);--ink:light-dark(#2a1712,#f6e9df);--body:#d8322b;--body2:#a8201b;--key:#fffaf0;--acc:#ffc83a;--mute:light-dark(#7a5a50,#c4a99d);--panel:light-dark(#ffffff,#2a1d19)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "M PLUS Rounded 1c",system-ui,sans-serif;overflow-x:clip}
+.wrap{max-width:900px;margin:0 auto;padding:clamp(20px,4vw,48px) max(4vw,14px)}
+h1{font-size:clamp(32px,6vw,48px);line-height:1.05;margin:0 0 6px;font-weight:800;text-wrap:balance}
+.lead{margin:0 0 22px;color:var(--mute)}
+.panel{background:var(--panel);border-radius:18px;padding:16px;margin-bottom:18px;box-shadow:0 2px 0 rgba(0,0,0,.06)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+button,.file{font:inherit;font-weight:800;min-height:44px;padding:0 18px;border-radius:999px;border:0;cursor:pointer;background:var(--ink);color:var(--bg);display:inline-flex;align-items:center;gap:8px}
+button:focus-visible,.file:focus-within,input:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+button.rec{background:var(--body);color:#fff}
+button.rec.on{animation:pulse 1s infinite}
+button.ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 2px currentColor}
+button:disabled{opacity:.4;cursor:default}
+.file input{position:absolute;opacity:0;width:1px;height:1px}
+.status{font-size:14px;color:var(--mute);margin-top:10px;min-height:1.5em}
+.status b{color:var(--ink)}
+canvas#wave{width:100%;height:56px;display:block;margin-top:10px;border-radius:10px;background:light-dark(#fbeee4,#22171a)}
+/* toy piano body */
+.piano{background:linear-gradient(180deg,var(--body),var(--body2));border-radius:22px;padding:22px 14px 16px;box-shadow:0 10px 0 #7d1612,0 18px 30px rgba(0,0,0,.18);margin-bottom:22px;position:relative}
+.piano .name{color:#fff;font-weight:800;font-size:14px;letter-spacing:.02em;margin:-8px 0 10px 6px;opacity:.9}
+.keys{position:relative;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:4px;height:clamp(180px,34vw,260px);user-select:none;-webkit-user-select:none;touch-action:none}
+.w{background:var(--key);border-radius:0 0 10px 10px;box-shadow:inset 0 -8px 0 #e8dccb;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding-bottom:12px;color:#2a1712;font-weight:800;font-size:clamp(14px,3vw,19px);cursor:pointer;transition:transform .05s}
+.w small{font-size:11px;font-weight:500;color:#9a7f72}
+.w.down{transform:translateY(3px);box-shadow:inset 0 -3px 0 #e8dccb;background:#fff1c7}
+.b{position:absolute;top:0;width:calc(100%/8*.6);height:58%;background:linear-gradient(#333,#111);border-radius:0 0 7px 7px;box-shadow:inset 0 -6px 0 #000;cursor:pointer;z-index:2}
+.b.down{background:#444;box-shadow:inset 0 -2px 0 #000}
+.w.hit,.b.hit{background:var(--acc)}
+/* sequence */
+label{font-weight:800;display:block;margin-bottom:6px}
+textarea{width:100%;font:inherit;font-size:18px;padding:12px;border-radius:12px;border:2px solid light-dark(#ecd8cc,#4a3530);background:var(--bg);color:var(--ink);resize:vertical;min-height:72px}
+.hint{font-size:13px;color:var(--mute);margin:8px 0 12px}
+.presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.presets button{min-height:36px;padding:0 14px;font-size:14px;background:light-dark(#fbeee4,#3a2824);color:var(--ink)}
+input[type=range]{accent-color:var(--body);width:160px}
+@keyframes pulse{50%{box-shadow:0 0 0 8px rgba(216,50,43,.25)}}
+@media(prefers-reduced-motion:reduce){button.rec.on{animation:none}.w{transition:none}}
+@media(max-width:600px){.hint{font-size:13px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>ボイスピアノ</h1>
+  <p class="lead">声をひと声録音すると、その声がドレミファソラシドになります。</p>
+
+  <div class="panel">
+    <div class="row">
+      <button id="rec" class="rec">● 録音する</button>
+      <label class="file">♪ 音声ファイルを選ぶ<input id="file" type="file" accept="audio/*"></label>
+      <button id="test" class="ghost" disabled>▶ 元の声</button>
+    </div>
+    <canvas id="wave"></canvas>
+    <div class="status" id="status">「あー」と1〜2秒、まっすぐな高さで声を出してください。録音するまでは仮の音で鳴ります。</div>
+  </div>
+
+  <div class="piano">
+    <div class="name">ARCH VOICE PIANO</div>
+    <div class="keys" id="keys"></div>
+  </div>
+
+  <div class="panel">
+    <label for="seq">ドレミを入力して演奏</label>
+    <div class="presets" id="presets"></div>
+    <textarea id="seq">ドレミファソラシド</textarea>
+    <p class="hint">「ー」でのばす・スペースや「、」で休み・シのあとのドは高いドになります（「ド↑」でも指定可）。♯は「ド#」のように。PCなら A S D F G H J K でも弾けます。</p>
+    <div class="row">
+      <button id="play">▶ 演奏</button>
+      <button id="stop" class="ghost">■ 止める</button>
+      <span>テンポ <input id="tempo" type="range" min="60" max="200" value="110"> <b id="bpm">110</b></span>
+    </div>
+  </div>
+</div>
+
+<script>
+{
+const NOTES=[
+ {n:'ド',k:'a',s:0},{n:'ド#',s:1,b:true},{n:'レ',k:'s',s:2},{n:'レ#',s:3,b:true},{n:'ミ',k:'d',s:4},
+ {n:'ファ',k:'f',s:5},{n:'ファ#',s:6,b:true},{n:'ソ',k:'g',s:7},{n:'ソ#',s:8,b:true},{n:'ラ',k:'h',s:9},
+ {n:'ラ#',s:10,b:true},{n:'シ',k:'j',s:11},{n:'ド↑',k:'k',s:12}];
+const C4=261.63, freq=s=>C4*2**(s/12);
+const NAMES=['ド','ド#','レ','レ#','ミ','ファ','ファ#','ソ','ソ#','ラ','ラ#','シ'];
+let ctx, buf=null, srcHz=C4, timers=[], recorder=null;
+const $=id=>document.getElementById(id);
+const status=t=>$('status').innerHTML=t;
+const ac=()=>{if(!ctx)ctx=new (window.AudioContext||window.webkitAudioContext)();if(ctx.state==='suspended')ctx.resume();return ctx};
+
+// keyboard
+const keysEl=$('keys');
+const whites=NOTES.filter(x=>!x.b);
+keysEl.innerHTML=whites.map(x=>`<div class="w" data-s="${x.s}">${x.n.replace('↑','')}<small>${x.k?x.k.toUpperCase():''}</small></div>`).join('')+
+ NOTES.filter(x=>x.b).map(x=>{const wi=whites.findIndex(w=>w.s===x.s-1)+1;return `<div class="b" data-s="${x.s}" style="left:calc(100%/8*${wi} - 100%/8*.3)"></div>`}).join('');
+const keyEl=s=>keysEl.querySelector(`[data-s="${s}"]`);
+
+function play(s,dur){
+  const c=ac(), t=c.currentTime, g=c.createGain(); g.connect(c.destination);
+  const len=dur||1.2;
+  if(buf){
+    const src=c.createBufferSource(); src.buffer=buf; src.playbackRate.value=freq(s)/srcHz;
+    src.connect(g); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(1,t+.01);
+    const end=Math.min(len,buf.duration/src.playbackRate.value);
+    g.gain.setValueAtTime(1,t+Math.max(.02,end-.08)); g.gain.linearRampToValueAtTime(0,t+end);
+    src.start(t); src.stop(t+end+.02);
+  }else{
+    const o=c.createOscillator(); o.type='triangle'; o.frequency.value=freq(s); o.connect(g);
+    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.4,t+.01); g.gain.exponentialRampToValueAtTime(.001,t+len);
+    o.start(t); o.stop(t+len);
+  }
+  const el=keyEl(s); if(el){el.classList.add('hit'); setTimeout(()=>el.classList.remove('hit'),Math.min(len*1000,350))}
+}
+
+// pointer play (glide across keys)
+let down=false,last=null;
+const hitAt=e=>{const el=document.elementFromPoint(e.clientX,e.clientY);return el&&el.closest('.w,.b')};
+const press=el=>{if(!el||el===last)return;if(last)last.classList.remove('down');last=el;el.classList.add('down');play(+el.dataset.s)};
+keysEl.addEventListener('pointerdown',e=>{down=true;press(hitAt(e))});
+keysEl.addEventListener('pointermove',e=>{if(down)press(hitAt(e))});
+const up=()=>{down=false;if(last)last.classList.remove('down');last=null};
+addEventListener('pointerup',up);addEventListener('pointercancel',up);
+addEventListener('keydown',e=>{if(e.target.tagName==='TEXTAREA'||e.repeat)return;const n=NOTES.find(x=>x.k===e.key.toLowerCase());if(n)play(n.s)});
+
+// sample prep: trim silence, detect pitch
+function prep(raw){
+  const d=raw.getChannelData(0), sr=raw.sampleRate;
+  let peak=0; for(let i=0;i<d.length;i++)peak=Math.max(peak,Math.abs(d[i]));
+  if(peak<.01) throw new Error('quiet');
+  const th=peak*.08; let a=0,b=d.length-1;
+  while(a<b&&Math.abs(d[a])<th)a++; while(b>a&&Math.abs(d[b])<th)b--;
+  a=Math.max(0,a-Math.floor(sr*.01)); b=Math.min(d.length,b+Math.floor(sr*.05));
+  const out=ac().createBuffer(1,b-a,sr), o=out.getChannelData(0), gain=.9/peak;
+  for(let i=0;i<b-a;i++)o[i]=d[a+i]*gain;
+  return out;
+}
+function detect(b){
+  const d=b.getChannelData(0), sr=b.sampleRate, N=2048;
+  if(d.length<N*2)return null;
+  const hz=[];
+  for(let st=Math.floor(d.length*.2);st+N<d.length*.8;st+=N/2){
+    const minL=Math.floor(sr/1000), maxL=Math.floor(sr/70);
+    let best=0,bl=-1,r0=0; for(let i=0;i<N;i++)r0+=d[st+i]*d[st+i];
+    if(r0<1e-3)continue;
+    const r=new Float32Array(maxL+2);
+    for(let l=minL;l<=maxL+1;l++){let s=0;for(let i=0;i<N-l;i++)s+=d[st+i]*d[st+i+l];r[l]=s/r0}
+    for(let l=minL+1;l<=maxL;l++)if(r[l]>r[l-1]&&r[l]>=r[l+1]&&r[l]>best){best=r[l];bl=l}
+    // prefer first strong peak (avoid octave errors)
+    for(let l=minL+1;l<=maxL;l++)if(r[l]>r[l-1]&&r[l]>=r[l+1]&&r[l]>best*.9){bl=l;break}
+    if(bl>0&&best>.5){const y0=r[bl-1],y1=r[bl],y2=r[bl+1],p=(y0-y2)/(2*(y0-2*y1+y2))||0;hz.push(sr/(bl+p))}
+  }
+  if(!hz.length)return null; hz.sort((x,y)=>x-y); return hz[Math.floor(hz.length/2)];
+}
+function drawWave(b){
+  const cv=$('wave'),W=cv.clientWidth*devicePixelRatio,H=cv.clientHeight*devicePixelRatio;cv.width=W;cv.height=H;
+  const g=cv.getContext('2d'),d=b.getChannelData(0),step=Math.ceil(d.length/W);
+  g.fillStyle='#d8322b';
+  for(let x=0;x<W;x++){let m=0;for(let i=0;i<step;i++)m=Math.max(m,Math.abs(d[x*step+i]||0));const h=Math.max(1,m*H*.9);g.fillRect(x,(H-h)/2,1,h)}
+}
+async function load(arr){
+  try{
+    const raw=await ac().decodeAudioData(arr);
+    buf=prep(raw); const hz=detect(buf);
+    srcHz=hz||C4; drawWave(buf); $('test').disabled=false;
+    if(hz){const m=Math.round(12*Math.log2(hz/C4)),nm=NAMES[((m%12)+12)%12],oct=4+Math.floor(m/12);
+      status(`準備OK。あなたの声は約 <b>${Math.round(hz)}Hz（${nm}・第${oct}オクターブ付近）</b>。鍵盤を押すと正しい音程に合わせて鳴ります。`)}
+    else status('準備OK。音程がうまく測れなかったので、録音した声を「ド」として扱います。まっすぐな「あー」で録り直すと正確になります。');
+  }catch(e){status(e.message==='quiet'?'音が小さすぎました。もう少し大きな声で録り直してください。':'この音声は読み込めませんでした。別の形式で試してください。')}
+}
+
+// recording
+$('rec').onclick=async()=>{
+  ac();
+  if(recorder&&recorder.state==='recording'){recorder.stop();return}
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+    const chunks=[]; recorder=new MediaRecorder(stream);
+    recorder.ondataavailable=e=>chunks.push(e.data);
+    recorder.onstop=async()=>{stream.getTracks().forEach(t=>t.stop());$('rec').classList.remove('on');$('rec').textContent='● 録り直す';
+      status('解析中…');load(await new Blob(chunks).arrayBuffer())};
+    recorder.start(); $('rec').classList.add('on'); $('rec').textContent='■ 録音を止める';
+    status('録音中…「あー」と声を出して、止めるを押してください。');
+    setTimeout(()=>{if(recorder.state==='recording')recorder.stop()},4000);
+  }catch(e){status('この画面ではマイクが使えません。スマホのボイスメモ等で「あー」を録音し、<b>「音声ファイルを選ぶ」</b>から読み込んでください。')}
+};
+$('file').onchange=async e=>{const f=e.target.files[0];if(!f)return;status('解析中…');load(await f.arrayBuffer())};
+$('test').onclick=()=>{const c=ac(),s=c.createBufferSource();s.buffer=buf;s.connect(c.destination);s.start()};
+
+// sequence
+const PRESETS=[['ドレミ','ドレミファソラシド'],['かえるのうた','ドレミファミレド　ミファソラソファミ　ドー　ドー　ドー　ドー　ドドレレミミファファミーレードー'],['きらきら星','ドドソソララソー　ファファミミレレドー　ソソファファミミレー　ソソファファミミレー　ドドソソララソー　ファファミミレレドー'],['チューリップ','ドレミー　ドレミー　ソミレドレミレー']];
+$('presets').innerHTML=PRESETS.map((p,i)=>`<button data-i="${i}">${p[0]}</button>`).join('');
+$('presets').onclick=e=>{const b=e.target.closest('button');if(b){$('seq').value=PRESETS[b.dataset.i][1];playSeq()}};
+function parse(txt){
+  const out=[]; let i=0, prev=null;
+  const map=[['ファ',5],['ド',0],['レ',2],['ミ',4],['ソ',7],['ラ',9],['シ',11]];
+  while(i<txt.length){
+    const ch=txt[i];
+    if(ch==='ー'||ch==='-'||ch==='～'){if(out.length)out[out.length-1].len++;i++;continue}
+    if(/[\s、,。・]/.test(ch)){out.push({s:null,len:1});i++;continue}
+    const m=map.find(([k])=>txt.startsWith(k,i));
+    if(!m){i++;continue}
+    i+=m[0].length; let s=m[1];
+    if(txt[i]==='#'||txt[i]==='♯'){s++;i++}
+    if(txt[i]==='↑'||txt[i]==="'"){s+=12;i++}
+    else if(s===0&&prev!==null&&prev>=9)s=12;
+    out.push({s,len:1}); prev=s%12===0&&s===12?12:s;
+  }
+  return out;
+}
+function stopSeq(){timers.forEach(clearTimeout);timers=[]}
+function playSeq(){
+  ac(); stopSeq();
+  const beat=60/ +$('tempo').value; let t=0;
+  for(const n of parse($('seq').value)){
+    if(n.s!==null){const s=n.s,d=n.len*beat;timers.push(setTimeout(()=>play(s,Math.max(d*.95,.15)),t*1000))}
+    t+=n.len*beat;
+  }
+}
+$('play').onclick=playSeq; $('stop').onclick=stopSeq;
+$('tempo').oninput=e=>$('bpm').textContent=e.target.value;
+}
+</script>
+</body>
+</html>
