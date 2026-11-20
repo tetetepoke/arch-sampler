@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0d0e10">
+<title>ARCH SAMPLER</title>
+<style>
+:root{--bg:#0d0e10;--panel:#16181b;--line:#2a2d32;--text:#ececec;--dim:#8a8f98;--rec:#ff3b30;--acc:#ffb020}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;min-height:100%;overscroll-behavior:none}
+body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.app{max-width:560px;margin:0 auto;padding:10px;display:flex;flex-direction:column;gap:10px}
+header{display:flex;align-items:center;gap:8px}
+h1{font-size:14px;letter-spacing:.18em;margin:0;flex:1;font-weight:800}
+h1 small{display:block;font-size:9px;letter-spacing:.1em;color:var(--dim);font-weight:600}
+button{font-family:inherit;cursor:pointer}
+.seg{display:flex;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{background:none;border:0;color:var(--dim);font-weight:700;font-size:13px;padding:9px 13px}
+.seg button.on{background:#2c3036;color:var(--text)}
+.seg button.rec.on{background:var(--rec);color:#fff}
+.play{width:42px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--text);font-size:16px}
+.play.on{background:var(--acc);color:#000;border-color:var(--acc)}
+.hint{font-size:12px;color:var(--dim);min-height:17px;padding:0 2px}
+.hint.warn{color:var(--acc)}
+.pads{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;touch-action:none}
+.pad{position:relative;aspect-ratio:1/1;border-radius:12px;background:#1b1e22;border:1px solid var(--line);box-shadow:inset 0 -4px 0 rgba(0,0,0,.35);display:flex;align-items:flex-end;justify-content:space-between;padding:6px 8px;font-size:11px;color:#5b6068;transition:transform .04s,filter .04s;touch-action:none;overflow:hidden}
+.pad.has{background:var(--c);color:rgba(0,0,0,.72);border-color:transparent}
+.pad.hit{transform:scale(.93);filter:brightness(1.55)}
+.pad.sel{outline:2px solid #fff;outline-offset:2px}
+.pad.recording{background:var(--rec)!important;color:#fff}
+.pad .num{font-weight:800}
+.pad .pt{font-weight:700}
+.pad .seqdot{position:absolute;top:7px;right:7px;width:6px;height:6px;border-radius:50%;background:rgba(0,0,0,.55);display:none}
+.pad.hasseq .seqdot{display:block}
+.pad .lv{position:absolute;left:0;bottom:0;width:100%;height:0;background:rgba(255,255,255,.35);pointer-events:none}
+.mode-rec .pad:not(.recording){box-shadow:inset 0 0 0 2px rgba(255,59,48,.45),inset 0 -4px 0 rgba(0,0,0,.35)}
+.paste .pad{animation:blink .5s infinite alternate}
+@keyframes blink{to{filter:brightness(1.3)}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:10px}
+.tabs{align-self:stretch}.tabs button{flex:1}
+.row{display:flex;align-items:center;gap:10px}
+.row b{font-size:14px}
+.row .info{font-size:11px;color:var(--dim);margin-left:auto}
+canvas{width:100%;height:70px;background:#0e1012;border-radius:8px;display:block}
+.ctl{display:grid;grid-template-columns:56px 1fr 44px;align-items:center;gap:8px;font-size:12px;color:var(--dim)}
+.ctl output{text-align:right;color:var(--text);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--acc);height:28px}
+.btns{display:flex;flex-wrap:wrap;gap:6px}
+.btns button{flex:1 1 auto;min-width:64px;background:#22252a;border:1px solid var(--line);color:var(--text);border-radius:9px;padding:9px 8px;font-size:12px;font-weight:700}
+.btns button.on{background:var(--acc);color:#000;border-color:var(--acc)}
+.btns button.danger{color:#ff7b72}
+.steps{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+.step{aspect-ratio:1/1;border-radius:7px;border:1px solid var(--line);background:#1d2024}
+.step.q{background:#24282d}
+.step.on{background:var(--c,var(--acc));border-color:transparent}
+.step.now{box-shadow:0 0 0 2px #fff}
+.hidden{display:none!important}
+.small{font-size:11px;color:var(--dim);line-height:1.5}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header>
+    <h1>ARCH SAMPLER<small>20 PAD RHYTHM SAMPLER</small></h1>
+    <button class="play" id="playBtn" aria-label="再生">▶</button>
+    <div class="seg" id="modeSeg">
+      <button data-mode="play" class="on">PLAY</button>
+      <button data-mode="rec" class="rec">● REC</button>
+    </div>
+  </header>
+  <div class="hint" id="hint">パッドをタップで再生</div>
+  <div class="pads" id="pads"></div>
+
+  <section class="panel">
+    <div class="seg tabs" id="tabSeg">
+      <button data-tab="edit" class="on">サウンド編集</button>
+      <button data-tab="seq">シーケンス</button>
+    </div>
+
+    <div id="tab-edit" style="display:flex;flex-direction:column;gap:8px">
+      <div class="row"><b id="selName">PAD 1</b><span class="info" id="selInfo">空</span></div>
+      <canvas id="wave"></canvas>
+      <div class="ctl"><span>ピッチ</span><input type="range" id="pitch" min="-24" max="24" step="1" value="0"><output id="pitchO">0</output></div>
+      <div class="ctl"><span>微調整</span><input type="range" id="fine" min="-50" max="50" step="1" value="0"><output id="fineO">0</output></div>
+      <div class="ctl"><span>音量</span><input type="range" id="vol" min="0" max="150" step="1" value="100"><output id="volO">100</output></div>
+      <div class="ctl"><span>開始</span><input type="range" id="start" min="0" max="1000" step="1" value="0"><output id="startO">0%</output></div>
+      <div class="ctl"><span>終了</span><input type="range" id="end" min="0" max="1000" step="1" value="1000"><output id="endO">100%</output></div>
+      <div class="btns">
+        <button id="audition">▶ 試聴</button>
+        <button id="revBtn">リバース</button>
+        <button id="monoBtn">モノ</button>
+        <button id="copyBtn">コピー</button>
+      </div>
+      <div class="btns">
+        <button id="loadBtn">音声ファイル読込</button>
+        <button id="clearBtn" class="danger">消去</button>
+      </div>
+      <input type="file" id="file" accept="audio/*" class="hidden">
+    </div>
+
+    <div id="tab-seq" class="hidden" style="flex-direction:column;gap:8px">
+      <div class="row"><b id="seqName">PAD 1</b><span class="info">16ステップ</span></div>
+      <div class="steps" id="steps"></div>
+      <div class="ctl"><span>BPM</span><input type="range" id="bpm" min="60" max="200" step="1" value="100"><output id="bpmO">100</output></div>
+      <div class="ctl"><span>スウィング</span><input type="range" id="swing" min="0" max="60" step="1" value="0"><output id="swingO">0%</output></div>
+      <div class="btns">
+        <button id="liveBtn">● タップで打ち込み</button>
+        <button id="clearPadSeq">このパッドをクリア</button>
+        <button id="clearSeq" class="danger">全クリア</button>
+      </div>
+      <div class="small">パッドを選んでステップをタップ。「タップで打ち込み」をONにして再生中にパッドを叩くと、近いステップに記録されます。</div>
+    </div>
+  </section>
+  <div class="small" style="text-align:center;padding-bottom:8px">録音・設定はこのブラウザ内に自動保存されます</div>
+</div>
+
+<script>
+(() => {
+const N = 20, STEPS = 16, MAX_REC = 20;
+const $ = id => document.getElementById(id);
+const hintEl = $('hint');
+let ctx = null, master = null;
+let mode = 'play', sel = 0, tab = 'edit';
+let micStream = null, micSrc = null, micProc = null;
+let recPad = -1, recChunks = [], recLen = 0, recLevel = 0;
+let copySrc = -1;
+let bpm = 100, swing = 0, playing = false, live = false;
+let curStep = 0, nextTime = 0, timer = null, schedQ = [];
+
+const pads = Array.from({length: N}, () => ({data: null, sr: 44100, buf: null, rbuf: null, pitch: 0, fine: 0, vol: 100, rev: false, mono: false, start: 0, end: 1000, voice: null}));
+let steps = Array.from({length: N}, () => new Array(STEPS).fill(false));
+const color = i => `hsl(${(i * 37) % 360} 78% 62%)`;
+
+// ---------- audio ----------
+function ensureCtx() {
+  if (!ctx) {
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    master = ctx.createGain(); master.gain.value = 0.9;
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -10; comp.ratio.value = 4;
+    master.connect(comp); comp.connect(ctx.destination);
+  }
+  if (ctx.state !== 'running') ctx.resume();
+}
+function makeBuf(data, sr) {
+  const b = ctx.createBuffer(1, data.length, sr);
+  if (b.copyToChannel) b.copyToChannel(data, 0); else b.getChannelData(0).set(data);
+  return b;
+}
+function getBuf(p, rev) {
+  if (rev) { if (!p.rbuf) p.rbuf = makeBuf(p.data.slice().reverse(), p.sr); return p.rbuf; }
+  if (!p.buf) p.buf = makeBuf(p.data, p.sr); return p.buf;
+}
+function trigger(i, when) {
+  const p = pads[i]; if (!p.data) return;
+  ensureCtx();
+  const t = Math.max(when || 0, ctx.currentTime);
+  const buf = getBuf(p, p.rev);
+  const rate = Math.pow(2, (p.pitch + p.fine / 100) / 12);
+  const dur = buf.duration;
+  let s = p.start / 1000 * dur, e = p.end / 1000 * dur;
+  if (e < s + 0.01) e = Math.min(dur, s + 0.01);
+  if (p.rev) { const s2 = dur - e; e = dur - s; s = s2; }
+  const len = (e - s) / rate;
+  if (p.mono && p.voice) { try { p.voice.g.gain.setTargetAtTime(0, t, 0.005); p.voice.src.stop(t + 0.03); } catch (_) {} }
+  const src = ctx.createBufferSource(); src.buffer = buf; src.playbackRate.value = rate;
+  const g = ctx.createGain(); const v = p.vol / 100;
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + 0.002);
+  g.gain.setValueAtTime(v, t + Math.max(0.003, len - 0.008)); g.gain.linearRampToValueAtTime(0, t + len);
+  src.connect(g); g.connect(master);
+  src.start(t, s, e - s);
+  p.voice = {src, g};
+  const delay = (t - ctx.currentTime) * 1000;
+  setTimeout(() => flash(i), Math.max(0, delay));
+}
+
+// ---------- mic / recording ----------
+async function ensureMic() {
+  if (micProc) return true;
+  ensureCtx();
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { hint('このブラウザではマイクが使えません（https で開いてください）', true); return false; }
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: false, noiseSuppression: false, autoGainControl: false}});
+  } catch (e) { hint('マイクの許可が必要です（' + e.name + '）', true); return false; }
+  micSrc = ctx.createMediaStreamSource(micStream);
+  micProc = ctx.createScriptProcessor(2048, 1, 1);
+  micProc.onaudioprocess = ev => {
+    const d = ev.inputBuffer.getChannelData(0);
+    let pk = 0; for (let k = 0; k < d.length; k += 4) { const a = Math.abs(d[k]); if (a > pk) pk = a; }
+    recLevel = recLevel * 0.6 + pk * 0.4;
+    if (recPad >= 0) {
+      recChunks.push(new Float32Array(d)); recLen += d.length;
+      if (recLen / ctx.sampleRate >= MAX_REC) finishRec();
+    }
+  };
+  micSrc.connect(micProc); micProc.connect(ctx.destination);
+  return true;
+}
+function stopMic() {
+  if (recPad >= 0) finishRec();
+  try { micSrc && micSrc.disconnect(); micProc && micProc.disconnect(); } catch (_) {}
+  if (micStream) micStream.getTracks().forEach(t => t.stop());
+  micStream = micSrc = micProc = null;
+}
+function startRec(i) {
+  if (!micProc) { ensureMic().then(ok => ok && hint('準備OK。パッドを長押しで録音')); return; }
+  recPad = i; recChunks = []; recLen = 0;
+  padEls[i].classList.add('recording');
+  hint('録音中… 指を離すと停止');
+  meterLoop();
+}
+function meterLoop() {
+  if (recPad < 0) return;
+  padEls[recPad].querySelector('.lv').style.height = Math.min(100, recLevel * 140) + '%';
+  requestAnimationFrame(meterLoop);
+}
+function finishRec() {
+  if (recPad < 0) return;
+  const i = recPad; recPad = -1;
+  padEls[i].classList.remove('recording');
+  padEls[i].querySelector('.lv').style.height = '0';
+  const all = new Float32Array(recLen); let o = 0;
+  for (const c of recChunks) { all.set(c, o); o += c.length; }
+  recChunks = [];
+  const sr = ctx.sampleRate;
+  const data = trimNorm(all, sr);
+  if (!data) { hint('音が小さすぎるか短すぎたので保存しませんでした', true); return; }
+  setSample(i, data, sr);
+  hint(`PAD ${i + 1} に録音しました（${(data.length / sr).toFixed(2)}秒）`);
+}
+function trimNorm(d, sr) {
+  let pk = 0; for (let k = 0; k < d.length; k++) { const a = Math.abs(d[k]); if (a > pk) pk = a; }
+  if (pk < 0.01) return null;
+  const th = Math.max(0.008, pk * 0.06);
+  let a = 0; while (a < d.length && Math.abs(d[a]) < th) a++;
+  let b = d.length - 1; while (b > a && Math.abs(d[b]) < th * 0.5) b--;
+  a = Math.max(0, a - Math.floor(sr * 0.004));
+  b = Math.min(d.length, b + Math.floor(sr * 0.05));
+  if (b - a < sr * 0.03) return null;
+  const out = d.slice(a, b); const g = 0.95 / pk;
+  for (let k = 0; k < out.length; k++) out[k] *= g;
+  const f = Math.min(64, out.length >> 2); for (let k = 0; k < f; k++) out[k] *= k / f; // anti-click fade-in
+  return out;
+}
+function setSample(i, data, sr) {
+  const p = pads[i];
+  Object.assign(p, {data, sr, buf: null, rbuf: null, start: 0, end: 1000, rev: false});
+  savePad(i); select(i); renderPads();
+}
+
+// ---------- sequencer ----------
+function stepDur() { return 60 / bpm / 4; }
+function schedule() {
+  while (nextTime < ctx.currentTime + 0.12) {
+    const sw = (curStep % 2 === 1) ? stepDur() * (swing / 100) * 0.5 : 0;
+    const t = nextTime + sw;
+    for (let i = 0; i < N; i++) if (steps[i][curStep]) trigger(i, t);
+    const s = curStep;
+    schedQ.push({t, s}); if (schedQ.length > 40) schedQ.shift();
+    setTimeout(() => markStep(s), Math.max(0, (t - ctx.currentTime) * 1000));
+    nextTime += stepDur(); curStep = (curStep + 1) % STEPS;
+  }
+  timer = setTimeout(schedule, 25);
+}
+function togglePlay() {
+  ensureCtx();
+  playing = !playing;
+  $('playBtn').classList.toggle('on', playing);
+  $('playBtn').textContent = playing ? '■' : '▶';
+  if (playing) { curStep = 0; schedQ = []; nextTime = ctx.currentTime + 0.06; schedule(); }
+  else { clearTimeout(timer); markStep(-1); }
+}
+function liveRecord(i) {
+  if (!playing || !live || !schedQ.length) return;
+  const now = ctx.currentTime; let best = null;
+  for (const e of schedQ) if (!best || Math.abs(e.t - now) < Math.abs(best.t - now)) best = e;
+  if (best && !steps[i][best.s]) { steps[i][best.s] = true; saveSeq(); renderPads(); if (i === sel) renderSteps(); }
+}
+
+// ---------- UI ----------
+const padsEl = $('pads'); const padEls = [];
+const rowOrder = []; // display top row = pads 17-20 like MPC
+for (let r = 4; r >= 0; r--) for (let c = 0; c < 4; c++) rowOrder.push(r * 4 + c);
+for (const i of rowOrder) {
+  const el = document.createElement('div');
+  el.className = 'pad'; el.style.setProperty('--c', color(i));
+  el.innerHTML = `<div class="lv"></div><span class="seqdot"></span><span class="num">${i + 1}</span><span class="pt"></span>`;
+  el.addEventListener('pointerdown', ev => padDown(i, ev));
+  el.addEventListener('pointerup', () => padUp(i));
+  el.addEventListener('pointercancel', () => padUp(i));
+  el.addEventListener('contextmenu', e => e.preventDefault());
+  padsEl.appendChild(el); padEls[i] = el;
+}
+function padDown(i, ev) {
+  ev.preventDefault();
+  try { ev.target.closest('.pad').setPointerCapture(ev.pointerId); } catch (_) {}
+  ensureCtx();
+  if (copySrc >= 0) { doPaste(i); return; }
+  if (mode === 'rec') { select(i); startRec(i); return; }
+  trigger(i); liveRecord(i);
+  if (sel !== i) select(i);
+}
+function padUp(i) { if (mode === 'rec' && recPad === i) finishRec(); }
+function flash(i) { const el = padEls[i]; el.classList.add('hit'); setTimeout(() => el.classList.remove('hit'), 90); }
+function renderPads() {
+  for (let i = 0; i < N; i++) {
+    const p = pads[i], el = padEls[i];
+    el.classList.toggle('has', !!p.data);
+    el.classList.toggle('sel', i === sel);
+    el.classList.toggle('hasseq', steps[i].some(Boolean));
+    el.querySelector('.pt').textContent = p.data && p.pitch ? (p.pitch > 0 ? '+' : '') + p.pitch : '';
+  }
+}
+function hint(t, warn) { hintEl.textContent = t; hintEl.classList.toggle('warn', !!warn); }
+function defaultHint() { hint(mode === 'rec' ? 'パッドを押している間だけ録音（最大20秒・無音は自動カット）' : 'パッドをタップで再生'); }
+
+function select(i) {
+  sel = i; const p = pads[i];
+  $('selName').textContent = $('seqName').textContent = 'PAD ' + (i + 1);
+  $('selInfo').textContent = p.data ? (p.data.length / p.sr).toFixed(2) + '秒' : '空';
+  setCtl('pitch', p.pitch); setCtl('fine', p.fine); setCtl('vol', p.vol); setCtl('start', p.start); setCtl('end', p.end);
+  $('revBtn').classList.toggle('on', p.rev); $('monoBtn').classList.toggle('on', p.mono);
+  renderPads(); drawWave(); renderSteps();
+}
+function setCtl(id, v) { $(id).value = v; showCtl(id, v); }
+function showCtl(id, v) {
+  const o = $(id + 'O');
+  if (id === 'start' || id === 'end') o.textContent = Math.round(v / 10) + '%';
+  else if (id === 'pitch' || id === 'fine') o.textContent = (v > 0 ? '+' : '') + v;
+  else o.textContent = v;
+}
+['pitch', 'fine', 'vol', 'start', 'end'].forEach(id => {
+  $(id).addEventListener('input', e => {
+    const p = pads[sel]; let v = +e.target.value;
+    if (id === 'start' && v > p.end - 5) { v = p.end - 5; e.target.value = v; }
+    if (id === 'end' && v < p.start + 5) { v = p.start + 5; e.target.value = v; }
+    p[id] = v; showCtl(id, v);
+    if (id === 'start' || id === 'end') drawWave();
+    if (id === 'pitch') renderPads();
+    savePadSoon(sel);
+  });
+  $(id).addEventListener('change', () => { if (pads[sel].data && id !== 'vol') trigger(sel); });
+});
+$('audition').onclick = () => trigger(sel);
+$('revBtn').onclick = () => { const p = pads[sel]; p.rev = !p.rev; $('revBtn').classList.toggle('on', p.rev); savePad(sel); trigger(sel); };
+$('monoBtn').onclick = () => { const p = pads[sel]; p.mono = !p.mono; $('monoBtn').classList.toggle('on', p.mono); savePad(sel); };
+$('copyBtn').onclick = () => {
+  if (!pads[sel].data) { hint('コピーする音がありません', true); return; }
+  copySrc = sel; document.getElementById('app').classList.add('paste');
+  hint(`PAD ${sel + 1} のコピー先をタップ（同じパッドでキャンセル）`, true);
+};
+function doPaste(i) {
+  const s = copySrc; copySrc = -1; document.getElementById('app').classList.remove('paste');
+  if (i === s) { defaultHint(); return; }
+  const a = pads[s], b = pads[i];
+  Object.assign(b, {data: a.data, sr: a.sr, buf: a.buf, rbuf: a.rbuf, pitch: a.pitch, fine: a.fine, vol: a.vol, rev: a.rev, mono: a.mono, start: a.start, end: a.end});
+  savePad(i); select(i); renderPads();
+  hint(`PAD ${s + 1} → PAD ${i + 1} にコピー。ピッチを変えて音階にできます`);
+}
+$('clearBtn').onclick = () => {
+  const p = pads[sel]; if (!p.data) return;
+  if ($('clearBtn').dataset.arm !== '1') { $('clearBtn').dataset.arm = '1'; $('clearBtn').textContent = 'もう一度で消去'; setTimeout(() => { $('clearBtn').dataset.arm = ''; $('clearBtn').textContent = '消去'; }, 2000); return; }
+  $('clearBtn').dataset.arm = ''; $('clearBtn').textContent = '消去';
+  Object.assign(p, {data: null, buf: null, rbuf: null, pitch: 0, fine: 0, vol: 100, rev: false, mono: false, start: 0, end: 1000});
+  savePad(sel); select(sel);
+};
+$('loadBtn').onclick = () => { ensureCtx(); $('file').click(); };
+$('file').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try {
+    const ab = await f.arrayBuffer();
+    const buf = await new Promise((res, rej) => { const r = ctx.decodeAudioData(ab, res, rej); if (r && r.then) r.then(res, rej); });
+    const len = Math.min(buf.length, buf.sampleRate * 30);
+    const d = new Float32Array(len);
+    for (let c = 0; c < buf.numberOfChannels; c++) { const ch = buf.getChannelData(c); for (let k = 0; k < len; k++) d[k] += ch[k] / buf.numberOfChannels; }
+    const out = trimNorm(d, buf.sampleRate) || d;
+    setSample(sel, out, buf.sampleRate);
+    hint(`PAD ${sel + 1} に「${f.name}」を読み込みました`);
+  } catch (err) { hint('このファイルは読み込めませんでした', true); }
+};
+
+// mode / tabs
+$('modeSeg').onclick = async e => {
+  const b = e.target.closest('button'); if (!b) return;
+  mode = b.dataset.mode;
+  [...$('modeSeg').children].forEach(x => x.classList.toggle('on', x === b));
+  document.getElementById('app').classList.toggle('mode-rec', mode === 'rec');
+  defaultHint();
+  if (mode === 'rec') { const ok = await ensureMic(); if (ok) defaultHint(); }
+  else stopMic(); // マイクを閉じて再生音量を元に戻す
+};
+$('tabSeg').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  tab = b.dataset.tab;
+  [...$('tabSeg').children].forEach(x => x.classList.toggle('on', x === b));
+  $('tab-edit').style.display = tab === 'edit' ? 'flex' : 'none';
+  $('tab-seq').classList.toggle('hidden', tab !== 'seq'); $('tab-seq').style.display = tab === 'seq' ? 'flex' : 'none';
+};
+$('playBtn').onclick = togglePlay;
+
+// steps
+const stepsEl = $('steps'); const stepEls = [];
+for (let s = 0; s < STEPS; s++) {
+  const b = document.createElement('button'); b.className = 'step' + (Math.floor(s / 4) % 2 ? ' q' : '');
+  b.onclick = () => { steps[sel][s] = !steps[sel][s]; renderSteps(); renderPads(); saveSeq(); if (steps[sel][s] && !playing) trigger(sel); };
+  stepsEl.appendChild(b); stepEls.push(b);
+}
+function renderSteps() { stepEls.forEach((b, s) => { b.classList.toggle('on', steps[sel][s]); b.style.setProperty('--c', color(sel)); }); }
+function markStep(s) { stepEls.forEach((b, k) => b.classList.toggle('now', k === s)); }
+$('bpm').oninput = e => { bpm = +e.target.value; $('bpmO').textContent = bpm; saveSeq(); };
+$('swing').oninput = e => { swing = +e.target.value; $('swingO').textContent = swing + '%'; saveSeq(); };
+$('liveBtn').onclick = () => { live = !live; $('liveBtn').classList.toggle('on', live); hint(live ? '再生中にパッドを叩くとステップに記録されます' : 'パッドをタップで再生'); };
+$('clearPadSeq').onclick = () => { steps[sel].fill(false); renderSteps(); renderPads(); saveSeq(); };
+$('clearSeq').onclick = () => { steps.forEach(r => r.fill(false)); renderSteps(); renderPads(); saveSeq(); };
+
+// waveform
+function drawWave() {
+  const cv = $('wave'), dpr = window.devicePixelRatio || 1;
+  const w = cv.clientWidth * dpr, h = cv.clientHeight * dpr;
+  if (!w) return; cv.width = w; cv.height = h;
+  const g = cv.getContext('2d'); g.clearRect(0, 0, w, h);
+  const p = pads[sel];
+  if (!p.data) { g.fillStyle = '#4a4f57'; g.font = `${12 * dpr}px sans-serif`; g.textAlign = 'center'; g.fillText(mode === 'rec' ? 'パッドを長押しで録音' : '空（RECモードで録音）', w / 2, h / 2 + 4 * dpr); return; }
+  const d = p.data, step = d.length / w;
+  g.fillStyle = color(sel);
+  for (let x = 0; x < w; x++) {
+    let mn = 1, mx = -1; const a = Math.floor(x * step), b = Math.min(d.length, Math.floor((x + 1) * step) + 1);
+    for (let k = a; k < b; k++) { const v = d[k]; if (v < mn) mn = v; if (v > mx) mx = v; }
+    const y1 = (1 - mx) * h / 2, y2 = (1 - mn) * h / 2; g.fillRect(x, y1, 1, Math.max(1, y2 - y1));
+  }
+  g.fillStyle = 'rgba(0,0,0,.65)';
+  g.fillRect(0, 0, w * p.start / 1000, h); g.fillRect(w * p.end / 1000, 0, w, h);
+  g.fillStyle = '#fff'; g.fillRect(w * p.start / 1000, 0, dpr, h); g.fillRect(w * p.end / 1000 - dpr, 0, dpr, h);
+}
+window.addEventListener('resize', drawWave);
+
+// ---------- persistence (IndexedDB, optional) ----------
+let db = null; const saveTimers = {};
+function openDB() {
+  return new Promise(res => {
+    try { const r = indexedDB.open('arch-sampler', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => { db = r.result; res(); }; r.onerror = () => res(); }
+    catch (_) { res(); }
+  });
+}
+function put(k, v) { try { db && db.transaction('kv', 'readwrite').objectStore('kv').put(v, k); } catch (_) {} }
+function get(k) { return new Promise(res => { try { const r = db.transaction('kv').objectStore('kv').get(k); r.onsuccess = () => res(r.result); r.onerror = () => res(null); } catch (_) { res(null); } }); }
+function savePad(i) { const p = pads[i]; put('pad' + i, {data: p.data, sr: p.sr, pitch: p.pitch, fine: p.fine, vol: p.vol, rev: p.rev, mono: p.mono, start: p.start, end: p.end}); }
+function savePadSoon(i) { clearTimeout(saveTimers[i]); saveTimers[i] = setTimeout(() => savePad(i), 400); }
+function saveSeq() { put('seq', {steps, bpm, swing}); }
+async function load() {
+  await openDB(); if (!db) return;
+  for (let i = 0; i < N; i++) { const v = await get('pad' + i); if (v) Object.assign(pads[i], v, {buf: null, rbuf: null}); }
+  const s = await get('seq');
+  if (s) { if (s.steps) steps = s.steps; bpm = s.bpm || 100; swing = s.swing || 0; $('bpm').value = bpm; $('bpmO').textContent = bpm; $('swing').value = swing; $('swingO').textContent = swing + '%'; }
+}
+
+load().then(() => { select(0); renderPads(); });
+select(0);
+})();
+</script>
+</body>
+</html>
