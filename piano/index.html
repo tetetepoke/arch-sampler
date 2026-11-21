@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>ボイスピアノ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
@@ -15,7 +15,8 @@
 :root{color-scheme:light dark;--bg:light-dark(#fff6ec,#1a1210);--ink:light-dark(#2a1712,#f6e9df);--body:#d8322b;--body2:#a8201b;--key:#fffaf0;--acc:#ffc83a;--mute:light-dark(#7a5a50,#c4a99d);--panel:light-dark(#ffffff,#2a1d19)}
 :root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
 *{box-sizing:border-box;min-width:0}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "M PLUS Rounded 1c",system-ui,sans-serif;overflow-x:clip}
+html,body{touch-action:manipulation}
+body{-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "M PLUS Rounded 1c",system-ui,sans-serif;overflow-x:clip}
 .wrap{max-width:900px;margin:0 auto;padding:clamp(20px,4vw,48px) max(4vw,14px)}
 h1{font-size:clamp(32px,6vw,48px);line-height:1.05;margin:0 0 6px;font-weight:800;text-wrap:balance}
 .lead{margin:0 0 22px;color:var(--mute)}
@@ -148,7 +149,10 @@ function play(s,dur){
 let down=false,last=null;
 const hitAt=e=>{const el=document.elementFromPoint(e.clientX,e.clientY);return el&&el.closest('.w,.b')};
 const press=el=>{if(!el||el===last)return;if(last)last.classList.remove('down');last=el;el.classList.add('down');play(+el.dataset.s)};
-keysEl.addEventListener('pointerdown',e=>{down=true;press(hitAt(e))});
+keysEl.addEventListener('pointerdown',e=>{e.preventDefault();down=true;press(hitAt(e))});
+keysEl.addEventListener('touchstart',e=>e.preventDefault(),{passive:false});
+document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
+document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});
 keysEl.addEventListener('pointermove',e=>{if(down)press(hitAt(e))});
 const up=()=>{down=false;if(last)last.classList.remove('down');last=null};
 addEventListener('pointerup',up);addEventListener('pointercancel',up);
