@@ -89,6 +89,19 @@ input,textarea,select{font-size:16px}
 .bar{position:relative;height:34px;border-radius:17px;background:#2a5a78;margin:16px 0;overflow:hidden}
 .zone{position:absolute;top:0;bottom:0;background:#7ad86a}
 .mark{position:absolute;top:-4px;bottom:-4px;width:6px;margin-left:-3px;background:#fff;border-radius:3px;box-shadow:0 0 6px #000}
+#storyTap{position:fixed;inset:0;z-index:7;display:none;touch-action:none}
+#storyBox{position:fixed;left:12px;right:12px;bottom:calc(max(24px,env(safe-area-inset-bottom)) + 8px);max-width:560px;margin:0 auto;background:rgba(36,26,18,.93);color:#f4ead6;border-radius:16px;padding:12px 16px 18px;z-index:8;display:none;border:2px solid #c8a060;pointer-events:none;box-shadow:0 8px 30px #0008}
+#storyName{display:block;color:#ffb070;font-size:14px;min-height:1em}
+#storyText{margin:4px 0 0;font-size:18px;font-weight:700;line-height:1.55}
+#storyText.in{animation:sIn .35s ease}@keyframes sIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+#storyBox.narr #storyText{font-style:italic;color:#e8d8b8}
+#storyBox i{position:absolute;right:14px;bottom:6px;font-style:normal;color:#c8a060;animation:blink 1s infinite}@keyframes blink{50%{opacity:.2}}
+.kw{color:#ffd884;font-weight:900}
+#storySkip{position:fixed;top:calc(max(10px,env(safe-area-inset-top)) + 4px);right:12px;z-index:9;display:none;background:rgba(36,26,18,.85);color:#f4ead6;font-size:14px}
+#storyCenter{position:fixed;left:16px;right:16px;top:30%;text-align:center;z-index:8;color:#fff;display:none;pointer-events:none;text-shadow:0 2px 10px #000}
+.sc-star{font-size:56px;color:#ffd84a}.sc-t{font-size:24px;font-weight:900;color:#ffe8a0;margin-top:6px}.sc-s{font-size:16px;font-weight:700;margin-top:8px}
+body.story #talk,body.story #actBtn,body.story #atkBtn,body.story #wpnBtn,body.story #rideBtn,body.story .hud .btn{display:none!important}
+.aside{font-size:13px;color:#8a6a40;font-style:italic;margin:-2px 0 6px}
 #fade{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .6s;z-index:6}
 @media(prefers-reduced-motion:reduce){.sheet{transition:none}}
 </style>
@@ -143,6 +156,7 @@ input,textarea,select{font-size:16px}
   <button class="btn close" data-close>とじる</button>
   <h2>旅の手帳</h2>
   <p class="sub" id="stageLine"></p>
+  <h3>思い出</h3><div id="storyList"></div>
   <h3>ふしぎ</h3><div id="pzList"></div>
   <h3>頼まれごと</h3><div id="questList"></div>
   <h3 id="bookCount"></h3>
@@ -161,6 +175,7 @@ input,textarea,select{font-size:16px}
 <div class="overlay" id="fish"><div class="card"><h3>魚がかかった！</h3><p>白い線が緑に入った瞬間にタップ</p><div class="bar"><div class="zone" id="zone"></div><div class="mark" id="mark"></div></div><button class="btn fire" id="reel" style="width:100%;min-height:56px;font-size:18px">つりあげる！</button></div></div>
 <div class="overlay on" id="title"><div class="card"><h3 style="font-size:28px">レンのたき火ごはん</h3><p class="says">……。</p><div id="titleBody"><p>セーブデータを確認しています…</p></div></div></div>
 <div id="fade"></div>
+<div id="storyTap"></div><div id="storyBox"><b id="storyName"></b><p id="storyText"></p><i>▼</i></div><button class="btn" id="storySkip">スキップ ▶▶</button><div id="storyCenter"></div>
 
 <script>
 {
@@ -275,10 +290,12 @@ const NPCS=[
   {t:'r',id:'stew',s:'夜の見張りは冷えるんです。キノコのクリームシチューがほしいな'},
   {t:'heal',n:16,s:'ハート8つ分くらいの、元気が出るごはんを！'}],th:'あったまる……ありがとう',done:'灯台の中も見ていっていいですよ'}
 ];
-const TOTAL=NPCS.reduce((s,n)=>s+n.qs.length,0);
+const TOTAL=NPCS.reduce((s,n)=>s+n.qs.length,0)+1;
+const STORY_DEF=()=>({chapter:0,introSeen:0,firstMemorySeen:0,fourFiresExplained:0,bridgeReady:0,bridgeStorySeen:0,photoSeen:0,stars:0,snowFireRecovered:0,seaFireRecovered:0,mountainFireRecovered:0,papaOniTruthSeen:0,blackFireDefeated:0,endingSeen:0});
+function fixStory(){S.story=Object.assign(STORY_DEF(),S.story||{});if(S.stage>=2&&!S.story.bridgeStorySeen){S.story.bridgeStorySeen=1;S.story.bridgeReady=1}}
 
 // ================= セーブ =================
-const DEF=()=>({pz:{},lv:1,exp:0,kills:0,tre:{},srch:{},got:{},veh:{horse:0,boat:0},islandChest:0,bag:{},dishes:[],found:{},q:NPCS.map(()=>0),hp:6,max:6,fx:null,fxT:0,g:0,wood:0,weapons:[],stage:1,build:{house:0,farm:0,coop:0,flower:0},chest:0,oniDown:0,farmT:0,coopT:0,allDone:0});
+const DEF=()=>({story:STORY_DEF(),pz:{},lv:1,exp:0,kills:0,tre:{},srch:{},got:{},veh:{horse:0,boat:0},islandChest:0,bag:{},dishes:[],found:{},q:NPCS.map(()=>0),hp:6,max:6,fx:null,fxT:0,g:0,wood:0,weapons:[],stage:1,build:{house:0,farm:0,coop:0,flower:0},chest:0,oniDown:0,farmT:0,coopT:0,allDone:0});
 let S=DEF();
 try{
  const s3=JSON.parse(localStorage.getItem('ren-cook3')||'null');
@@ -288,6 +305,7 @@ try{
 while(S.q.length<NPCS.length)S.q.push(0);
 S.build=Object.assign({house:0,farm:0,coop:0,flower:0},S.build);
 S.pz=S.pz||{};S.tre=S.tre||{};S.srch=S.srch||{};S.got=S.got||{};S.veh=Object.assign({horse:0,boat:0},S.veh);S.lv=S.lv||1;S.exp=S.exp||0;S.kills=S.kills||0;
+fixStory();
 if(S.oniLv==null){S.oniLv=S.oniDown?1:0;S.oniDown=0}
 S.weapons=[...new Set(S.weapons.map(id=>id==='isword'?'futsu':id==='fsword'?'hono':id))];if(!S.eq||!S.weapons.includes(S.eq))S.eq=S.weapons[S.weapons.length-1]||null;
 let canSave=false,lastSave=null;const bootSavedAt=S.savedAt||0;
@@ -299,8 +317,8 @@ function save(){if(!gameStarted)return;const j=stateJ();if(j!==lastLocalJ){S.sav
 function cloudSave(first){if(!cloudRef||cloudBusy)return;const j=stateJ();if(j===lastCloudJ)return;cloudBusy=true;cloudRef.set({json:JSON.stringify(S),t:S.savedAt||Date.now()}).then(()=>{lastCloudJ=j;if(!cloudOK)toast('アカウントにセーブできた！');cloudOK=true;cloudState='セーブできています';lastSave=new Date()},e=>{if(e&&e.code==='unavailable')setTimeout(cloudSave,3000+Math.random()*2000);else{cloudRef=null;cloudOK=false;cloudState='書きこめません（'+((e&&e.code)||'?')+'）'}}).finally(()=>{cloudBusy=false})}
 const toCode=()=>btoa(unescape(encodeURIComponent(JSON.stringify(S))));
 function fromCode(c){applyObj(JSON.parse(decodeURIComponent(escape(atob(c.replace(/\s+/g,''))))))}
-function applyObj(o){if(!o||!Array.isArray(o.q))throw 0;room=null;roomId=null;P.ride=null;const d=DEF();Object.keys(d).forEach(k=>S[k]=o[k]!==undefined?o[k]:d[k]);Object.keys(o).forEach(k=>{if(!(k in d))S[k]=o[k]});while(S.q.length<NPCS.length)S.q.push(0)}S.tre=S.tre||{};S.srch=S.srch||{};S.got=S.got||{};S.veh=Object.assign({horse:0,boat:0},S.veh);S.lv=S.lv||1;S.exp=S.exp||0;S.kills=S.kills||0;
-const stars=()=>S.q.reduce((a,b)=>a+b,0);
+function applyObj(o){if(!o||!Array.isArray(o.q))throw 0;room=null;roomId=null;P.ride=null;const d=DEF();Object.keys(d).forEach(k=>S[k]=o[k]!==undefined?o[k]:d[k]);Object.keys(o).forEach(k=>{if(!(k in d))S[k]=o[k]});while(S.q.length<NPCS.length)S.q.push(0);S.tre=S.tre||{};S.srch=S.srch||{};S.got=S.got||{};S.veh=Object.assign({horse:0,boat:0},S.veh);S.lv=S.lv||1;S.exp=S.exp||0;S.kills=S.kills||0;S.pz=S.pz||{};fixStory()}
+const stars=()=>S.q.reduce((a,b)=>a+b,0)+((S.story&&S.story.stars)||0);
 const weapon=()=>WEAPONS.find(x=>x.id===S.eq&&S.weapons.includes(x.id))||null;
 
 // ================= 音 =================
@@ -319,6 +337,9 @@ const sfx={
  great:()=>{[523,659,784,1047,1319,1568].forEach((f,i)=>tone(f,.4,'square',.06,i*.07))},
  meh:()=>{tone(392,.2,'triangle',.1);tone(330,.3,'triangle',.1,.18)},
  splash:()=>{tone(300,.1,'sine',.1);tone(200,.15,'sine',.08,.05)},
+ crackle:()=>{for(let i=0;i<5;i++)tone(1500+Math.random()*1200,.025,'square',.035,Math.random()*.5)},
+ rumble:()=>{tone(48,1.4,'sawtooth',.12);tone(62,1.2,'square',.06,.25);tone(40,1,'sawtooth',.1,.7)},
+ chime:i=>tone(660*Math.pow(1.122,i||0),.4,'triangle',.11),
  build:()=>{[0,.12,.24].forEach(d=>tone(260,.08,'square',.09,d));tone(784,.4,'triangle',.1,.4)}
 };
 
@@ -420,11 +441,12 @@ let VW=0,VH=0,DPR=1;const cam={x:0,y:0};let shake=0,camLerp=0;
 const resize=()=>{DPR=Math.min(2,devicePixelRatio||1);VW=innerWidth;VH=innerHeight;cv.width=VW*DPR;cv.height=VH*DPR};
 const ro=new ResizeObserver(resize);ro.observe(document.body);resize();
 const stick={id:null,ox:0,oy:0,x:0,y:0};
-cv.addEventListener('pointerdown',e=>{au();if(stick.id==null&&e.clientX<VW*.62){stick.id=e.pointerId;stick.ox=stick.x=e.clientX;stick.oy=stick.y=e.clientY;try{cv.setPointerCapture(e.pointerId)}catch(_){}}});
+cv.addEventListener('pointerdown',e=>{au();if(storyEventActive)return;if(stick.id==null&&e.clientX<VW*.62){stick.id=e.pointerId;stick.ox=stick.x=e.clientX;stick.oy=stick.y=e.clientY;try{cv.setPointerCapture(e.pointerId)}catch(_){}}});
 cv.addEventListener('pointermove',e=>{if(e.pointerId===stick.id){stick.x=e.clientX;stick.y=e.clientY}});
 const endStick=e=>{if(e.pointerId===stick.id)stick.id=null};
 cv.addEventListener('pointerup',endStick);cv.addEventListener('pointercancel',endStick);
 function input(){
+ if(storyEventActive)return{x:0,y:0,m:0};
  let dx=0,dy=0;
  if(keys.arrowleft||keys.a)dx--;if(keys.arrowright||keys.d)dx++;if(keys.arrowup||keys.w)dy--;if(keys.arrowdown||keys.s)dy++;
  if(dx||dy){const l=Math.hypot(dx,dy);return{x:dx/l,y:dy/l,m:1}}
@@ -539,14 +561,14 @@ const ROOMS={
  ooji:{n:'オオジセー',w:640,h:480,floor:'#c8a878',wall:'#7a5a3a',loot:[['coin',4],['spoon',3],['g',4],['ing',3],['none',3],['ruby',1]],items:[['table',200,210],['table',440,210],['table',200,330],['table',440,330],['barrel',60,100],['barrel',60,160],['box',580,100],['box',580,410],['pot',320,430],['shelf',320,80]]},
  wald:{n:'ワルドカプ',w:600,h:420,floor:'#9ac080',wall:'#4a6a4a',loot:[['coin',3],['g',5],['ing',2],['none',3],['spoon',1]],items:[['locker',90,80],['locker',150,80],['locker',210,80],['locker',390,80],['locker',450,80],['locker',510,80],['table',300,230],['box',70,350],['box',530,350]]},
  bukuoff:{n:'ブクオフ',w:600,h:440,floor:'#d8c8a0',wall:'#3a5a8a',loot:[['book',2],['coin',3],['g',3],['none',4]],items:[['shelf',110,80],['shelf',250,80],['shelf',390,80],['shelf',110,210],['shelf',250,210],['shelf',390,210],['chest',520,90,'bukuoff'],['pot',520,360]]},
- ohno:{n:'オーノ',w:480,h:380,floor:'#d0b890',wall:'#7a5a8a',loot:[['coin',3],['spoon',2],['g',3],['ing',3],['none',3]],items:[['bed',90,120],['table',260,200],['pot',400,100],['pot',400,300],['shelf',260,70],['box',80,300]]},
+ ohno:{n:'オーノ',w:480,h:380,floor:'#d0b890',wall:'#7a5a8a',loot:[['coin',3],['spoon',2],['g',3],['ing',3],['none',3]],items:[['photo',262,190],['bed',90,120],['table',260,200],['pot',400,100],['pot',400,300],['shelf',260,70],['box',80,300]]},
  kokonu:{n:'ココヌ',w:600,h:420,floor:'#e8d8c0',wall:'#c86a4a',loot:[['ing',5],['g',3],['spoon',2],['none',2]],items:[['counter',300,100],['table',160,250],['table',300,250],['table',440,250],['barrel',60,100],['barrel',540,100],['pot',540,350]]},
  kuzu:{n:'クズモショ',w:540,h:400,floor:'#b8a888',wall:'#6a7a4a',loot:[['coin',3],['g',4],['ing',2],['sapphire',1],['none',3]],items:[['box',80,100],['box',140,100],['barrel',460,100],['barrel',460,170],['table',270,220],['box',80,320],['pot',460,320],['shelf',270,80]]},
  cave:{n:'ふるい洞くつ',w:780,h:620,floor:'#5a5250',wall:'#2a2420',dark:1,loot:[['ruby',3],['sapphire',2],['coin',3],['brush',1],['g',3],['none',3]],items:[['rock',160,180],['rock',600,160],['rock',300,380],['rock',520,420],['pot',80,90],['pot',700,90],['pot',80,520],['pot',700,520],['box',380,130],['chest',390,250,'cave'],['barrel',220,520]]},
  light:{n:'とうだい',w:440,h:440,floor:'#c8c0b0',wall:'#a84a3a',loot:[['shell',5],['pearl',1],['coin',2],['g',2],['none',2]],items:[['box',90,100],['box',350,100],['barrel',90,330],['pot',350,330],['table',220,200]]}
 };
 const SOLID={table:[64,40],pillar:[30,30],throne:[64,54],counter:[300,36],shelf:[90,26],bed:[54,76],rock:[70,50],locker:[44,30]};
-const SEARCH=['pot','box','barrel','shelf','locker','bed','chest'];
+const SEARCH=['pot','box','barrel','shelf','locker','bed','chest','photo'];
 let room=null,roomId=null;
 function doors(){const d=[];const map={'オオジセー':'ooji','ワルドカプ':'wald','ブクオフ':'bukuoff','オーノ':'ohno','ココヌ':'kokonu','クズモショ':'kuzu'};PLACES.forEach(p=>{if(map[p.n])d.push({id:map[p.n],x:p.x,y:p.y+p.h/2+8})});d.push({id:'castle',x:CASTLE.x-10,y:CASTLE.y+58},{id:'cave',x:CAVE.x,y:CAVE.y+16},{id:'light',x:LIGHT.x,y:LIGHT.y+28});return d}
 const DOORS=doors();
@@ -554,9 +576,10 @@ function enterRoom(id){paused=true;$('fade').style.opacity=1;setTimeout(()=>{roo
 function exitRoom(){paused=true;$('fade').style.opacity=1;setTimeout(()=>{P.x=P.wx;P.y=P.wy+22;room=null;roomId=null;talkKey='x';actKey='x';$('fade').style.opacity=0;paused=false;last=performance.now()},300)}
 function roomBlocked(x,y){if(x<26||x>room.w-26||y<74||y>room.h-14)return true;return room.items.some(([k,ix,iy])=>{const s=SOLID[k];return s&&Math.abs(x-ix)<s[0]/2+8&&y>iy-s[1]/2-4&&y<iy+s[1]/2+10})}
 const spotId=i=>roomId+'-'+i,SRCH_MS=6*60*1000;
-const spotReady=i=>{const it=room.items[i];if(it[0]==='chest'){return !S.got[it[3]]}return Date.now()-((S.srch||{})[spotId(i)]||0)>SRCH_MS};
+const spotReady=i=>{const it=room.items[i];if(it[0]==='photo')return !S.story.photoSeen;if(it[0]==='chest'){return !S.got[it[3]]}return Date.now()-((S.srch||{})[spotId(i)]||0)>SRCH_MS};
 function nearSpot(){let b=-1,bd=48;room.items.forEach((it,i)=>{if(!SEARCH.includes(it[0]))return;const d=Math.hypot(it[1]-P.x,it[2]+10-P.y);if(d<bd){bd=d;b=i}});return b}
 function searchSpot(i){const it=room.items[i];S.srch=S.srch||{};S.got=S.got||{};
+ if(it[0]==='photo'){S.story.photoSeen=1;save();sfx.pick();say('……。');showCard(`<svg viewBox="0 0 160 110" style="width:220px;height:auto"><rect x="4" y="4" width="152" height="102" rx="4" fill="#e8d8b0" stroke="#6a4a2a" stroke-width="3"/><rect x="12" y="12" width="136" height="86" fill="#c8a878"/><circle cx="40" cy="52" r="9" fill="#5a3a2a"/><rect x="32" y="60" width="16" height="22" rx="5" fill="#6a4a3a"/><circle cx="66" cy="58" r="7" fill="#5a3a2a"/><rect x="60" y="64" width="12" height="18" rx="4" fill="#8a5a3a"/><rect x="60" y="64" width="12" height="3" fill="#a8442c"/><circle cx="112" cy="34" r="13" fill="#5a3a2a"/><rect x="98" y="46" width="30" height="40" rx="8" fill="#5a4a6a"/><circle cx="112" cy="34" r="17" fill="#fffbe8" opacity=".92"/><circle cx="112" cy="34" r="24" fill="#fffbe8" opacity=".35"/></svg><h3>古い写真</h3><p>みんなで笑っている写真。</p><p>いちばん大きな人の顔だけ、光が入ってよく見えない。</p><p class="says">レン「……。」</p>`);return}
  if(it[0]==='chest'){const c=it[3];if(S.got[c]){toast('からっぽだ');return}
   if(c==='castle'&&!S.tre.key){sfx.meh();say('……かぎがかかってる。');toast('城のかぎがいる。海のどこかにあるらしい');return}
   S.got[c]=1;let r;
@@ -594,6 +617,7 @@ function drawFurn(g,k,x,y,ready){ink(g);
  else if(k==='pot'){g.beginPath();g.ellipse(x,y,15,17,0,0,7);fs(g,'#c8784a');rr(g,x-9,y-21,18,7,3);fs(g,'#a85a3a')}
  else if(k==='box'){rr(g,x-17,y-15,34,30,2);fs(g,'#c8945a');g.beginPath();g.moveTo(x-17,y-15);g.lineTo(x+17,y+15);g.moveTo(x+17,y-15);g.lineTo(x-17,y+15);g.stroke()}
  else if(k==='barrel'){g.beginPath();g.ellipse(x,y,16,19,0,0,7);fs(g,'#a8703c');g.beginPath();g.moveTo(x-15,y-7);g.lineTo(x+15,y-7);g.moveTo(x-15,y+7);g.lineTo(x+15,y+7);g.stroke()}
+ else if(k==='photo'){g.save();g.translate(x,y);g.rotate(-.12);rr(g,-11,-9,22,16,2);fs(g,'#e8d8b0');g.fillStyle='#a8865a';g.fillRect(-8,-6,16,10);g.restore()}
  else if(k==='chest'){rr(g,x-20,y-12,40,26,3);fs(g,ready?'#c8843a':'#7a5a3a');if(ready){rr(g,x-20,y-20,40,12,4);fs(g,'#d8944a');g.fillStyle='#ffd84a';g.fillRect(x-4,y-10,8,8)}}
  if(ready&&SEARCH.includes(k)){g.fillStyle=`rgba(255,240,150,${.5+Math.sin(time*5+x)*.4})`;circ(g,x+12,y-18,3);g.fill()}
 }
@@ -1076,7 +1100,7 @@ function bang(x,y){const by=Math.sin(time*4)*3;cx.fillStyle='#ffd84a';circ(cx,x,
 // ================= 描画: 世界 =================
 function poly(L,w,col,dash){cx.strokeStyle=col;cx.lineWidth=w;cx.lineCap=dash?'butt':'round';cx.lineJoin='round';if(dash){cx.setLineDash(dash);cx.lineDashOffset=-time*30}cx.beginPath();L.forEach(([x,y],i)=>i?cx.lineTo(x,y):cx.moveTo(x,y));cx.stroke();cx.setLineDash([])}
 function label(t,x,y,size,col){cx.font=`900 ${size}px "Zen Maru Gothic",sans-serif`;cx.textAlign='center';cx.fillStyle='#0005';cx.fillText(t,x+2,y+2);cx.fillStyle=col||'#fff';cx.fillText(t,x,y)}
-function bridge(x,y,len,vert,broken){cx.fillStyle='rgba(14,38,62,.3)';if(vert)cx.fillRect(x-24,y-len/2+8,58,len-6);else cx.fillRect(x-len/2+8,y-22,len-6,58);cx.save();cx.translate(x,y);if(!vert)cx.rotate(Math.PI/2);ink(cx);for(let i=-len/2;i<len/2;i+=12){if(broken&&Math.abs(i)<len*.28)continue;rr(cx,-26,i,52,10,2);fs(cx,'#b0804a')}cx.fillStyle='#6a4a2a';if(!broken||1){cx.fillRect(-30,-len/2,5,len);cx.fillRect(25,-len/2,5,len)}cx.restore()}
+function bridge(x,y,len,vert,broken){cx.fillStyle='rgba(14,38,62,.3)';if(vert)cx.fillRect(x-24,y-len/2+8,58,len-6);else cx.fillRect(x-len/2+8,y-22,len-6,58);cx.save();cx.translate(x,y);if(!vert)cx.rotate(Math.PI/2);ink(cx);for(let i=-len/2;i<len/2;i+=12){if(broken&&Math.abs(i)<len*.28*broken)continue;rr(cx,-26,i,52,10,2);fs(cx,'#b0804a')}cx.fillStyle='#6a4a2a';if(!broken||1){cx.fillRect(-30,-len/2,5,len);cx.fillRect(25,-len/2,5,len)}cx.restore()}
 function building(p){
  const x=p.x,y=p.y,w=p.w,h=p.h;if(!inView(x,y,w))return;ink(cx);cx.lineWidth=2;
  if(p.stadium){cx.beginPath();cx.ellipse(x,y,w/2,h/2,0,0,7);fs(cx,'#d8d0c0');cx.beginPath();cx.ellipse(x,y,w/2-22,h/2-18,0,0,7);fs(cx,'#5aa04a');cx.strokeStyle='#fff';cx.beginPath();cx.moveTo(x,y-h/2+18);cx.lineTo(x,y+h/2-18);cx.stroke();circ(cx,x,y,14);cx.stroke();ink(cx)}
@@ -1115,7 +1139,7 @@ function draw(){
  PRE.push({y:FORT.y+20,f:()=>{ ink(cx);cx.lineWidth=2;rr(cx,FORT.x-90,FORT.y-70,180,90,4);fs(cx,'#3a3438');for(let i=0;i<6;i++){rr(cx,FORT.x-90+i*32,FORT.y-84,20,16,2);fs(cx,'#3a3438')}rr(cx,FORT.x-18,FORT.y-20,36,40,10);fs(cx,'#1a1418');  cx.beginPath();cx.moveTo(FORT.x+70,FORT.y-84);cx.lineTo(FORT.x+70,FORT.y-130);cx.stroke();cx.fillStyle='#c8442c';cx.beginPath();cx.moveTo(FORT.x+70,FORT.y-130);cx.lineTo(FORT.x+100+Math.sin(time*4)*3,FORT.y-120);cx.lineTo(FORT.x+70,FORT.y-110);cx.fill();}});
  PATHS.forEach(L=>poly(L,24,'#d8c08a'));
  drawWater();
- bridge(900,raY(900),150,true,S.stage<2);bridge(650,1465,110,true,false);bridge(982,1900,110,false,false);bridge(1560,1890,120,false,false);drawPiers();
+ bridge(900,raY(900),150,true,S.stage<2?1-STV.bridgeBuild:0);bridge(650,1465,110,true,false);bridge(982,1900,110,false,false);bridge(1560,1890,120,false,false);drawPiers();
  flowers.forEach(f=>{if(inView(f.x,f.y,5)){cx.fillStyle=f.c;cx.fillRect(f.x,f.y,3,3)}});
  drawGroundDetail();
  rocks.forEach(r=>{if(inView(r.x,r.y,40))PRE.push({y:r.y+r.r*.3,f:()=>drawRock(r)})});
@@ -1149,23 +1173,24 @@ function draw(){
    drawChar(e.type==='oni'?'papaoni':'buta',e.x,e.y,{dir:e.x<P.x?1:-1,st:time*10,fl:e.fl,col:e.type==='buta'?EK[e.kind||'buta'].col:0,crown:e.type==='buta'&&EK[e.kind||'buta'].crown,s:e.type==='oni'?1.8+(e.lv||0)*.18:EK[e.kind||'buta'].s,atk:e.wind>0||e.dash>0?1:0});
    if(e.type==='buta'&&e.hp<e.max){const yy=e.y-38*EK[e.kind||'buta'].s;cx.fillStyle='#0008';cx.fillRect(e.x-14,yy,28,4);cx.fillStyle='#ff5a5a';cx.fillRect(e.x-14,yy,28*e.hp/e.max,4)}}}));
  palms.forEach(t=>inView(t.x,t.y,60)&&objs.push({y:t.y,f:()=>drawPalm(t)}));
- drawPuzzles(objs);PRE.forEach(o=>objs.push(o));
+ drawPuzzles(objs);PRE.forEach(o=>objs.push(o));drawStoryWorld(objs);
  objs.push({y:P.y+12,f:drawBoy});
  objs.sort((a,b)=>a.y-b.y).forEach(o=>o.f());
- drawProj();drawPT();
+ drawProj();drawPT();drawStoryOver();
  fxs.forEach(f=>{cx.globalAlpha=Math.max(0,f.t/f.T);cx.fillStyle=f.c;cx.font='900 16px "Zen Maru Gothic",sans-serif';cx.textAlign='center';cx.fillText(f.s,f.x,f.y-(1-f.t/f.T)*24);cx.globalAlpha=1});
  // 画面効果
  cx.setTransform(DPR,0,0,DPR,0,0);
  const dusk=(Math.sin(time/45)+1)/2;
  cx.fillStyle=`rgba(40,20,60,${dusk*.32})`;cx.fillRect(0,0,VW,VH);
  if(inView(CAMP.x,CAMP.y,260)){const gx=CAMP.x-cam.x,gy=CAMP.y-cam.y,fl=RM?0:Math.sin(time*9)*6;const g=cx.createRadialGradient(gx,gy,8,gx,gy,190+fl);g.addColorStop(0,`rgba(255,170,80,${.16+dusk*.28})`);g.addColorStop(1,'rgba(255,170,80,0)');cx.fillStyle=g;cx.fillRect(gx-200,gy-200,400,400)}
- drawScreenFX();
+ drawScreenFX();drawStoryScreen();
  if(P.danger){const col=P.danger==='snow'?'120,190,255':'255,90,30';const g=cx.createRadialGradient(VW/2,VH/2,Math.min(VW,VH)*.3,VW/2,VH/2,Math.max(VW,VH)*.7);g.addColorStop(0,`rgba(${col},0)`);g.addColorStop(1,`rgba(${col},${.45+Math.sin(time*5)*.1})`);cx.fillStyle=g;cx.fillRect(0,0,VW,VH)}
  const oni=E.find(e=>e.type==='oni');
  if(oni&&Math.hypot(oni.x-P.x,oni.y-P.y)<500){const bw=Math.min(300,VW-40),bx=(VW-bw)/2,by=VH-40;cx.fillStyle='#000a';cx.fillRect(bx-4,by-20,bw+8,30);cx.fillStyle='#fff';cx.font='900 12px "Zen Maru Gothic",sans-serif';cx.textAlign='left';cx.fillText(`パパオニ（${(oni.lv||0)+1}回目 / 3）`,bx,by-6);cx.fillStyle='#444';cx.fillRect(bx,by,bw,6);cx.fillStyle='#ff4a3a';cx.fillRect(bx,by,bw*oni.hp/oni.max,6)}
  drawStick();
 }
 function drawStick(){
+ if(storyEventActive)return;
  const act=stick.id!=null,ox=act?stick.ox:86,oy=act?stick.oy:VH-110;
  cx.globalAlpha=act?.55:.28;cx.fillStyle='#000';circ(cx,ox,oy,52);cx.fill();cx.strokeStyle='#fff';cx.lineWidth=3;circ(cx,ox,oy,52);cx.stroke();
  let kx=ox,ky=oy;if(act){const dx=stick.x-ox,dy=stick.y-oy,d=Math.hypot(dx,dy),m=Math.min(d,48);if(d>0){kx=ox+dx/d*m;ky=oy+dy/d*m}}
@@ -1183,7 +1208,10 @@ function tryMove(dx,dy){const F=P.ride==='boat'?0:10,bl=(x,y)=>blocked(x,y+F);
  P.x=Math.max(16,Math.min(W-16,P.x));P.y=Math.max(30,Math.min(H-16,P.y))}
 function hurt(n){if(P.inv>0)return;S.hp-=n;P.inv=1.1;P.flash=.7;shake=.25;sfx.hurt();if(S.hp<=0){S.hp=0;faint()}save()}
 function update(dt){
+ storyFX(dt);
+ if(storyEventActive){time+=dt;if(shake>0)shake-=dt;updatePT(dt);ambientFX(dt);for(let i=RG.length-1;i>=0;i--){RG[i].t-=dt;if(RG[i].t<=0)RG.splice(i,1)}if(talkKey!=='story'){talkKey='story';$('talk').style.display='none'}return}
  if(room){updateRoom(dt);return}
+ if(S.story.bridgeReady&&!S.story.bridgeStorySeen&&S.stage<2&&Math.hypot(P.x-BSTONE.x,P.y-(BSTONE.y+20))<90){runStory('hibashi');return}
  time+=dt;if(shake>0)shake-=dt;
  const inp=input(),reg=region(P.x,P.y);P.moving=inp.m>0;
  if(inp.m){let sp=175*inp.m;if(P.ride==='horse')sp*=1.9;else if(P.ride==='boat')sp*=2;else{if(wasWading)sp*=.65;if(reg==='snow')sp*=.75}if(P.ride==='horse'&&wasWading)sp*=.7;tryMove(inp.x*sp*dt,inp.y*sp*dt);P.step+=dt*12*inp.m;P.fx=inp.x;P.fy=inp.y;if(Math.abs(inp.x)>.15)P.dir=inp.x>0?1:-1}
@@ -1249,7 +1277,7 @@ function updateEnemies(dt){
  }
 }
 function attack(){
- au();const w=weapon();
+ au();if(storyEventActive)return;const w=weapon();
  if(!w){if(P.atkT<=0){P.atkT=.6;say('……(武器がない)')}return}
  if(P.atkT>0||paused||anyOpen())return;
  if(w.type==='boom'&&PR.some(p=>p.kind==='boom'))return;
@@ -1319,7 +1347,7 @@ document.querySelectorAll('[data-close]').forEach(b=>b.onclick=closeAll);
 $('bagBtn').onclick=()=>{au();open('bagSheet')};$('bookBtn').onclick=()=>{au();open('bookSheet')};
 $('atkBtn').addEventListener('pointerdown',e=>{e.preventDefault();attack()});
 $('wpnBtn').addEventListener('pointerdown',e=>{e.preventDefault();au();const own=WEAPONS.filter(x=>S.weapons.includes(x.id));if(own.length<2){toast(own.length?'武器はひとつだけ':'武器がない');return}const i=own.findIndex(x=>x.id===S.eq);S.eq=own[(i+1)%own.length].id;sfx.pick();toast(weapon().n+' に持ちかえた');save()});
-$('rideBtn').addEventListener('pointerdown',e=>{e.preventDefault();au();const a=rideAction();if(a&&!paused&&!anyOpen())a.f()});
+$('rideBtn').addEventListener('pointerdown',e=>{e.preventDefault();au();if(storyEventActive)return;const a=rideAction();if(a&&!paused&&!anyOpen())a.f()});
 $('actBtn').addEventListener('pointerdown',e=>{e.preventDefault();au();doAction()});
 const near=(o,r)=>Math.hypot(o.x-P.x,o.y-P.y)<r;
 function nearestNPC(){let b=-1,bd=70;NPCS.forEach((n,i)=>{const d=Math.hypot(n.x-P.x,n.y-P.y);if(d<bd){bd=d;b=i}});return b}
@@ -1334,7 +1362,7 @@ function context(){
  if(S.build.house&&near(BPOS.house,70))return{label:'おうちで休む',f:rest};
  return null;
 }
-function doAction(){const a=context();if(a&&!paused&&!anyOpen())a.f()}
+function doAction(){if(storyEventActive)return;const a=context();if(a&&!paused&&!anyOpen())a.f()}
 function rest(){paused=true;$('fade').style.opacity=1;setTimeout(()=>{S.hp=S.max;save();$('fade').style.opacity=0;paused=false;last=performance.now();say('……ふう。');toast('ぐっすり休んだ。ハートが全回復')},900)}
 let pot=[],statKey='';
 function renderStat(){
@@ -1351,6 +1379,7 @@ function renderTalk(ni){
  const box=$('talk');
  if(ni<0){box.style.display='none';return}
  const n=NPCS[ni],qi=S.q[ni];box.style.display='block';$('talkName').textContent=n.n;
+ if(n.id==='hana'&&!S.story.firstMemorySeen){$('talkLine').textContent='……ねえ、レン。リンゴを使った料理が、なんだか無性に食べたくてねえ。';const di=S.dishes.findIndex(isAppleDish);$('talkAct').innerHTML=di>=0?`<button class="btn fire" id="give">「${S.dishes[di].name}」をわたす</button>`:'<div class="hint">ほしいもの：リンゴを使った料理（森でリンゴがとれる）</div>';if(di>=0)$('give').onclick=()=>{S.dishes.splice(di,1);sfx.pick();talkKey='';save();runStory('firstMemory')};return}
  let html='',give=null;
  if(qi>=n.qs.length){$('talkLine').textContent=n.done;if(n.shop)html=`<div class="hint">右下の「${n.shop==='sell'?'料理を売る':'ハドフのお店'}」から</div>`}
  else{const q=n.qs[qi];$('talkLine').textContent=q.s;
@@ -1359,6 +1388,7 @@ function renderTalk(ni){
   else{const di=S.dishes.findIndex(d=>matches(d,q));if(di>=0){html=`<button class="btn fire" id="give">「${S.dishes[di].name}」をわたす</button>`;give=()=>{S.dishes.splice(di,1)}}else html=`<div class="hint">ほしいもの：${qText(q)}（ふくろにない）</div>`}}
  if(n.sell&&qi>=1&&!S.veh[n.sell]){const v=VEH[n.sell];html+=`<div class="row" style="justify-content:flex-start;margin:6px 0 0"><button class="btn fire" id="buyVeh" ${S.g<v.p?'disabled':''}>${v.n}を買う（${v.p}G）</button>${S.g<v.p?'<span class="hint">お金がたりない</span>':''}</div>`}
  else if(n.sell&&qi<1)html+=`<div class="hint">頼みを聞いたら${VEH[n.sell].n}をゆずってくれるらしい</div>`;
+ if(STORY_LINES[n.id]&&S.story.chapter<4)html=`<div class="aside">「${STORY_LINES[n.id]}」</div>`+html;
  PUZZLES.forEach(d=>{const ps=pz(d.id);if(d.npc===n.id&&ps.found&&!ps.solved){html+=`<div class="hint" style="margin-top:6px">${d.hints[2].replace(/^.*?「/,'「')}</div>`;if(ps.hintLevel<3){ps.hintLevel=3;save()}}});
  $('talkAct').innerHTML=html;
  if($('buyVeh'))$('buyVeh').onclick=()=>{const v=VEH[n.sell];if(S.g<v.p)return;S.g-=v.p;S.veh[n.sell]=1;save();sfx.great();talkKey='';showCard(`<h3>${v.n}を手に入れた！</h3><p>${n.sell==='horse'?'右下の「うまにのる」で乗れる。とても速く走れる。':'水辺で「ボートにのる」。川や海をすいすい進める。東の海のひみつの島へ行ってみよう。'}</p><p class="says">レン「……ありがとう。」</p>`)};
@@ -1373,8 +1403,8 @@ function renderTalk(ni){
 }
 function checkStage(){
  const st=stars();
- if(S.stage<2&&st>=5){S.stage=2;save();sfx.great();showCard(`<span class="new">ステージ2 解放</span><h3>ヒバシの北とダイセン</h3><p>みんながヒバシを直してくれた！</p><p>川の北のオオジセー、ワルドカプ、ダイセンへ行けるようになった。</p><p><b>コブンブタが出るので注意。</b>武器を持っていこう。</p><p class="says">レン「……行ってみよう。」</p>`);return}
- if(S.stage<3&&st>=12){S.stage=3;save();sfx.great();showCard(`<span class="new">ステージ3 解放</span><h3>もえるヒガシヤマ</h3><p>ヒガシヤマの炎の壁が消えた。奥にはパパオニの砦がある……</p><p>ひんやり料理と、強い武器を準備しよう。</p><p class="says">レン「……負けない。」</p>`);return}
+ if(S.stage<2&&st>=5&&!S.story.bridgeReady){S.story.bridgeReady=1;save();sfx.win();showCard(`<h3>……？</h3><p>ヒバシのほうで、なにかが光った気がする。</p><p class="hint2">手帳：《ヒバシへ行ってみよう》</p>`);return}
+ if(S.stage===2&&st>=12){S.stage=3;save();sfx.great();showCard(`<span class="new">ステージ3 解放</span><h3>もえるヒガシヤマ</h3><p>ヒガシヤマの炎の壁が消えた。奥にはパパオニの砦がある……</p><p>ひんやり料理と、強い武器を準備しよう。</p><p class="says">レン「……負けない。」</p>`);return}
  if(st>=TOTAL&&!S.allDone){S.allDone=1;save();sfx.great();showCard(`<h3>村のごはん番</h3><p>村のみんなの頼みを、ぜんぶ叶えた。</p><p class="says">レン「……つぎは、なにを作ろう。」</p>`)}
 }
 function resetZoom(){const m=document.querySelector('meta[name=viewport]');if(!m)return;const c=m.content;m.content=c+',maximum-scale=1.0001';setTimeout(()=>{m.content=c},60);if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();window.scrollTo(0,0)}
@@ -1418,6 +1448,7 @@ function render(){
  // 手帳
  saveInfo();
  $('stageLine').textContent=`ステージ${S.stage}：${STAGES[S.stage]}　${S.stage<2?'（★5でステージ2）':S.stage<3?'（★12でステージ3）':S.oniDown?'（クリア！パパオニに3回勝った）':`（パパオニの砦へ ${S.oniLv||0}/3）`}`;
+ $('storyList').innerHTML=drawStoryJournal();
  $('pzList').innerHTML=drawPuzzleJournal();
  $('questList').innerHTML=NPCS.filter(n=>n.qs.length).map(n=>{const i=NPCS.indexOf(n);return S.q[i]>=n.qs.length?`<div class="quest done">${n.n}：ぜんぶ叶えた</div>`:`<div class="quest"><b>${n.n}</b>（★${S.q[i]}/${n.qs.length}）<br>ほしいもの：${qText(n.qs[S.q[i]])}</div>`}).join('');
  const nf=RECIPES.filter(r=>S.found[r.id]).length;
@@ -1454,7 +1485,7 @@ $('doCook').onclick=()=>{
   $('cooking').classList.remove('on');
   const d=judge(list),isNew=!S.found[d.rid];
   S.found[d.rid]=S.found[d.rid]||d.c;
-  S.dishes.push({name:d.name,c:d.c,rid:d.rid,fx:d.fx,fxT:d.fxT,gold:d.gold,heal:d.heal,great:d.great});save();talkKey='';
+  S.dishes.push({name:d.name,c:d.c,rid:d.rid,fx:d.fx,fxT:d.fxT,gold:d.gold,heal:d.heal,great:d.great,ings:list.slice()});save();talkKey='';
   d.isMys?sfx.meh():d.great?sfx.great():sfx.win();
   const line=d.isMys?'……(首をかしげる)':d.great?'……！！':isNew?'……！':'……よし。';
   showCard(`${isNew&&!d.isMys?'<span class="new">NEW レシピ</span>':''}${d.great?'<span class="great">大成功！</span>':''}${icon(0,d)}<h3>${d.name}</h3><p style="color:#e04040;font-size:18px">${'♥'.repeat(Math.floor(d.heal/2))}${d.heal%2?'♡':''}</p>${d.fx?`<p><b>${FX[d.fx]}効果 ${d.fxT}秒</b>　${d.fx==='warm'?'ダイセンでも平気になる':'ヒガシヤマでも平気になる'}</p>`:''}<p>食堂で売ると ${price(d)}G</p><p class="says">レン「${line}」</p>`);
@@ -1493,6 +1524,142 @@ let cloudState='さがしています…',cloudData=null,cloudDone=false;
 document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
 ['gesturestart','gesturechange'].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
 document.addEventListener('touchmove',e=>{if(e.touches.length>1)e.preventDefault()},{passive:false});}
+// ================= ストーリー =================
+let storyEventActive=false,storySkip=false,storyRes=null,storyTapOK=0;
+const STV={fade:0,fadeTo:0,fadeSpd:2,titleT:-1,mem:0,memTo:0,fires:-1,fireA:0,starT:-1,fly:null,bridgeBuild:0,glow:0,tint:0,actors:[],puffs:[],birds:[]};
+const BSTONE={x:966,y:raY(900)+92};
+const STORY_LINES={michiru:'この味……。前にも食べた気がするんだけどなあ。',saku:'最近さ。昨日の晩ごはんが思い出せないんだニャ。',gon:'昔はこの辺、もっといい匂いがしてた気がするんだがなあ。',yoshi:'……ヒガシヤマの煙が出てから……かなあ……',mina:'ねえ。パパオニって、ほんとうに悪いやつなのかなあ。'};
+function storyWait(ms){return new Promise(r=>{storyRes=r;storyTapOK=performance.now()+250;if(ms!=null)setTimeout(()=>{if(storyRes===r){storyRes=null;r()}},ms)})}
+function storyAdvance(){if(storyRes&&performance.now()>storyTapOK){const r=storyRes;storyRes=null;r()}}
+function showSay(who,text){const b=$('storyBox');b.style.display='block';b.classList.toggle('narr',!who);$('storyName').textContent=who||'';$('storyText').innerHTML=text.replace(/《(.+?)》/g,'<span class="kw">《$1》</span>');$('storyText').classList.remove('in');void $('storyText').offsetWidth;$('storyText').classList.add('in')}
+function hideSay(){$('storyBox').style.display='none'}
+function centerMsg(html){const c=$('storyCenter');if(html){c.innerHTML=html;c.style.display='block'}else c.style.display='none'}
+async function doStep(st){
+ const t=st.t;
+ if(t==='say'){showSay(st.who,st.text);await storyWait(null);hideSay()}
+ else if(t==='wait')await storyWait(st.ms);
+ else if(t==='cam'){camFocus={x:st.x,y:st.y,t:1e9}}
+ else if(t==='camP'){camFocus=null}
+ else if(t==='shake'){if(!RM)shake=Math.max(shake,st.v||.4)}
+ else if(t==='sfx'){sfx[st.n]&&sfx[st.n]()}
+ else if(t==='fade'){STV.fadeTo=st.to;STV.fadeSpd=1000/(st.ms||600);await storyWait(st.ms||600)}
+ else if(t==='title'){STV.titleT=0;await storyWait(3400);STV.titleT=-1}
+ else if(t==='memory'){STV.memTo=1;await storyWait(900);await storyWait(5200);STV.memTo=0;await storyWait(700)}
+ else if(t==='center'){centerMsg(st.html);await storyWait(st.ms||null);centerMsg(null)}
+ else if(t==='call')st.f();
+}
+async function runStory(id){
+ const ev=STORY_EVENTS[id];if(!ev||storyEventActive)return;
+ storyEventActive=true;storySkip=false;document.body.classList.add('story');$('storyTap').style.display='block';$('storySkip').style.display='block';stick.id=null;P.tx=null;
+ ev.before&&ev.before();
+ for(const st of ev.steps){if(storySkip)break;await doStep(st)}
+ hideSay();centerMsg(null);STV.memTo=0;STV.mem=0;STV.titleT=-1;STV.fires=-1;STV.fireA=0;STV.starT=-1;STV.fly=null;STV.tint=0;STV.actors=[];
+ STV.fadeTo=0;camFocus=null;storyRes=null;
+ $('storyTap').style.display='none';$('storySkip').style.display='none';document.body.classList.remove('story');storyEventActive=false;
+ ev.onComplete&&ev.onComplete();save();last=performance.now();
+}
+$('storyTap').addEventListener('pointerdown',e=>{e.preventDefault();storyAdvance()});
+$('storySkip').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();storySkip=true;if(storyRes){const r=storyRes;storyRes=null;r()}});
+addEventListener('keydown',e=>{if(storyEventActive&&(e.key===' '||e.key==='Enter')){e.preventDefault();storyAdvance()}});
+const STORY_EVENTS={
+ opening:{id:'opening',chapter:0,once:true,
+  before:()=>{P.x=CAMP.x+46;P.y=CAMP.y+58;P.dir=-1;STV.fade=1;STV.tint=1;STV.actors=[{draw:'mamanun',x:CAMP.x-52,y:CAMP.y+72,dir:1,n:'ママヌーン'}];camFocus={x:CAMP.x,y:CAMP.y+30,t:1e9};cam.x=Math.max(0,CAMP.x-VW/2);cam.y=Math.max(0,CAMP.y+30-VH/2)},
+  steps:[{t:'fade',to:0,ms:900},{t:'sfx',n:'crackle'},{t:'say',who:null,text:'パチ……'},{t:'sfx',n:'crackle'},{t:'say',who:null,text:'パチパチ……'},
+   {t:'say',who:'ママヌーン',text:'……あれ？'},{t:'say',who:'レン',text:'……？'},{t:'say',who:'ママヌーン',text:'おいしいんだけど……'},{t:'wait',ms:500},
+   {t:'say',who:'ママヌーン',text:'なんだろう。'},{t:'say',who:'ママヌーン',text:'何か、大事なものを忘れてるような……。'},
+   {t:'call',f:()=>{sfx.boom();STV.smoke=4.5;STV.birds=Array.from({length:7},(_,i)=>({x:1880+i*14,y:1320+(i%3)*10,vx:-60-i*6,vy:-50-(i%2)*14,ph:i}))}},{t:'shake',v:.45},
+   {t:'cam',x:2140,y:1480},{t:'wait',ms:2100},{t:'call',f:()=>{P.dir=1}},{t:'camP'},{t:'wait',ms:700},
+   {t:'say',who:'レン',text:'……！'},{t:'fade',to:1,ms:700},{t:'title'}],
+  onComplete:()=>{S.story.introSeen=1;S.story.chapter=Math.max(1,S.story.chapter);P.x=CAMP.x;P.y=CAMP.y+70;STV.fade=0;toast('左下をドラッグして歩こう。アーチ城から冒険がはじまる')}},
+ firstMemory:{id:'firstMemory',chapter:1,once:true,
+  before:()=>{const n=NPCS.find(n=>n.id==='hana');camFocus={x:n.x,y:n.y-20,t:1e9}},
+  steps:[{t:'say',who:'ハナばあちゃん',text:'（もぐもぐ……）'},{t:'wait',ms:400},{t:'say',who:'ハナばあちゃん',text:'…………。'},{t:'call',f:()=>{STV.glow=1}},{t:'memory'},
+   {t:'say',who:'ハナばあちゃん',text:'……思い出した。'},{t:'say',who:'ハナばあちゃん',text:'昔、みんなで食べたんだよ。'},{t:'say',who:'レン',text:'……！'},
+   {t:'call',f:()=>{STV.starT=0;sfx.chime(0)}},{t:'wait',ms:1500},{t:'call',f:()=>sfx.great()},
+   {t:'center',html:'<div class="sc-star">★</div><div class="sc-t">《思い出の星》</div><div class="sc-s">忘れていた記憶が、ひとつ戻った。</div>'}],
+  onComplete:()=>{S.story.firstMemorySeen=1;S.story.stars=(S.story.stars||0)+1;S.story.chapter=Math.max(2,S.story.chapter);STV.glow=0;talkKey='';save();setTimeout(()=>runStory('fourFires'),350)}},
+ fourFires:{id:'fourFires',chapter:2,once:true,
+  before:()=>{const n=NPCS.find(n=>n.id==='hana');camFocus={x:n.x,y:n.y-20,t:1e9}},
+  steps:[{t:'say',who:'ハナばあちゃん',text:'レン。'},{t:'say',who:'ハナばあちゃん',text:'この世界には昔から、《四つの火》があるんだよ。'},{t:'call',f:()=>{STV.fires=-1;STV.fireA=1}},
+   {t:'call',f:()=>{STV.fires=0}},{t:'say',who:'ハナばあちゃん',text:'森の火。'},{t:'call',f:()=>{STV.fires=1}},{t:'say',who:'ハナばあちゃん',text:'海の火。'},
+   {t:'call',f:()=>{STV.fires=2}},{t:'say',who:'ハナばあちゃん',text:'雪の火。'},{t:'call',f:()=>{STV.fires=3}},{t:'say',who:'ハナばあちゃん',text:'山の火。'},{t:'call',f:()=>{STV.fires=9}},
+   {t:'say',who:'ハナばあちゃん',text:'火は料理を作るだけのものじゃない。'},{t:'say',who:'ハナばあちゃん',text:'食べた時の思い出を、ずっと残してくれるんだ。'},{t:'call',f:()=>{STV.fireA=0}},{t:'wait',ms:500},
+   {t:'say',who:'ハナばあちゃん',text:'でも最近、その火が弱くなってる。'},{t:'say',who:'レン',text:'……。'},{t:'say',who:'ハナばあちゃん',text:'東の山に黒い煙が出た夜からね。'},
+   {t:'say',who:'ハナばあちゃん',text:'それと……。'},{t:'wait',ms:600},{t:'say',who:'ハナばあちゃん',text:'《パパオニ》には気をつけるんだよ。'}],
+  onComplete:()=>{S.story.fourFiresExplained=1;talkKey='';checkStage()}},
+ hibashi:{id:'hibashi',chapter:2,once:true,
+  before:()=>{P.dir=1;camFocus={x:900,y:raY(900)+20,t:1e9}},
+  steps:[{t:'wait',ms:500},{t:'say',who:'レン',text:'……？'},{t:'call',f:()=>{STV.fly={t:0,x:P.x,y:P.y-30}}},{t:'wait',ms:3400},
+   {t:'call',f:()=>{STV.glow=1;sfx.rumble()}},{t:'shake',v:.5},{t:'call',f:()=>{STV.build=1}},{t:'wait',ms:1900},{t:'say',who:'レン',text:'……！'}],
+  onComplete:()=>{S.stage=2;S.story.bridgeStorySeen=1;S.story.chapter=Math.max(3,S.story.chapter);STV.bridgeBuild=0;STV.build=0;STV.glow=0;save();sfx.great();talkKey='';
+   showCard(`<span class="new">ステージ2</span><h3>《北への道が開いた》</h3><p>5つの思い出の星が、ヒバシの古い石に灯った。</p><p>川の北のオオジセー、ワルドカプ、ダイセン、そして東の海へ行けるようになった。</p><p><b>コブンブタが出るので注意。</b></p>`.replace(/《(.+?)》/g,'$1'))}}
+};
+function storyFX(dt){
+ if(STV.fade!==STV.fadeTo){const d=STV.fadeTo-STV.fade,s=STV.fadeSpd*dt;STV.fade=Math.abs(d)<s?STV.fadeTo:STV.fade+Math.sign(d)*s}
+ STV.mem+=(STV.memTo-STV.mem)*Math.min(1,dt*3);
+ if(STV.titleT>=0)STV.titleT+=dt;if(STV.starT>=0)STV.starT+=dt;if(STV.fly)STV.fly.t+=dt;
+ if(STV.build&&STV.bridgeBuild<1)STV.bridgeBuild=Math.min(1,STV.bridgeBuild+dt*.7);
+ if(STV.smoke>0){STV.smoke-=dt;if(STV.puffs.length<40&&Math.random()<dt*14)STV.puffs.push({x:2160+(Math.random()-.5)*60,y:1470,r:10+Math.random()*10,t:0})}
+ for(let i=STV.puffs.length-1;i>=0;i--){const p=STV.puffs[i];p.t+=dt;p.y-=dt*55;p.x+=dt*12;p.r+=dt*9;if(p.t>4)STV.puffs.splice(i,1)}
+ for(const b of STV.birds){b.x+=b.vx*dt;b.y+=b.vy*dt}
+ if(STV.fly){const f=STV.fly;for(let i=0;i<5;i++){const k=(f.t-i*.55)/.8;if(k>=1&&!f['d'+i]){f['d'+i]=1;sfx.chime(i)}}}
+}
+function drawStoryWorld(objs){
+ STV.actors.forEach(a=>objs.push({y:a.y,f:()=>{drawChar(a.draw,a.x,a.y,{dir:a.dir,st:0});if(a.n){cx.font='700 12px "Zen Maru Gothic",sans-serif';cx.textAlign='center';cx.fillStyle='#000a';cx.fillText(a.n,a.x+1,a.y+17);cx.fillStyle='#fff';cx.fillText(a.n,a.x,a.y+16)}}}));
+ // 橋の古い石（★5で光る）
+ if(inView(BSTONE.x,BSTONE.y,60))objs.push({y:BSTONE.y+6,f:()=>{const lit=(S.story.bridgeReady&&!S.story.bridgeStorySeen)||STV.glow||S.stage>=2;ink(cx);rr(cx,BSTONE.x-14,BSTONE.y-26,28,30,6);fs(cx,'#9a9488');
+  cx.strokeStyle=lit?`rgba(255,220,120,${S.stage>=2&&!STV.glow?.6:.5+Math.sin(time*4)*.4})`:'#6a6458';cx.lineWidth=2;cx.beginPath();cx.arc(BSTONE.x,BSTONE.y-12,6,0,7);cx.moveTo(BSTONE.x,BSTONE.y-24);cx.lineTo(BSTONE.x,BSTONE.y);cx.moveTo(BSTONE.x-10,BSTONE.y-12);cx.lineTo(BSTONE.x+10,BSTONE.y-12);cx.stroke();
+  if(lit&&(STV.glow||S.stage<2)){cx.fillStyle=`rgba(255,220,120,${.18+Math.sin(time*3)*.1})`;circ(cx,BSTONE.x,BSTONE.y-12,28);cx.fill()}}});
+}
+function drawStoryOver(){
+ // 黒い煙・鳥・飛ぶ星（ワールド座標）
+ for(const p of STV.puffs){if(!inView(p.x,p.y,60))continue;cx.fillStyle=`rgba(24,16,28,${.5*(1-p.t/4)})`;circ(cx,p.x,p.y,p.r);cx.fill()}
+ cx.strokeStyle='#2a2220';cx.lineWidth=2;for(const b of STV.birds){if(!inView(b.x,b.y,20))continue;const w=Math.sin(time*14+b.ph)*4;cx.beginPath();cx.moveTo(b.x-7,b.y-w);cx.lineTo(b.x,b.y);cx.lineTo(b.x+7,b.y-w);cx.stroke()}
+ if(STV.fly){const f=STV.fly;for(let i=0;i<5;i++){const k=Math.max(0,Math.min(1,(f.t-i*.55)/.8));if(f.t<i*.55)continue;const x=f.x+(BSTONE.x-f.x)*k,y=f.y+(BSTONE.y-12-f.y)*k-Math.sin(Math.PI*k)*70;if(k<1){drawStarShape(x,y,7,'#ffe48a');emit(x,y,0,0,.4,'#fff4c0',2,0)}}}
+ if(STV.starT>=0){const t=STV.starT;cx.save();if(t<1){for(let i=0;i<14;i++){const a=i/14*6.28+t*2,d=110*(1-t);drawStarShape(P.x+Math.cos(a)*d,P.y-30+Math.sin(a)*d,3,'#fff4c0')}}else{const s=Math.min(1,(t-1)*2);cx.fillStyle=`rgba(255,240,170,${.3*s})`;circ(cx,P.x,P.y-50,34*s);cx.fill();drawStarShape(P.x,P.y-50,14*s,'#ffd84a')}cx.restore()}
+}
+function drawStarShape(x,y,r,col){cx.fillStyle=col;cx.beginPath();for(let i=0;i<10;i++){const a=i/10*Math.PI*2-Math.PI/2,rr2=i%2?r*.45:r;cx.lineTo(x+Math.cos(a)*rr2,y+Math.sin(a)*rr2)}cx.closePath();cx.fill()}
+function drawStoryScreen(){
+ if(STV.tint>0){cx.fillStyle='rgba(255,170,120,.12)';cx.fillRect(0,0,VW,VH)}
+ if(STV.glow&&!storyEventActive)STV.glow=0;
+ if(STV.mem>.01)drawMemory(STV.mem);
+ if(STV.fireA>0)drawFires();
+ if(STV.fade>0){cx.fillStyle=`rgba(0,0,0,${STV.fade})`;cx.fillRect(0,0,VW,VH)}
+ if(STV.titleT>=0){const t=STV.titleT;cx.fillStyle='#000';cx.fillRect(0,0,VW,VH);cx.textAlign='center';cx.globalAlpha=Math.min(1,t/.8);cx.fillStyle='#f4ead6';cx.font='900 30px "Zen Maru Gothic",sans-serif';cx.fillText('レンのたき火ごはん',VW/2,VH*.46);
+  cx.globalAlpha=Math.max(0,Math.min(1,(t-1.1)/.8));cx.font='700 15px "Zen Maru Gothic",sans-serif';cx.fillStyle='#e8c890';cx.fillText('― 消えた、おいしい記憶 ―',VW/2,VH*.46+36);cx.globalAlpha=1}
+}
+function drawMemory(a){const W2=VW,H2=VH,cx0=W2/2,cy0=H2*.6;cx.save();cx.globalAlpha=a;
+ const g=cx.createRadialGradient(cx0,cy0,20,cx0,cy0,Math.max(W2,H2)*.75);g.addColorStop(0,'#ffe2b0');g.addColorStop(.45,'#d88a48');g.addColorStop(1,'#2a160c');cx.fillStyle=g;cx.fillRect(0,0,W2,H2);
+ const f=Math.sin(time*9)*4;cx.fillStyle='#5a3418';cx.fillRect(cx0-34,cy0+18,68,8);cx.fillStyle='#ff9a3a';cx.beginPath();cx.moveTo(cx0-24,cy0+20);cx.quadraticCurveTo(cx0,cy0-46-f,cx0+24,cy0+20);cx.fill();cx.fillStyle='#ffe07a';cx.beginPath();cx.moveTo(cx0-12,cy0+20);cx.quadraticCurveTo(cx0,cy0-18+f,cx0+12,cy0+20);cx.fill();
+ // 小さなレン（シルエット）
+ const rx=cx0-78,ry=cy0+20;cx.fillStyle='#2a1a12';cx.beginPath();cx.ellipse(rx,ry-14,11,14,0,0,7);cx.fill();cx.beginPath();cx.arc(rx,ry-36,10,0,7);cx.fill();cx.fillStyle='#b8442c';cx.fillRect(rx-10,ry-28,20,4);cx.beginPath();cx.moveTo(rx-8,ry-26);cx.lineTo(rx-18,ry-16);cx.lineTo(rx-14,ry-14);cx.closePath();cx.fill();
+ // リンゴ
+ cx.fillStyle='#d8352f';circ(cx,cx0+44,cy0+12,9);cx.fill();cx.fillStyle='#5aa04a';cx.fillRect(cx0+44,cy0,4,4);
+ // 大きな手（顔は見せない）：袖は写真の大きな人と同じ色
+ const hx=rx+8,hy=ry-56;cx.lineJoin='round';cx.lineCap='round';
+ cx.strokeStyle='#5a4a6a';cx.lineWidth=30;cx.beginPath();cx.moveTo(W2+40,cy0-230);cx.quadraticCurveTo(cx0+30,cy0-170,hx+30,hy-14);cx.stroke();
+ cx.strokeStyle='#e8b890';cx.lineWidth=18;cx.beginPath();cx.moveTo(hx+32,hy-14);cx.lineTo(hx+16,hy-6);cx.stroke();
+ cx.fillStyle='#e8b890';cx.strokeStyle='rgba(70,36,20,.55)';cx.lineWidth=2;cx.beginPath();cx.ellipse(hx+6,hy,16,11,-.35,0,7);cx.fill();cx.stroke();
+ for(let k=0;k<4;k++){const a=Math.PI*.62+k*.17,fx=hx+6+Math.cos(a)*12,fy=hy+Math.sin(a)*8;cx.strokeStyle='rgba(70,36,20,.55)';cx.lineWidth=9;cx.beginPath();cx.moveTo(fx,fy);cx.lineTo(fx+Math.cos(a)*13,fy+Math.sin(a)*13);cx.stroke();cx.strokeStyle='#e8b890';cx.lineWidth=6.5;cx.stroke()}
+ cx.strokeStyle='rgba(70,36,20,.55)';cx.lineWidth=9;cx.beginPath();cx.moveTo(hx+14,hy+4);cx.lineTo(hx+20,hy+14);cx.stroke();cx.strokeStyle='#e8b890';cx.lineWidth=6.5;cx.stroke();
+ const v=cx.createRadialGradient(cx0,cy0,Math.min(W2,H2)*.3,cx0,cy0,Math.max(W2,H2)*.7);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(20,8,4,.7)');cx.fillStyle=v;cx.fillRect(0,0,W2,H2);cx.restore()}
+function drawFires(){const n=4,gap=Math.min(84,(VW-40)/n),y=VH*.3,x0=VW/2-gap*(n-1)/2;cx.save();cx.globalAlpha=STV.fireA;cx.fillStyle='rgba(30,20,14,.55)';rr(cx,x0-gap/2-6,y-48,gap*n+12,108,18);cx.fill();
+ ['森','海','雪','山'].forEach((lb,i)=>{const x=x0+i*gap,on=STV.fires===i||STV.fires===9,sc=STV.fires===i?1.15:1;cx.save();cx.translate(x,y);cx.scale(sc,sc);cx.globalAlpha=STV.fireA*(on||STV.fires<0?1:.45);
+  cx.fillStyle='#f4ead6';circ(cx,0,0,26);cx.fill();ink(cx);circ(cx,0,0,26);cx.stroke();
+  if(i===0){cx.fillStyle='#3e7236';cx.beginPath();cx.moveTo(-12,8);cx.lineTo(0,-14);cx.lineTo(12,8);cx.closePath();cx.fill();cx.fillStyle='#6a4a2a';cx.fillRect(-2,8,4,6)}
+  else if(i===1){cx.strokeStyle='#3a86c0';cx.lineWidth=3;cx.beginPath();for(let k=-14;k<=14;k+=2)cx.lineTo(k,4+Math.sin(k/4)*4);cx.stroke()}
+  else if(i===2){cx.strokeStyle='#5aa6d4';cx.lineWidth=2.5;cx.beginPath();for(let k=0;k<3;k++){const a=k*Math.PI/3;cx.moveTo(Math.cos(a)*13,Math.sin(a)*13);cx.lineTo(-Math.cos(a)*13,-Math.sin(a)*13)}cx.stroke()}
+  else{cx.fillStyle='#8a5a3a';cx.beginPath();cx.moveTo(-15,10);cx.lineTo(-2,-12);cx.lineTo(4,-4);cx.lineTo(8,-8);cx.lineTo(16,10);cx.closePath();cx.fill()}
+  const fl=Math.sin(time*8+i)*2;cx.fillStyle='#ff8a2a';cx.beginPath();cx.moveTo(-6,-22);cx.quadraticCurveTo(0,-36-fl,6,-22);cx.fill();
+  cx.fillStyle='#f4ead6';cx.font='900 13px "Zen Maru Gothic",sans-serif';cx.textAlign='center';cx.fillText(lb,0,44);cx.restore()});cx.restore()}
+function drawStoryJournal(){const s=S.story,rows=[];
+ rows.push(s.introSeen||s.firstMemorySeen||s.bridgeStorySeen?['✓','いつもの朝','みんなが何かを忘れ始めている。']:['？','？？？','']);
+ rows.push(s.firstMemorySeen?['✓','最初の記憶','料理には、思い出が残っているらしい。']:['？','？？？','']);
+ rows.push(s.fourFiresExplained?['？','四つの火','森・海・雪・山。世界のどこかにあるという。']:['？','？？？','']);
+ if(s.bridgeStorySeen)rows.push(['✓','ヒバシの光','思い出の星が、北への道をひらいた。']);else if(s.bridgeReady)rows.push(['！','ヒバシ','《ヒバシへ行ってみよう》']);else rows.push(['？','？？？','']);
+ rows.push(['？','？？？',''],['？','？？？','']);
+ return rows.map(([m,t,d])=>`<div class="quest${m==='✓'?' done':''}"><b>${m} ${t}</b>${d?'<br>'+d.replace(/《(.+?)》/g,'<span style="color:#c0602a;font-weight:900">《$1》</span>'):''}</div>`).join('')}
+const isAppleDish=d=>d.ings?d.ings.some(k=>k==='ringo'||k==='gold'):(['yakifruit','honeyapple','tart'].includes(d.rid)&&(d.c==='#d8352f'||d.c==='#f2c230'));
 // 開始
 buildSolids();
 Object.keys(TRE).forEach(id=>{try{const c=document.createElement('canvas');c.width=c.height=80;const g=c.getContext('2d');g.translate(40,40);g.scale(2,2);drawTre(g,id);TIMG[id]=c.toDataURL()}catch(e){}});
@@ -1510,8 +1677,8 @@ async function titleFlow(){
  const where=cloudRef?'セーブはあなたのclaude.aiアカウントに残ります':canSave?'セーブはこの端末に残ります':'この画面ではセーブが残りません（手帳のじゅもんを使ってね）';
  if(best){$('titleBody').innerHTML=`<div class="row" style="flex-direction:column"><button class="btn fire" id="contBtn" style="min-height:64px;line-height:1.4;white-space:normal">つづきから<br><small style="font-weight:500">${summary(best.s)}<br>${when(best.t)} にセーブ（${best.src}）</small></button><button class="btn" id="newBtn">はじめから</button></div><p class="hint2">${where}</p>`;
   $('contBtn').onclick=()=>{au();try{applyObj(best.s)}catch(e){}startGame();toast('つづきから はじめた')};
-  $('newBtn').onclick=()=>{$('titleBody').innerHTML=`<p><b>本当にはじめから？</b><br>いまのセーブデータは消えてしまいます。</p><div class="row"><button class="btn fire" id="newYes">はじめから遊ぶ</button><button class="btn" id="newNo">もどる</button></div>`;$('newYes').onclick=()=>{au();applyObj(DEF());S.savedAt=0;startGame();toast('左下をドラッグして歩こう。アーチ城から冒険がはじまる')};$('newNo').onclick=titleFlow};
- }else{$('titleBody').innerHTML=`<div class="row"><button class="btn fire" id="newYes" style="min-height:56px;font-size:18px">はじめる</button></div><p class="hint2">${where}</p>`;$('newYes').onclick=()=>{au();startGame();toast('左下をドラッグして歩こう。アーチ城から冒険がはじまる')}}
+  $('newBtn').onclick=()=>{$('titleBody').innerHTML=`<p><b>本当にはじめから？</b><br>いまのセーブデータは消えてしまいます。</p><div class="row"><button class="btn fire" id="newYes">はじめから遊ぶ</button><button class="btn" id="newNo">もどる</button></div>`;$('newYes').onclick=()=>{au();applyObj(DEF());S.savedAt=0;startGame();runStory('opening')};$('newNo').onclick=titleFlow};
+ }else{$('titleBody').innerHTML=`<div class="row"><button class="btn fire" id="newYes" style="min-height:56px;font-size:18px">はじめる</button></div><p class="hint2">${where}</p>`;$('newYes').onclick=()=>{au();startGame();if(!S.story.introSeen)runStory('opening')}}
 }
 titleFlow();
 // セーブボタン
