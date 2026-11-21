@@ -28,6 +28,7 @@ html,body{touch-action:manipulation;-webkit-text-size-adjust:100%;margin:0;heigh
 .stat .warm{background:#e8742a;color:#fff}.stat .cold{background:#3fb6c8;color:#fff}
 .stat .sub{display:block;font-size:13px;color:#ffe9a8}
 .btn,.item,.slot,button{touch-action:manipulation}
+input,textarea,select{font-size:16px}
 .btn{pointer-events:auto;border:0;border-radius:14px;background:var(--paper);color:var(--ink);font-family:inherit;font-weight:700;font-size:15px;line-height:1;padding:0 13px;min-height:44px;box-shadow:0 3px 0 #0005;cursor:pointer;white-space:nowrap}
 .btn:active{transform:translateY(2px);box-shadow:0 1px 0 #0005}
 .btn:focus-visible{outline:3px solid var(--fire);outline-offset:2px}
@@ -69,7 +70,7 @@ html,body{touch-action:manipulation;-webkit-text-size-adjust:100%;margin:0;heigh
 .book .item{min-height:98px;cursor:default}
 .book .unk{color:#b5a07c}
 .hint2{font-size:11px;font-weight:500;color:#8a6a40;margin-top:2px}
-#codeBox{width:100%;font:14px/1.4 monospace;padding:8px;border:2px solid #cdb994;border-radius:12px;background:#fffaf0;color:var(--ink);user-select:text;-webkit-user-select:text;word-break:break-all}
+#codeBox{width:100%;font:16px/1.4 monospace;padding:8px;border:2px solid #cdb994;border-radius:12px;background:#fffaf0;color:var(--ink);user-select:text;-webkit-user-select:text;word-break:break-all}
 .quest{background:#fffaf0;border:2px solid #cdb994;border-radius:12px;padding:8px 12px;margin-bottom:6px;font-size:14px}
 .quest.done{opacity:.5}
 .overlay{position:fixed;inset:0;display:none;place-items:center;background:#000a;padding:20px;z-index:5}
@@ -860,7 +861,7 @@ function say(m){P.emote=m;P.emT=2.2}
 const sheets=['bagSheet','cookSheet','bookSheet','sellSheet','shopSheet','buildSheet'];
 const anyOpen=()=>sheets.some(s=>$(s).classList.contains('on'))||!!document.querySelector('.overlay.on');
 function open(id){sheets.forEach(s=>$(s).classList.toggle('on',s===id));stick.id=null;render()}
-function closeAll(){sheets.forEach(s=>$(s).classList.remove('on'));talkKey='';last=performance.now()}
+function closeAll(){resetZoom();sheets.forEach(s=>$(s).classList.remove('on'));talkKey='';last=performance.now()}
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=closeAll);
 $('bagBtn').onclick=()=>{au();open('bagSheet')};$('bookBtn').onclick=()=>{au();open('bookSheet')};
 $('atkBtn').addEventListener('pointerdown',e=>{e.preventDefault();attack()});
@@ -911,10 +912,11 @@ function checkStage(){
  if(S.stage<3&&st>=12){S.stage=3;save();sfx.great();showCard(`<span class="new">ステージ3 解放</span><h3>もえるヒガシヤマ</h3><p>ヒガシヤマの炎の壁が消えた。奥にはパパオニの砦がある……</p><p>ひんやり料理と、強い武器を準備しよう。</p><p class="says">レン「……負けない。」</p>`);return}
  if(st>=TOTAL&&!S.allDone){S.allDone=1;save();sfx.great();showCard(`<h3>村のごはん番</h3><p>村のみんなの頼みを、ぜんぶ叶えた。</p><p class="says">レン「……つぎは、なにを作ろう。」</p>`)}
 }
+function resetZoom(){const m=document.querySelector('meta[name=viewport]');if(!m)return;const c=m.content;m.content=c+',maximum-scale=1.0001';setTimeout(()=>{m.content=c},60);if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();window.scrollTo(0,0)}
 function showCard(html,after){
  paused=true;stick.id=null;$('resCard').innerHTML=html+'<div class="row"><button class="btn fire" id="okBtn">つづける</button></div>';
  $('result').classList.add('on');
- $('okBtn').onclick=()=>{$('result').classList.remove('on');paused=false;last=performance.now();after&&after()};
+ $('okBtn').onclick=()=>{resetZoom();$('result').classList.remove('on');paused=false;last=performance.now();after&&after()};
 }
 const price=d=>d.rid==='mystery'?3:Math.round((d.heal*5+(d.fx?15:0)+(d.gold?120:0))*(d.great?1.5:1));
 const ingKeys=()=>Object.keys(ING).filter(k=>S.bag[k]>0);
@@ -953,9 +955,9 @@ function render(){
  $('bookGrid').innerHTML=RECIPES.map(r=>S.found[r.id]?`<div class="item">${icon(0,{c:S.found[r.id],rid:r.id})}${r.n}<div class="hint2">${r.req.map(t=>tagName[t]).join('＋')||'なんでも'}</div></div>`:`<div class="item unk"><svg viewBox="0 0 40 40"><ellipse cx="20" cy="27" rx="17" ry="7" fill="#e5dcc8"/><text x="20" y="28" text-anchor="middle" font-size="14" fill="#b5a07c">?</text></svg>？？？<div class="hint2">${r.h}</div></div>`).join('');
 }
 $('clearPot').onclick=()=>{pot=[];render()};
-function saveInfo(){const t=lastSave?lastSave.toTimeString().slice(0,5):'まだ';$('saveInfo').innerHTML=`アカウントにセーブ：<b>${cloudState}</b><br>このブラウザにセーブ：<b>${canSave?'できます':'できません'}</b><br>最後のセーブ：${t}<br>${cloudOK?'閉じても、別の端末でも続きから遊べます。':canSave?'同じ端末・同じブラウザなら続きから遊べます。念のため、ふっかつのじゅもんもメモしておくと安心です。':'<b>この画面ではセーブが残りません。</b>やめる前に「ふっかつのじゅもんを出す」でコピーして、メモアプリにはっておいてね。'}`}
+function saveInfo(){const t=lastSave?lastSave.toTimeString().slice(0,5):'まだ';$('saveInfo').innerHTML=`${window.claude?`アカウントにセーブ：<b>${cloudState}</b><br>`:''}この端末にセーブ：<b>${canSave?'できます':'できません'}</b><br>最後のセーブ：${t}<br>${cloudOK?'閉じても、別の端末でも続きから遊べます。':canSave?'同じ端末・同じブラウザなら続きから遊べます。念のため、ふっかつのじゅもんもメモしておくと安心です。':'<b>この画面ではセーブが残りません。</b>やめる前に「ふっかつのじゅもんを出す」でコピーして、メモアプリにはっておいてね。'}`}
 $('saveBtn').onclick=()=>{save();saveInfo();toast(cloudOK?'アカウントにセーブした！':canSave?'セーブした！':'この画面ではセーブできない。じゅもんを使ってね')};
-$('codeBtn').onclick=()=>{const c=toCode(),b=$('codeBox');b.value=c;b.focus();b.select();try{navigator.clipboard.writeText(c).then(()=>toast('じゅもんをコピーした！メモアプリにはっておこう'),()=>toast('じゅもんを長押ししてコピーしてね'))}catch(e){toast('じゅもんを長押ししてコピーしてね')}};
+$('codeBtn').onclick=()=>{const c=toCode(),b=$('codeBox');b.value=c;try{navigator.clipboard.writeText(c).then(()=>toast('じゅもんをコピーした！メモアプリにはっておこう'),()=>toast('じゅもんを長押ししてコピーしてね'))}catch(e){toast('じゅもんを長押ししてコピーしてね')}};
 $('loadBtn').onclick=()=>{const c=$('codeBox').value.trim();if(!c){toast('じゅもんをはりつけてね');return}try{fromCode(c);E.length=0;PR.length=0;TR.length=0;EB.length=0;P.x=CAMP.x;P.y=CAMP.y+70;statKey='';talkKey='';save();closeAll();sfx.win();toast('じゅもんで再開した！')}catch(e){sfx.meh();toast('じゅもんがちがうみたい')}};
 setInterval(()=>{if(!paused)save()},8000);setInterval(()=>{if($('bookSheet').classList.contains('on'))saveInfo()},1000);
 addEventListener('pagehide',save);document.addEventListener('visibilitychange',()=>{if(document.hidden)save()});
@@ -1033,7 +1035,7 @@ async function titleFlow(){
  let best=null;
  if(cloudData)best={src:'アカウント',t:cloudData.t,s:cloudData.s};
  if(localHas&&(!best||(S.savedAt||0)>best.t))best={src:'この端末',t:S.savedAt||0,s:JSON.parse(JSON.stringify(S))};
- const where=cloudRef?'セーブはあなたのclaude.aiアカウントに残ります':'この画面ではアカウントにセーブできません（手帳のじゅもんを使ってね）';
+ const where=cloudRef?'セーブはあなたのclaude.aiアカウントに残ります':canSave?'セーブはこの端末に残ります':'この画面ではセーブが残りません（手帳のじゅもんを使ってね）';
  if(best){$('titleBody').innerHTML=`<div class="row" style="flex-direction:column"><button class="btn fire" id="contBtn" style="min-height:64px;line-height:1.4;white-space:normal">つづきから<br><small style="font-weight:500">${summary(best.s)}<br>${when(best.t)} にセーブ（${best.src}）</small></button><button class="btn" id="newBtn">はじめから</button></div><p class="hint2">${where}</p>`;
   $('contBtn').onclick=()=>{au();try{applyObj(best.s)}catch(e){}startGame();toast('つづきから はじめた')};
   $('newBtn').onclick=()=>{$('titleBody').innerHTML=`<p><b>本当にはじめから？</b><br>いまのセーブデータは消えてしまいます。</p><div class="row"><button class="btn fire" id="newYes">はじめから遊ぶ</button><button class="btn" id="newNo">もどる</button></div>`;$('newYes').onclick=()=>{au();applyObj(DEF());S.savedAt=0;startGame();toast('左下をドラッグして歩こう。アーチ城から冒険がはじまる')};$('newNo').onclick=titleFlow};
@@ -1044,8 +1046,9 @@ titleFlow();
 $('saveTop').onclick=async()=>{au();if(!gameStarted)return;save();
  if(cloudRef){const t0=Date.now();await new Promise(r=>setTimeout(r,150));while((cloudBusy||lastCloudJ!==stateJ())&&Date.now()-t0<6000){if(!cloudBusy)cloudSave();await new Promise(r=>setTimeout(r,200))}}
  const ok=cloudRef&&lastCloudJ===stateJ();
+ if(!ok&&canSave&&!window.claude){sfx.win();showCard(`<h3>セーブしました！</h3><p>${summary(S)}</p><p>${when(Date.now())}　この端末に保存</p><p class="hint2">次に開いたら「つづきから」を押してね。別の端末で続けたいときは、手帳の「ふっかつのじゅもん」を使ってね</p>`);return}
  if(ok){sfx.win();showCard(`<h3>セーブしました！</h3><p>${summary(S)}</p><p>${when(Date.now())}　claude.aiのアカウントに保存</p><p class="hint2">次に開いたら「つづきから」を押してね</p>`)}
- else{sfx.meh();const c=toCode();showCard(`<h3>アカウントにセーブできませんでした</h3><p>${canSave?'この端末にはセーブしました。':''}念のため、下のじゅもんをコピーしてメモしておいてね。</p><textarea id="cardCode" rows="3" style="width:100%;font:12px monospace;user-select:text;-webkit-user-select:text;word-break:break-all">${c}</textarea><div class="row"><button class="btn" id="cardCopy">じゅもんをコピー</button></div><p class="hint2">状態：${cloudState}</p>`);$('cardCopy').onclick=()=>{const b=$('cardCode');b.select();try{navigator.clipboard.writeText(c).then(()=>toast('コピーした！'),()=>toast('長押ししてコピーしてね'))}catch(e){toast('長押ししてコピーしてね')}}}
+ else{sfx.meh();const c=toCode();showCard(`<h3>アカウントにセーブできませんでした</h3><p>${canSave?'この端末にはセーブしました。':''}念のため、下のじゅもんをコピーしてメモしておいてね。</p><textarea id="cardCode" rows="3" style="width:100%;font:16px monospace;user-select:text;-webkit-user-select:text;word-break:break-all">${c}</textarea><div class="row"><button class="btn" id="cardCopy">じゅもんをコピー</button></div><p class="hint2">状態：${cloudState}</p>`);$('cardCopy').onclick=()=>{const b=$('cardCode');b.select();try{navigator.clipboard.writeText(c).then(()=>toast('コピーした！'),()=>toast('長押ししてコピーしてね'))}catch(e){toast('長押ししてコピーしてね')}}}
 };
 }
 </script>
