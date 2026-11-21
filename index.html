@@ -63,6 +63,22 @@ input[type=range]{width:100%;accent-color:var(--acc);height:28px}
 .step.on{background:var(--c,var(--acc));border-color:transparent}
 .step.now{box-shadow:0 0 0 2px #fff}
 .hidden{display:none!important}
+.ptop{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.ptop .oct{width:38px;height:36px;border-radius:9px;border:1px solid var(--line);background:#22252a;color:var(--text);font-weight:800}
+.ptop .oct:disabled{opacity:.35}
+.ptop b.rg{font-size:12px;min-width:5.5em;text-align:center}
+.ptop select{font:inherit;font-size:16px;height:36px;border-radius:9px;border:1px solid var(--line);background:#22252a;color:var(--text);padding:0 6px;margin-left:auto}
+.pkwrap{overflow-x:auto;background:#0e1012;border-radius:10px;padding:8px 6px 6px}
+.pkeys,.pkeys *{touch-action:none!important}
+.pkeys{position:relative;display:grid;gap:2px;height:170px}
+.pk{background:#f3efe6;border-radius:0 0 7px 7px;box-shadow:inset 0 -6px 0 #d9d2c4;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding-bottom:7px;color:#222;font-size:11px;font-weight:800}
+.pk small{font-size:9px;color:#8b8478;font-weight:700}
+.pk.c4{box-shadow:inset 0 -6px 0 var(--acc)}
+.pkb{position:absolute;top:0;height:58%;background:linear-gradient(#3a3d42,#111);border-radius:0 0 5px 5px;box-shadow:inset 0 -4px 0 #000;z-index:2}
+.pk.hit,.pkb.hit{background:var(--acc)}
+textarea{width:100%;font:inherit;font-size:16px;padding:10px;border-radius:9px;border:1px solid var(--line);background:#0e1012;color:var(--text);resize:vertical;min-height:60px;user-select:text;-webkit-user-select:text}
+.presets{display:flex;flex-wrap:wrap;gap:6px}
+.presets button{background:#22252a;border:1px solid var(--line);color:var(--dim);border-radius:999px;padding:6px 11px;font-size:12px;font-weight:700}
 .small{font-size:11px;color:var(--dim);line-height:1.5}
 </style>
 </head>
@@ -84,6 +100,7 @@ input[type=range]{width:100%;accent-color:var(--acc);height:28px}
     <div class="seg tabs" id="tabSeg">
       <button data-tab="edit" class="on">サウンド編集</button>
       <button data-tab="seq">シーケンス</button>
+      <button data-tab="piano">ピアノ</button>
     </div>
 
     <div id="tab-edit" style="display:flex;flex-direction:column;gap:8px">
@@ -119,6 +136,22 @@ input[type=range]{width:100%;accent-color:var(--acc);height:28px}
         <button id="clearSeq" class="danger">全クリア</button>
       </div>
       <div class="small">パッドを選んでステップをタップ。「タップで打ち込み」をONにして再生中にパッドを叩くと、近いステップに記録されます。</div>
+    </div>
+    <div id="tab-piano" class="hidden" style="flex-direction:column;gap:8px">
+      <div class="row"><b id="pianoName">PAD 1</b><span class="info" id="pianoInfo">空</span></div>
+      <div class="ptop">
+        <button class="oct" id="octDown" aria-label="1オクターブ下へ">◀</button><b class="rg" id="octRange"></b><button class="oct" id="octUp" aria-label="1オクターブ上へ">▶</button>
+        <select id="octCount" aria-label="鍵盤の数"><option value="1">1オクターブ</option><option value="2" selected>2オクターブ</option><option value="3">3オクターブ</option><option value="4">4オクターブ</option></select>
+      </div>
+      <div class="pkwrap"><div class="pkeys" id="pkeys"></div></div>
+      <div class="presets" id="presets"></div>
+      <textarea id="seqText">ドレミファソラシド</textarea>
+      <div class="ctl"><span>テンポ</span><input type="range" id="ptempo" min="60" max="200" step="1" value="110"><output id="ptempoO">110</output></div>
+      <div class="btns">
+        <button id="pPlay">▶ ドレミを演奏</button>
+        <button id="pStop">■ 止める</button>
+      </div>
+      <div class="small">選んでいるパッドの音がそのまま鍵盤になります。録った音の高さを自動で測り、ドはドの音で鳴ります。RECモードでパッドに「あー」と声を録れば、自分の声のピアノになります。<br>入力：「ー」でのばす／スペースで休み／シのあとのドは高いド／「ド↑」で1オクターブ上、「ソ↓」で下／「ド#」でシャープ。</div>
     </div>
   </section>
   <div class="small" style="text-align:center;padding-bottom:8px">録音・設定はこのブラウザ内に自動保存されます</div>
@@ -413,7 +446,7 @@ function select(i) {
   $('selInfo').textContent = p.data ? (p.name ? p.name + ' · ' : '') + (p.data.length / p.sr).toFixed(2) + '秒' : '空';
   setCtl('pitch', p.pitch); setCtl('fine', p.fine); setCtl('vol', p.vol); setCtl('start', p.start); setCtl('end', p.end);
   $('revBtn').classList.toggle('on', p.rev); $('monoBtn').classList.toggle('on', p.mono);
-  renderPads(); drawWave(); renderSteps();
+  renderPads(); drawWave(); renderSteps(); pianoInfo();
 }
 function setCtl(id, v) { $(id).value = v; showCtl(id, v); }
 function showCtl(id, v) {
@@ -494,6 +527,8 @@ $('tabSeg').onclick = e => {
   [...$('tabSeg').children].forEach(x => x.classList.toggle('on', x === b));
   $('tab-edit').style.display = tab === 'edit' ? 'flex' : 'none';
   $('tab-seq').classList.toggle('hidden', tab !== 'seq'); $('tab-seq').style.display = tab === 'seq' ? 'flex' : 'none';
+  $('tab-piano').classList.toggle('hidden', tab !== 'piano'); $('tab-piano').style.display = tab === 'piano' ? 'flex' : 'none';
+  if (tab === 'piano') pianoInfo();
 };
 $('playBtn').onclick = togglePlay;
 
@@ -611,6 +646,126 @@ function installDrums() {
   try { localStorage.setItem('arch-sampler-drums', '1'); } catch (_) {}
 }
 
+// ---------- ピアノ（選択パッドの音で鍵盤演奏） ----------
+const C4 = 261.63, NOTE = ['ド','ド#','レ','レ#','ミ','ファ','ファ#','ソ','ソ#','ラ','ラ#','シ'];
+const PCK = 'zsxdcvgbhnjmq2w3er5t6y7ui';
+let octBase = -1, octCount = 2, seqTimers = [];
+function detectHz(d, sr) {
+  const W = 2048; if (d.length < W * 2) return null;
+  const minL = Math.floor(sr / 1100), maxL = Math.floor(sr / 50), hz = [];
+  const a0 = Math.floor(d.length * 0.15), a1 = Math.floor(d.length * 0.85) - W - maxL;
+  if (a1 <= a0) return null;
+  for (let f = 0; f < 10; f++) {
+    const st = Math.floor(a0 + (a1 - a0) * f / 9);
+    let r0 = 0; for (let k = 0; k < W; k++) r0 += d[st + k] * d[st + k];
+    if (r0 < 1e-3) continue;
+    const r = new Float32Array(maxL + 2);
+    for (let l = minL; l <= maxL + 1; l++) { let v = 0; for (let k = 0; k < W; k++) v += d[st + k] * d[st + k + l]; r[l] = v / r0; }
+    let best = 0; for (let l = minL + 1; l <= maxL; l++) if (r[l] > r[l - 1] && r[l] >= r[l + 1] && r[l] > best) best = r[l];
+    if (best < 0.5) continue;
+    for (let l = minL + 1; l <= maxL; l++) if (r[l] > r[l - 1] && r[l] >= r[l + 1] && r[l] > best * 0.9) {
+      const y0 = r[l - 1], y1 = r[l], y2 = r[l + 1], q = (y0 - y2) / (2 * (y0 - 2 * y1 + y2)) || 0; hz.push(sr / (l + q)); break;
+    }
+  }
+  if (!hz.length) return null; hz.sort((x, y) => x - y); return hz[hz.length >> 1];
+}
+function rootOf(i) {
+  const p = pads[i]; if (!p.data) return null;
+  const key = p.start + '/' + p.end;
+  if (p._rd !== p.data || p._rk !== key) {
+    const a = Math.floor(p.start / 1000 * p.data.length), b = Math.floor(p.end / 1000 * p.data.length);
+    p._root = detectHz(p.data.subarray(a, b), p.sr); p._rd = p.data; p._rk = key;
+  }
+  return p._root;
+}
+function noteLabel(hz) { const m = Math.round(12 * Math.log2(hz / C4)); return NOTE[((m % 12) + 12) % 12] + (4 + Math.floor(m / 12)); }
+function pianoInfo() {
+  if (tab !== 'piano') return;
+  const p = pads[sel]; $('pianoName').textContent = padName(sel) + ' の音';
+  if (!p.data) { $('pianoInfo').textContent = '空 — 音のあるパッドを選んでください'; return; }
+  const hz = rootOf(sel);
+  $('pianoInfo').textContent = hz ? `元の音 約${Math.round(hz)}Hz（${noteLabel(hz)}）` : '音程不明 → ドとして扱います';
+}
+function pianoPlay(semi, when, dur) {
+  const p = pads[sel];
+  if (!p.data) { hint('このパッドは空です。音のあるパッドを選ぶか、RECで声を録ってください', true); return; }
+  ensureCtx();
+  const t = Math.max(when || 0, ctx.currentTime);
+  const buf = getBuf(p, p.rev), D = buf.duration;
+  let s = p.start / 1000 * D, e = p.end / 1000 * D;
+  if (e < s + 0.01) e = Math.min(D, s + 0.01);
+  if (p.rev) { const s2 = D - e; e = D - s; s = s2; }
+  const root = rootOf(sel) || C4;
+  const rate = C4 * Math.pow(2, semi / 12 + p.fine / 1200) / root;
+  let len = (e - s) / rate; if (dur) len = Math.min(len, dur);
+  const src = ctx.createBufferSource(); src.buffer = buf; src.playbackRate.value = rate;
+  const g = ctx.createGain(), v = p.vol / 100;
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + 0.004);
+  g.gain.setValueAtTime(v, t + Math.max(0.005, len - 0.04)); g.gain.linearRampToValueAtTime(0, t + len);
+  src.connect(g); g.connect(master); src.start(t, s, Math.min(e - s, len * rate + 0.01));
+  setTimeout(() => {
+    const el = pkeysEl.querySelector(`[data-s="${semi}"]`);
+    if (el) { el.classList.add('hit'); setTimeout(() => el.classList.remove('hit'), Math.min(len * 1000, 250)); }
+  }, Math.max(0, (t - ctx.currentTime) * 1000));
+}
+const pkeysEl = $('pkeys');
+function buildKeys() {
+  const base = octBase * 12, ks = [];
+  for (let k = base; k <= base + octCount * 12; k++) ks.push({s: k, b: [1, 3, 6, 8, 10].includes(((k % 12) + 12) % 12)});
+  const wh = ks.filter(k => !k.b), W = wh.length;
+  pkeysEl.style.gridTemplateColumns = `repeat(${W},minmax(0,1fr))`;
+  pkeysEl.style.minWidth = (W * 22) + 'px';
+  pkeysEl.innerHTML = wh.map(k => { const nm = NOTE[((k.s % 12) + 12) % 12], pc = PCK[k.s - base] || '';
+    return `<div class="pk${k.s === 0 ? ' c4' : ''}" data-s="${k.s}">${nm}<small>${nm === 'ド' ? 4 + Math.floor(k.s / 12) : pc.toUpperCase()}</small></div>`; }).join('') +
+    ks.filter(k => k.b).map(k => { const wi = wh.findIndex(w => w.s === k.s - 1) + 1;
+      return `<div class="pkb" data-s="${k.s}" style="left:calc(100%/${W}*${wi} - 100%/${W}*.3);width:calc(100%/${W}*.6)"></div>`; }).join('');
+  $('octRange').textContent = `ド${4 + octBase}〜ド${4 + octBase + octCount}`;
+  $('octDown').disabled = octBase <= -3; $('octUp').disabled = octBase + octCount >= 4;
+}
+$('octDown').onclick = () => { octBase--; buildKeys(); };
+$('octUp').onclick = () => { octBase++; buildKeys(); };
+$('octCount').onchange = e => { octCount = +e.target.value; if (octBase + octCount > 4) octBase = 4 - octCount; buildKeys(); };
+let kDown = false, kLast = null;
+const keyAt = e => { const el = document.elementFromPoint(e.clientX, e.clientY); return el && el.closest('.pk,.pkb'); };
+const kPress = el => { if (!el || el === kLast) return; kLast = el; pianoPlay(+el.dataset.s); };
+pkeysEl.addEventListener('pointerdown', e => { e.preventDefault(); kDown = true; kLast = null; kPress(keyAt(e)); });
+pkeysEl.addEventListener('pointermove', e => { if (kDown) kPress(keyAt(e)); });
+['pointerup', 'pointercancel'].forEach(t => window.addEventListener(t, () => { kDown = false; kLast = null; }));
+window.addEventListener('keydown', e => {
+  if (tab !== 'piano' || e.repeat || e.target.closest('textarea,input')) return;
+  const k = PCK.indexOf(e.key.toLowerCase()); if (k >= 0) pianoPlay(octBase * 12 + k);
+});
+function parseSeq(txt) {
+  const out = [], map = [['ファ', 5], ['ド', 0], ['レ', 2], ['ミ', 4], ['ソ', 7], ['ラ', 9], ['シ', 11]];
+  let i = 0, prev = null;
+  while (i < txt.length) {
+    const ch = txt[i];
+    if (ch === 'ー' || ch === '-' || ch === '～') { if (out.length) out[out.length - 1].len++; i++; continue; }
+    if (/[\s、,。・]/.test(ch)) { out.push({s: null, len: 1}); i++; continue; }
+    const m = map.find(([k]) => txt.startsWith(k, i)); if (!m) { i++; continue; }
+    i += m[0].length; let n = m[1];
+    if (txt[i] === '#' || txt[i] === '♯') { n++; i++; }
+    if (txt[i] === '↑' || txt[i] === "'") { n += 12; i++; }
+    else if (txt[i] === '↓') { n -= 12; i++; }
+    else if (m[1] === 0 && prev !== null && prev >= 9 && prev < 12) n = 12;
+    out.push({s: n, len: 1}); prev = n;
+  }
+  return out;
+}
+function stopSeqText() { seqTimers.forEach(clearTimeout); seqTimers = []; }
+$('pPlay').onclick = () => {
+  ensureCtx(); stopSeqText();
+  const beat = 60 / +$('ptempo').value; let t = ctx.currentTime + 0.05;
+  for (const n of parseSeq($('seqText').value)) { if (n.s !== null) pianoPlay(n.s, t, Math.max(n.len * beat * 0.95, 0.12)); t += n.len * beat; }
+};
+$('pStop').onclick = () => { stopSeqText(); resetCtx(); };
+$('ptempo').oninput = e => { $('ptempoO').textContent = e.target.value; };
+const PRESETS = [['ドレミ', 'ドレミファソラシド'], ['かえるのうた', 'ドレミファミレド　ミファソラソファミ　ドー　ドー　ドー　ドー　ドドレレミミファファミーレードー'], ['きらきら星', 'ドドソソララソー　ファファミミレレドー　ソソファファミミレー　ソソファファミミレー　ドドソソララソー　ファファミミレレドー'], ['チューリップ', 'ドレミー　ドレミー　ソミレドレミレー']];
+$('presets').innerHTML = PRESETS.map((x, k) => `<button data-k="${k}">${x[0]}</button>`).join('');
+$('presets').onclick = e => { const b = e.target.closest('button'); if (b) { $('seqText').value = PRESETS[b.dataset.k][1]; $('pPlay').click(); } };
+['start', 'end'].forEach(id => $(id).addEventListener('change', pianoInfo));
+buildKeys();
+
 // ---------- persistence (IndexedDB, optional) ----------
 let db = null; const saveTimers = {};
 function openDB() {
@@ -636,7 +791,7 @@ try { const b = +localStorage.getItem('arch-sampler-bank'); if (b >= 0 && b < BA
 let lastTouchEnd = 0;
 document.addEventListener('touchend', e => {
   const now = Date.now();
-  if (e.target.closest('.pad')) e.preventDefault();                       // パッドはpointerdownで鳴らすのでOK
+  if (e.target.closest('.pad,.pkeys')) e.preventDefault();                       // パッドはpointerdownで鳴らすのでOK
   else if (now - lastTouchEnd < 350 && !e.target.closest('input')) { e.preventDefault(); e.target.click && e.target.closest('button') && e.target.closest('button').click(); }
   lastTouchEnd = now;
 }, {passive: false});
