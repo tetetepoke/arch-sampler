@@ -1017,6 +1017,7 @@ const wimg=id=>`<img src="${WIMG[id]}" alt="" width="44" height="44">`;
 const PR=[],TR=[],RG=[];
 function damageEnemy(e,dmg,kx,ky){
  const i=E.indexOf(e);if(i<0)return;
+ {const M=MSPEC[e.kind],K0=EK[e.kind];if(e.type!=='oni'&&M&&M.tame&&K0&&!K0.boss&&e.hp>e.max*.5&&e.hp-dmg<=0&&!e.dz){e.dz=1;e.dizzy=5;e.hp=1;e.fl=.3;e.kx=kx*.5;e.ky=ky*.5;pop(e.x,e.y-40,'ふらふら…','#ffd84a');sfx.hit();return}}
  e.hp-=dmg;e.fl=.3;for(let k=0;k<6;k++)emit(e.x,e.y-16,(Math.random()-.5)*140,-Math.random()*120,.35,k%2?'#ffd84a':'#ffffff',3,200);const oni=e.type==='oni';e.kx=kx*(oni?.25:1);e.ky=ky*(oni?.25:1);pop(e.x,e.y-40,'-'+dmg,'#fff');
  if(e.hp<=0){E.splice(i,1);S.kills=(S.kills||0)+1;talkKey='';if(oni){gainExp(60*((e.lv||0)+1));compExp(60*((e.lv||0)+1));oniDefeated(e)}else{const K=EK[e.kind||'buta'];if(K.boss){giveMat('enk',1,e.x-20,e.y);giveMat('hyok',1,e.x,e.y-16);giveMat('fuk',1,e.x+20,e.y-32);giveMat('kiseki',1,e.x,e.y-48)}else if(K.tier>=3&&Math.random()<.08){const r=region(e.x,e.y),c=r==='hot'||arId==='sabaku'?'enk':r==='snow'||r==='north'?'hyok':'fuk';giveMat(c,1,e.x,e.y)}if(K.book!=null&&Math.random()<.35){const mk=['gyu','buta2','tori','hiki','bacon'];const mi=mk[Math.floor(Math.random()*mk.length)];items.push({k:mi,x:e.x,y:e.y,bx:e.x,by:e.y,ph:0,sp:{k:mi,fixed:1,drop:1}})}if(K.book!=null){S.mk=S.mk||{};const f=!S.mk[K.book];S.mk[K.book]=(S.mk[K.book]||0)+1;if(f)toast(`モンスター図鑑に「${K.n}」が登録された！`)}const n=1+Math.floor(Math.random()*2)+(K.crown?3:0);for(let j=0;j<n;j++)coins.push({x:e.x+(Math.random()-.5)*30*K.s,y:e.y+(Math.random()-.5)*20,v:K.coin[0]+Math.floor(Math.random()*K.coin[1])});const XP=e.exp||K.exp;pop(e.x,e.y-30,`+${XP}EXP`,'#ffd84a');gainExp(XP);compExp(XP);if(e.strong){const c=['enk','hyok','fuk'][Math.floor(Math.random()*3)];giveMat(c,1,e.x,e.y-40)}}}
 }
@@ -1302,7 +1303,7 @@ function fMove(F,tx,ty,sp,dt,mv,st){const dx=tx-F.x,dy=ty-F.y,d=Math.hypot(dx,dy
  if(moved){st.stuck=0;F.d8=d8To(dx,dy);if(Math.abs(dx)>4)F.dir=dx>0?1:-1}else st.stuck+=dt;return moved}
 function fHome(F,off){F.x=P.x+off;F.y=P.y+8;if(!fPass(F.x,F.y,'ground')){F.x=P.x;F.y=P.y+4}F.init=1}
 function fTarget(st,data){const T=TACT[S.monsterSettings.tactic]||TACT.gangan;if(!T.r||data.hp<=0)return null;let r=T.r*((PERS[data.personality]||{}).range||1),best=null,bd=1e9;
- for(const e of E){if(e.taming)continue;const dp=Math.hypot(e.x-P.x,e.y-P.y);if(dp>r)continue;if(T.guard&&dp>120&&e!==st.t)continue;const d=Math.hypot(e.x-(st.F.x),e.y-st.F.y);if(d<bd){bd=d;best=e}}return best}
+ for(const e of E){if(e.taming||e.dizzy>0)continue;const dp=Math.hypot(e.x-P.x,e.y-P.y);if(dp>r)continue;if(T.guard&&dp>120&&e!==st.t)continue;const d=Math.hypot(e.x-(st.F.x),e.y-st.F.y);if(d<bd){bd=d;best=e}}return best}
 function fHit(F,e,dmg){if(E.indexOf(e)<0)return;const dx=e.x-F.x,dy=e.y-F.y,d=Math.hypot(dx,dy)||1;damageEnemy(e,Math.max(1,Math.round(dmg)),dx/d*120,dy/d*120);sfx.hit()}
 function fGain(data,n,F,isAk){if(!data||data.hp<=0)return;data.exp+=n;let up=false;while(data.exp>=fNeed(data.lv)){data.exp-=fNeed(data.lv);data.lv++;up=true;data.maxHp+=isAk?3:3;data.atk=+(data.atk+(isAk?.5:.45)).toFixed(1);data.def=+(data.def+(isAk?.3:.25)).toFixed(1);data.hp=data.maxHp;
   const L=isAk?AKSK:MSPEC[data.species].skills;L.forEach(s=>{if(s[0]===data.lv){data.skills.push(s[1]);toast(`${isAk?'Archくん':data.name}は「${s[1]}」をおぼえた！`)}})}
@@ -1573,6 +1574,7 @@ const MSPAWN={field:['slime','slime','kinoko','m4','boar','m22','m51'],meadow:['
  snow:['m18','m30','m21','m48','m53'],hot:['m19','m26','m28','m31','m49'],island:['m44','m39','m27'],river:['slime'],meadow2:[]};
 function pickKind(r){const L=MSPAWN[r]||MSPAWN.field;for(let t=0;t<6;t++){const k=L[Math.floor(Math.random()*L.length)],K=EK[k];if(K.tier===4&&(Math.random()>.18||S.stage<2||S.lv<6))continue;if(K.tier===3&&S.stage<2&&S.lv<5)continue;if(k==='m22'&&Math.random()>.25)continue;return k}return L[0]}
 function drawMon(e,K){
+ if(e.dizzy>0){for(let i=0;i<3;i++){const a=time*5+i*2.1;cx.fillStyle='#ffd84a';cx.font='900 11px sans-serif';cx.textAlign='center';cx.fillText('★',e.x+Math.cos(a)*14,e.y-34*K.s+Math.sin(a)*4)}}
  if(e.strong){cx.fillStyle=`rgba(255,120,60,${.22+Math.sin(time*6)*.08})`;cx.beginPath();cx.ellipse(e.x,e.y-20*K.s,30*K.s,26*K.s,0,0,7);cx.fill()}
  if(e.mlv&&Math.hypot(e.x-P.x,e.y-P.y)<170){cx.font='700 10px "Zen Maru Gothic",sans-serif';cx.textAlign='center';cx.fillStyle='#000a';cx.fillText((e.strong?'★強敵 ':'')+'Lv'+e.mlv,e.x+1,e.y+13);cx.fillStyle=e.strong?'#ffb060':'#fff';cx.fillText((e.strong?'★強敵 ':'')+'Lv'+e.mlv,e.x,e.y+12)}
  cx.imageSmoothingEnabled=false;const s=K.s*(e.big||1),mv=e._mv,b=mv?Math.abs(Math.sin(time*9+e.a))*3:Math.sin(time*2+e.a)*.6;
@@ -1718,7 +1720,7 @@ function updateArea(dt){
  for(let i=fxs.length-1;i>=0;i--){fxs[i].t-=dt;if(fxs[i].t<=0)fxs.splice(i,1)}
  // 敵
  if(!AR.peace&&(arT-=dt)<0){arT=4;if(E.filter(e=>!e.boss).length<9){const s=arSpot(420);if(s)spawnButa(s.x,s.y,1,AR.mons[Math.floor(Math.random()*AR.mons.length)])}}
- for(const e of E){if(e.fl>0)e.fl-=dt;if(e.taming>0){e.taming-=dt;continue}const K=EK[e.kind],dx=P.x-e.x,dy=P.y-e.y,d=Math.hypot(dx,dy)||1;e.x+=e.kx*dt;e.y+=e.ky*dt;e.kx*=.86;e.ky*=.86;
+ for(const e of E){if(e.fl>0)e.fl-=dt;if(e.taming>0){e.taming-=dt;continue}if(e.dizzy>0){e.dizzy-=dt;continue}const K=EK[e.kind],dx=P.x-e.x,dy=P.y-e.y,d=Math.hypot(dx,dy)||1;e.x+=e.kx*dt;e.y+=e.ky*dt;e.kx*=.86;e.ky*=.86;
   let vx,vy;
   if(e.boss){e.bt-=dt;if(e.dash>0){e.dash-=dt;vx=e.dvx;vy=e.dvy}else{vx=d<700?dx/d*K.spd:0;vy=d<700?dy/d*K.spd:0;if(e.bt<=0&&d<520){e.bt=3.5;e.dash=.55;e.dvx=dx/d*330;e.dvy=dy/d*330;shake=.15}}
    if(!e.summ&&e.hp<e.max/2){e.summ=1;for(let k=0;k<3;k++)spawnButa(e.x-60+k*60,e.y+50,1,AR.mons[k]);toast(AR.bossN+'が仲間を呼んだ！')}}
@@ -2215,7 +2217,7 @@ function updateEnemies(dt){
  {butaT-=dt;if(butaT<=0){const tgt=[0,12,20,24][S.stage]||12,cnt=E.filter(e=>e.type==='buta'&&!e.summoned).length;butaT=cnt<tgt/2?.5:2.5;if(cnt<tgt){const s=randButaSpot();if(s)spawnButa(s.x,s.y,0,s.kind)}}}
  for(let i=E.length-1;i>=0;i--){const e=E[i];if(e.type==='buta'&&!e.summoned&&Math.hypot(e.x-P.x,e.y-P.y)>1400)E.splice(i,1)}
  if(S.stage>=3&&!S.oniDown&&!E.some(e=>e.type==='oni')){oniT-=dt;if(oniT<=0)spawnOni()}
- for(let i=E.length-1;i>=0;i--){const e=E[i];if(e.fl>0)e.fl-=dt;if(e.taming>0){e.taming-=dt;continue}
+ for(let i=E.length-1;i>=0;i--){const e=E[i];if(e.fl>0)e.fl-=dt;if(e.taming>0){e.taming-=dt;continue}if(e.dizzy>0){e.dizzy-=dt;continue}
   const dx=P.x-e.x,dy=P.y-e.y,d=Math.hypot(dx,dy)||1;
   e.x+=e.kx*dt;e.y+=e.ky*dt;e.kx*=.86;e.ky*=.86;
   if(e.type==='buta'){
