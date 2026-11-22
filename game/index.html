@@ -272,22 +272,22 @@ const NPCS=[
   {t:'r',id:'yakifruit',s:'ねえねえ、甘いのちょうだい！焼きフルーツ！'},
   {t:'r',id:'pancake',s:'ハチミツパンケーキって食べてみたい！'},
   {t:'gold',s:'ダイセンに金色のリンゴがあるんだって！それで何か作って！'}],th:'わあ！おいしい！レインすごい！',done:'レインのごはん、だいすき！'},
- {id:'michiru',n:'みちる',x:1060,y:1270,draw:'michiru',qs:[
+ {id:'michiru',n:'みちる',x:1060,y:1270,wander:45,draw:'michiru',qs:[
   {t:'r',id:'hotmilk',s:'すいりしてたら、おなかすいちゃった。ハチミツホットミルクがのみたいな'},
   {t:'r',id:'tart',s:'みんなでたべる、フルーツタルトをつくって！'}],th:'しんじつは、いつもおいしい！ありがとう！',done:'つぎのなぞも、いっしょにとこうね'},
- {id:'akarun',n:'あかる',x:350,y:440,draw:'akarun',qs:[
+ {id:'akarun',n:'あかる',x:350,y:403,room:'ooji',rx:320,ry:160,draw:'akarun',qs:[
   {t:'r',id:'soup',s:'こんにちは！やさしい味の、野草のミルクスープがほしいな'},
   {t:'r',id:'omelet',s:'ふわとろオムレツ、つくれる？'}],th:'わあ、おいしい！にこにこしちゃう',done:'今日もいい天気だね！'},
- {id:'oka',n:'オーカ',x:1000,y:420,draw:'oka',qs:[
+ {id:'oka',n:'オーカ',x:1000,y:388,room:'wald',rx:450,ry:250,draw:'oka',qs:[
   {t:'r',id:'takikomi',s:'おなかペッコペコ！キノコの炊き込みムギ！'},
   {t:'heal',n:12,s:'もっともっと！ハート6つ分くらいのでっかいごはん！'}],th:'うっまーーーい！！',done:'ごちそうさまーー！'},
- {id:'yoshi',n:'ヨシヨシ',x:300,y:1155,draw:'yoshi',qs:[
+ {id:'yoshi',n:'ヨシヨシ',x:300,y:1128,room:'bukuoff',rx:180,ry:330,draw:'yoshi',qs:[
   {t:'fx',fx:'cold',s:'……あついねえ……ひんやりするもの、ない……？'},
   {t:'r',id:'herbfish',s:'……香草焼き魚……いいにおい……'}],th:'……おいしい……ねむくなってきた……',done:'……すやぁ……'},
  {id:'saku',n:'サク',x:760,y:1420,draw:'saku',qs:[
   {t:'r',id:'kushiyaki',s:'ニャー！さかな！さかなの串焼きくれ！'},
   {t:'r',id:'yakigani',s:'ニャニャ！こんどはカニ！焼きガニ！'}],th:'ニャーーン！（ゴロゴロ）',done:'ニャ。（しっぽをふる）'},
- {id:'mamanun',n:'ママヌーン',x:650,y:1755,draw:'mamanun',shop:'sell',qs:[
+ {id:'mamanun',n:'ママヌーン',x:650,y:1728,room:'kokonu',rx:300,ry:160,wander:30,draw:'mamanun',shop:'sell',qs:[
   {t:'r',id:'bread',s:'うちの食堂でパンを出したいの。素朴なムギパン、作ってくれる？'}],th:'まあ、いい焼き色！お店に出すわね',done:'料理ができたら持ってきてね、高く買うよ〜'},
  {id:'yusa',n:'ユサ',x:1300,y:1895,draw:'yusa',shop:'weapon',qs:[],done:'よっ！武器もお宝の買い取りも任せとけ！'},
  {id:'mou',n:'牧場のモウさん',x:650,y:2905,draw:'rancher',sell:'horse',qs:[
@@ -303,7 +303,7 @@ const NPCS=[
  {id:'kamome',n:'カモメ船長',x:2850,y:2020,draw:'captain',sell:'boat',qs:[
   {t:'r',id:'herbfish',s:'うまい香草焼き魚を食わせてくれたら、船のことを教えてやろう'},
   {t:'fx',fx:'warm',s:'海の上は冷える。ぽかぽか料理をたのむ'}],th:'うまい！おまえ、いい船乗りになれるぞ',done:'東の海に、ひみつの島があるらしいぞ'},
- {id:'pikari',n:'灯台守のピカリさん',x:2790,y:1190,draw:'keeper',qs:[
+ {id:'pikari',n:'灯台守のピカリさん',x:2860,y:1178,room:'light',rx:220,ry:210,draw:'keeper',qs:[
   {t:'r',id:'stew',s:'夜の見張りは冷えるんです。キノコのクリームシチューがほしいな'},
   {t:'heal',n:16,s:'ハート8つ分くらいの、元気が出るごはんを！'}],th:'あったまる……ありがとう',done:'灯台の中も見ていっていいですよ'}
 ];
@@ -618,9 +618,9 @@ function updateRoom(dt){
  time+=dt;const inp=input();P.moving=inp.m>0;
  if(inp.m){const sp=160*inp.m,nx=P.x+inp.x*sp*dt,ny=P.y+inp.y*sp*dt;if(!roomBlocked(nx,P.y))P.x=nx;if(!roomBlocked(P.x,ny))P.y=ny;P.step+=dt*12*inp.m;P.fx=inp.x;P.fy=inp.y;if(Math.abs(inp.x)>.15)P.dir=inp.x>0?1:-1;setFace(inp.x,inp.y);
   if(P.y>room.h-24&&Math.abs(P.x-room.w/2)<46&&inp.y>.3){exitRoom();return}}
- if(P.atkT>0)P.atkT-=dt;if(P.slash>0)P.slash-=dt;if(P.emT>0)P.emT-=dt*.6;if(P.smT>0)P.smT-=dt;if(P.actT>0)P.actT-=dt;updAK(dt);
+ if(P.atkT>0)P.atkT-=dt;if(P.slash>0)P.slash-=dt;if(P.emT>0)P.emT-=dt*.6;if(P.smT>0)P.smT-=dt;if(P.actT>0)P.actT-=dt;updAK(dt);updNPCs(dt);
  for(let i=fxs.length-1;i>=0;i--){fxs[i].t-=dt;if(fxs[i].t<=0)fxs.splice(i,1)}
- if(talkKey!=='room'){talkKey='room';$('talk').style.display='none'}
+ {const ni=nearestNPC();const k=ni<0?'room':['r',ni,S.q[ni],S.dishes.length,S.g,S.kills,JSON.stringify(S.tre)].join(':');if(k!==talkKey){talkKey=k;renderTalk(ni)}}
  const a=context();const ak=a?a.label:'';if(ak!==actKey){actKey=ak;$('actBtn').style.display=a?'block':'none';$('actBtn').textContent=ak}
  updateRide();renderStat();
 }
@@ -649,7 +649,7 @@ function drawRoom(){
  cx.fillStyle='#6a4a2a';cx.fillRect(R.w/2-40,R.h-10,80,10);cx.fillStyle='#c8a060';cx.fillRect(R.w/2-34,R.h-24,68,14);
  label('出口',R.w/2,R.h+18,13);label(R.n,R.w/2,38,18,'#fffaf0');
  const objs=R.items.map((it,i)=>({y:it[2],f:()=>drawFurn(cx,it[0],it[1],it[2],SEARCH.includes(it[0])&&spotReady(i))}));
- softShadow(P.x+4,P.y+16,11,4);objs.push({y:P.y+10,f:drawBoy});if(RFOLK[roomId])objs.push({y:RFOLK[roomId].y,f:()=>drawFolk(RFOLK[roomId])});akObj(objs);objs.sort((a,b)=>a.y-b.y).forEach(o=>o.f());
+ softShadow(P.x+4,P.y+16,11,4);objs.push({y:P.y+10,f:drawBoy});if(RFOLK[roomId])objs.push({y:RFOLK[roomId].y,f:()=>drawFolk(RFOLK[roomId])});NPCS.forEach((n,i)=>{if(n.room===roomId)objs.push({y:n.ry,f:()=>{softShadow(n.rx+4,n.ry+2,12,4);drawNPC(n,i)}})});akObj(objs);objs.sort((a,b)=>a.y-b.y).forEach(o=>o.f());
  fxs.forEach(f=>{cx.globalAlpha=Math.max(0,f.t/f.T);cx.fillStyle=f.c;cx.font='900 16px "Zen Maru Gothic",sans-serif';cx.textAlign='center';cx.fillText(f.s,f.x,f.y-(1-f.t/f.T)*24);cx.globalAlpha=1});
  cx.setTransform(DPR,0,0,DPR,0,0);
  if(R.dark){const g=cx.createRadialGradient(P.x-cam.x,P.y-cam.y,60,P.x-cam.x,P.y-cam.y,280);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.82)');cx.fillStyle=g;cx.fillRect(0,0,VW,VH)}
@@ -793,7 +793,7 @@ function drawShadows(){
  if(S.build.house&&inView(BPOS.house.x,BPOS.house.y,80))softShadow(BPOS.house.x+8,BPOS.house.y+[0,16,28,34][S.build.house],[0,34,40,54][S.build.house],9);
  if(S.build.coop&&inView(BPOS.coop.x,BPOS.coop.y,60))softShadow(BPOS.coop.x+5,BPOS.coop.y+18,28,6);
  for(const c of[CHEST,CHEST2,ICHEST])if(inView(c.x,c.y,30))softShadow(c.x+3,c.y+9,15,4);
- for(const n of NPCS)if(inView(n.x,n.y,40))fastShadow(n.x+4,n.y+2,12,4);
+ for(const n of NPCS)if(!n.room&&inView(n.x,n.y,40))fastShadow(n.x+4,n.y+2,12,4);
  for(const e of E)if(inView(e.x,e.y,60)){const sc=e.type==='oni'?1.8+(e.lv||0)*.18:EK[e.kind||'buta'].s;softShadow(e.x+4*sc,e.y+2,12*sc,4.2*sc)}
  if(!P.ride&&!(P.flash>0&&Math.floor(time*20)%2))softShadow(P.x+4,P.y+16,11,4);
 }
@@ -1180,7 +1180,7 @@ Object.assign(CHAR,{
 const FOLK=[{draw:'hadof',n:'ハドフ',x:1390,y:1885,lines:['道具は 手入れしだいじゃ','いいゴーグルを しとるのう']}];
 const RFOLK={
  ohno:{draw:'ohno',n:'オーノ',x:180,y:300,lines:['……オーノだ。鍛冶をやっとる','火は こわすより つくるためにある']},
- kokonu:{draw:'kokonu',n:'ココヌ',x:300,y:175,lines:['畑のやさいは ぜんぶ自慢よ！','たき火で焼くと 甘くなるの']},
+ kokonu:{draw:'kokonu',n:'ココヌ',x:110,y:340,lines:['畑のやさいは ぜんぶ自慢よ！','たき火で焼くと 甘くなるの']},
  kuzu:{draw:'kuzu',n:'クズモショ',x:380,y:300,lines:['世界じゅうの品を あつめておる','ガラクタも だれかのお宝じゃ']},
  bukuoff:{draw:'pukuof',n:'プクオフ',x:320,y:330,lines:['本と地図は 旅の友だちだよ','「マップ」で 世界を見わたせるよ']}};
 function drawFolk(f){
@@ -1234,6 +1234,7 @@ function drawMapSheet(){
  g.fillStyle='rgba(204,58,44,.25)';g.beginPath();g.arc(a,b,11,0,7);g.fill();g.fillStyle='#cc3a2c';g.strokeStyle='#fff';g.lineWidth=2;g.beginPath();g.arc(a,b,5,0,7);g.fill();g.stroke();
  g.font='900 11px "Zen Maru Gothic",sans-serif';g.textAlign='center';g.lineWidth=3;g.strokeStyle='#fff';g.strokeText('レイン',a,b-9);g.fillStyle='#cc3a2c';g.fillText('レイン',a,b-9)}
 function drawChar(type,x,y,o={}){
+ if(CSPR[type]&&CSPR[type].ok&&!o.vec){const oo=Object.assign({},o);if(oo.atk&&type==='papaoni')oo.act='power';if(oo.d8==null&&oo.dir!=null&&o.face8!=null)oo.d8=o.face8;drawCSpr(type,x,y,oo);return}
  const g=cx,s=o.s||1;g.save();g.translate(x,y);
  
  g.scale((o.dir||1)*s,s);ink(g);
@@ -1336,6 +1337,37 @@ function rainPose(){
  if(!P.moving&&P.emT>1.2&&P.emote){if(P.emote.includes('！'))return'sur';if(P.emote.includes('？')||P.emote.includes('…。')&&false)return'think'}
  if(!P.moving&&!storyEventActive&&time-(P.lastMove||0)>15)return'sleep';
  return null}
+// ================= 村人・敵のドット絵スプライト =================
+const CSPR={
+ michiru:{k:.56,act:{dash:0,cook:1,done:2,tool:3,pick:4,sur:5,think:6,joy:7,sleep:8}},
+ mamanun:{k:.56,act:{dash:0,cook:1,done:2,tool:3,pick:4,sur:5,think:6,joy:7,sleep:8}},
+ papaoni:{k:.6,act:{dash:0,power:1,think:2,sur:3,laugh:4,angry:5,joy:6,sleep:7}}};
+for(const k in CSPR){const c=CSPR[k];c.img=new Image();c.img.onload=()=>{c.ok=true};c.img.src='spr_'+k+'.png?v=1'}
+function d8To(dx,dy){const k=((Math.round(Math.atan2(dy,dx)/(Math.PI/4))%8)+8)%8;return RSP.oct[k]}
+function drawCSpr(type,x,y,o){
+ const c=CSPR[type],s=c.k*(o.s||1),{CW,CH,FX,FY,AW,AH,AY,AFX,AFY}=RSP;
+ if(o.fl>0&&Math.floor(time*24)%2)cx.globalAlpha=.4;
+ if(o.act!=null&&c.act[o.act]!=null){const i=c.act[o.act],cc=i%6,r=(i/6)|0;cx.save();cx.translate(x,y);if(o.dir<0)cx.scale(-1,1);cx.drawImage(c.img,cc*AW,AY+r*AH,AW,AH,-AFX*s,-AFY*s,AW*s,AH*s);cx.restore()}
+ else{const col=o.d8!=null?o.d8:(o.dir>0?2:o.dir<0?6:0),row=o.mv?1+(Math.floor((o.st||0)*4/(Math.PI*2))%4+4)%4:0;cx.drawImage(c.img,col*CW,row*CH,CW,CH,x-FX*s,y-FY*s,CW*s,CH*s)}
+ cx.globalAlpha=1}
+// 村人の位置（家の中の人は roomId が一致するときだけ）
+const npcHere=n=>(n.room||null)===(roomId||null);
+const npcX=n=>n.room?n.rx:n.x,npcY=n=>n.room?n.ry:n.y;
+function updNPCs(dt){
+ for(const n of NPCS){if(!n.wander||!npcHere(n))continue;const w=n._w||(n._w={hx:npcX(n),hy:npcY(n),tx:npcX(n),ty:npcY(n),wait:1+Math.random()*2,st:0,mv:0});
+  const x=npcX(n),y=npcY(n),pd=Math.hypot(P.x-x,P.y-y);
+  if(pd<95||storyEventActive){w.mv=0;continue}
+  if(w.wait>0){w.wait-=dt;w.mv=0;continue}
+  const dx=w.tx-x,dy=w.ty-y,d=Math.hypot(dx,dy);
+  if(d<3){w.wait=1.5+Math.random()*3;const a=Math.random()*6.28,r=Math.random()*n.wander;w.tx=w.hx+Math.cos(a)*r;w.ty=w.hy+Math.sin(a)*r*.6;w.mv=0;continue}
+  const sp=Math.min(d,38*dt),nx=x+dx/d*sp,ny=y+dy/d*sp;
+  if(n.room){n.rx=nx;n.ry=ny}else{n.x=nx;n.y=ny}w.mv=1;w.st+=dt*9;w.d8=d8To(dx,dy)}}
+function drawNPC(n,i){
+ const x=npcX(n),y=npcY(n),pd=Math.hypot(x-P.x,y-P.y),w=n._w;
+ if(CSPR[n.draw]&&CSPR[n.draw].ok){const o={st:w?w.st:0,mv:w&&w.mv};o.d8=o.mv?w.d8:(pd<140?d8To(P.x-x,P.y-y):0);drawCSpr(n.draw,x,y,o)}
+ else drawChar(n.draw,x,y,{dir:x<P.x?1:-1,st:0});
+ if(S.q[i]<n.qs.length){const by=Math.sin(time*4)*3;cx.fillStyle='#ffd84a';circ(cx,x,y-66+by,10);cx.fill();cx.fillStyle='#6a4a00';cx.font='900 14px sans-serif';cx.textAlign='center';cx.fillText('!',x,y-61+by)}
+ if(pd<120){cx.font='700 12px "Zen Maru Gothic",sans-serif';cx.textAlign='center';cx.fillStyle='#000a';cx.fillText(n.n,x+1,y+17);cx.fillStyle='#fff';cx.fillText(n.n,x,y+16)}}
 function drawBoy(){
  if(P.ride==='horse'){drawHorse(cx,P.x,P.y+14,P.dir,P.step,P.moving);cx.save();cx.translate(0,-18)}
  else if(P.ride==='boat'){cx.fillStyle='rgba(10,40,70,.32)';cx.beginPath();cx.ellipse(P.x+5,P.y+18,34,9,0,0,7);cx.fill();drawBoat(cx,P.x,P.y+10+Math.sin(time*3)*1.5,P.dir);cx.save();cx.translate(0,-2)}
@@ -1451,14 +1483,13 @@ function draw(){
    drawIng(it.k,it.x,it.y+by);if(ING[it.k].rare&&!RM){const tw=(Math.sin(time*5+it.ph)+1)/2;cx.strokeStyle=`rgba(255,255,255,${tw})`;cx.lineWidth=1.5;cx.beginPath();cx.moveTo(it.x-9,it.y-14);cx.lineTo(it.x-9,it.y-14-8*tw);cx.moveTo(it.x-13,it.y-18);cx.lineTo(it.x-5,it.y-18);cx.stroke()}cx.fillStyle='#fff9';cx.beginPath();cx.arc(it.x+6,it.y-10+by,1.5+Math.sin(time*3+it.ph),0,7);cx.fill()}}));
  trees.forEach(t=>{if(inView(t.x,t.y,t.r+40))objs.push({y:t.y+4,f:()=>drawTree(t)})});
  pines.forEach(t=>inView(t.x,t.y,60)&&objs.push({y:t.y,f:()=>{cx.fillStyle='#4a3a2a';cx.fillRect(t.x-3,t.y-4,6,10);cx.fillStyle='#2e5040';cx.beginPath();cx.moveTo(t.x-t.r,t.y-2);cx.lineTo(t.x,t.y-t.r*2.6);cx.lineTo(t.x+t.r,t.y-2);cx.fill();cx.fillStyle='#fff';cx.beginPath();cx.moveTo(t.x-t.r*.45,t.y-t.r*1.5);cx.lineTo(t.x,t.y-t.r*2.6);cx.lineTo(t.x+t.r*.45,t.y-t.r*1.5);cx.fill()}}));
- NPCS.forEach((n,i)=>objs.push({y:n.y,f:()=>{drawChar(n.draw,n.x,n.y,{dir:n.x<P.x?1:-1,st:0});
-   if(S.q[i]<n.qs.length){const by=Math.sin(time*4)*3;cx.fillStyle='#ffd84a';circ(cx,n.x,n.y-66+by,10);cx.fill();cx.fillStyle='#6a4a00';cx.font='900 14px sans-serif';cx.textAlign='center';cx.fillText('!',n.x,n.y-61+by)}
-   if(Math.hypot(n.x-P.x,n.y-P.y)<120){cx.font='700 12px "Zen Maru Gothic",sans-serif';cx.textAlign='center';cx.fillStyle='#000a';cx.fillText(n.n,n.x+1,n.y+17);cx.fillStyle='#fff';cx.fillText(n.n,n.x,n.y+16)}}}));
+ NPCS.forEach((n,i)=>{if(!n.room)objs.push({y:n.y,f:()=>drawNPC(n,i)})});
  FOLK.forEach(f=>objs.push({y:f.y,f:()=>drawFolk(f)}));akObj(objs);
  E.forEach(e=>objs.push({y:e.y,f:()=>{
    if(e.type==='oni'&&e.wind>0){if(e.wt==='dash'){cx.strokeStyle='rgba(255,40,40,.6)';cx.lineWidth=26;cx.lineCap='round';cx.beginPath();cx.moveTo(e.x,e.y);cx.lineTo(e.x+(e.sx-e.x)*1.4,e.y+(e.sy-e.y)*1.4);cx.stroke()}else{cx.fillStyle=`rgba(255,40,40,${.3+Math.sin(time*20)*.15})`;circ(cx,e.sx,e.sy,74);cx.fill()}}
    if(e.type==='oni'&&e.lv){cx.fillStyle=`rgba(255,${e.lv>1?40:120},40,${.18+Math.sin(time*6)*.08})`;circ(cx,e.x,e.y-40,60+e.lv*8);cx.fill()}
-   drawChar(e.type==='oni'?'papaoni':'buta',e.x,e.y,{dir:e.x<P.x?1:-1,st:time*10,fl:e.fl,col:e.type==='buta'?EK[e.kind||'buta'].col:0,crown:e.type==='buta'&&EK[e.kind||'buta'].crown,s:e.type==='oni'?1.8+(e.lv||0)*.18:EK[e.kind||'buta'].s,atk:e.wind>0||e.dash>0?1:0});
+   if(e.type==='oni'){e._mv=Math.hypot(e.x-(e._px??e.x),e.y-(e._py??e.y))>.15;e._px=e.x;e._py=e.y;e._st=(e._st||0)+(e._mv?.2:0)}
+   drawChar(e.type==='oni'?'papaoni':'buta',e.x,e.y,{d8:e.type==='oni'?d8To(P.x-e.x,P.y-e.y):null,mv:e._mv,dir:e.x<P.x?1:-1,st:e.type==='oni'?e._st:time*10,fl:e.fl,col:e.type==='buta'?EK[e.kind||'buta'].col:0,crown:e.type==='buta'&&EK[e.kind||'buta'].crown,s:e.type==='oni'?1.8+(e.lv||0)*.18:EK[e.kind||'buta'].s,atk:e.wind>0||e.dash>0?1:0});
    if(e.type==='buta'&&e.hp<e.max){const yy=e.y-38*EK[e.kind||'buta'].s;cx.fillStyle='#0008';cx.fillRect(e.x-14,yy,28,4);cx.fillStyle='#ff5a5a';cx.fillRect(e.x-14,yy,28*e.hp/e.max,4)}}}));
  palms.forEach(t=>inView(t.x,t.y,60)&&objs.push({y:t.y,f:()=>drawPalm(t)}));
  drawPuzzles(objs);PRE.forEach(o=>objs.push(o));drawStoryWorld(objs);
@@ -1527,7 +1558,7 @@ function update(dt){
  trees.forEach(t=>{if(t.cd>0)t.cd-=dt;if(t.sh>0)t.sh-=dt});
  updateEnemies(dt);updateProj(dt);updatePT(dt);wadeFX(dt);seaSplash(dt);boatWake(dt);ambientFX(dt);updatePuzzles(dt);
  for(let i=fxs.length-1;i>=0;i--){fxs[i].t-=dt;if(fxs[i].t<=0)fxs.splice(i,1)}
- if(P.emT>0)P.emT-=dt*.6;if(P.smT>0)P.smT-=dt;if(P.actT>0)P.actT-=dt;updAK(dt);
+ if(P.emT>0)P.emT-=dt*.6;if(P.smT>0)P.smT-=dt;if(P.actT>0)P.actT-=dt;updAK(dt);updNPCs(dt);
  // 会話と行動
  const ni=nearestNPC();
  const k=ni<0?'':[ni,S.q[ni],S.dishes.length,S.g,S.kills,JSON.stringify(S.tre),S.veh.horse,S.veh.boat].join(':');
@@ -1638,9 +1669,9 @@ $('wpnBtn').addEventListener('pointerdown',e=>{e.preventDefault();au();const own
 $('rideBtn').addEventListener('pointerdown',e=>{e.preventDefault();au();if(storyEventActive)return;const a=rideAction();if(a&&!paused&&!anyOpen())a.f()});
 $('actBtn').addEventListener('pointerdown',e=>{e.preventDefault();au();doAction()});
 const near=(o,r)=>Math.hypot(o.x-P.x,o.y-P.y)<r;
-function nearestNPC(){let b=-1,bd=70;NPCS.forEach((n,i)=>{const d=Math.hypot(n.x-P.x,n.y-P.y);if(d<bd){bd=d;b=i}});return b}
+function nearestNPC(){let b=-1,bd=70;NPCS.forEach((n,i)=>{if(!npcHere(n))return;const d=Math.hypot(npcX(n)-P.x,npcY(n)-P.y);if(d<bd){bd=d;b=i}});return b}
 function context(){
- if(room){const i=nearSpot();if(i>=0)return{label:room.items[i][0]==='chest'?'宝箱をあける':'しらべる',f:()=>searchSpot(i)};return null}
+ if(room){const ni=nearestNPC();if(ni>=0&&NPCS[ni].shop==='sell')return{label:'料理を売る',f:()=>open('sellSheet')};const i=nearSpot();if(i>=0)return{label:room.items[i][0]==='chest'?'宝箱をあける':'しらべる',f:()=>searchSpot(i)};return null}
  if(!P.ride||P.ride==='horse'){const d=DOORS.find(d=>Math.hypot(d.x-P.x,d.y-P.y)<46&&!footBlocked(d.x,d.y));if(d)return{label:ROOMS[d.id].n+'に入る',f:()=>enterRoom(d.id)}}
  if(near(CAMP,90))return{label:'鍋で料理する',f:()=>{pot=[];open('cookSheet')}};
  const ni=nearestNPC();
