@@ -153,7 +153,7 @@ body.story #talk,body.story #actBtn,body.story #atkBtn,body.story #wpnBtn,body.s
 </section>
 <section class="sheet" id="shopSheet" aria-label="武器屋">
   <button class="btn close" data-close>とじる</button>
-  <h2>ハドフ（ユサの店）</h2><p class="sub">「強い武器、そろってるぜ！」　いちばん強い武器を自動で使う</p>
+  <h2>ハドフの店</h2><p class="sub">「強い武器、そろっておるぞ」　いちばん強い武器を自動で使う</p>
   <div class="list" id="shopList"></div>
 </section>
 <section class="sheet" id="buildSheet" aria-label="建てる">
@@ -186,7 +186,7 @@ body.story #talk,body.story #actBtn,body.story #atkBtn,body.story #wpnBtn,body.s
   <textarea id="codeBox" rows="3" placeholder="ふっかつのじゅもんをここにはりつけ" aria-label="ふっかつのじゅもん"></textarea>
   <div class="row"><button class="btn" id="loadBtn">じゅもんで再開する</button></div>
   <h3>メモ</h3>
-  <p class="sub">・左下をドラッグして歩く。右下で攻撃（武器が必要）。その左のボタンで武器を切りかえ<br>・ダイセンにも宝箱があるらしい<br>・ブクオフの近くの森に宝箱があるらしい<br>・料理はココヌ（ママヌーンの食堂）で売れる。武器はハドフ（ユサの武器屋）で<br>・家づくりはアーチ城の西の看板で<br>・ダイセンはぽかぽか料理、ヒガシヤマはひんやり料理がないとハートが減る<br>・敵をたおすと経験値。レベルが上がるとハートが増える（3レベルごとにこうげき力もアップ）<br>・建物の前で「入る」。中の壺や箱を「しらべる」とお宝が見つかる。お宝はハドフで売れる<br>・牧場のモウさんから馬、みなとのカモメ船長からボートを買える<br>・コブンブタ、クロコブン、オヤブンブタ、パパオニに気をつけて</p>
+  <p class="sub">・左下をドラッグして歩く。右下で攻撃（武器が必要）。その左のボタンで武器を切りかえ<br>・ダイセンにも宝箱があるらしい<br>・ブクオフの近くの森に宝箱があるらしい<br>・料理はココヌ（ママヌーンの食堂）で売れる。武器はハドフの店で<br>・家づくりはアーチ城の西の看板で<br>・ダイセンはぽかぽか料理、ヒガシヤマはひんやり料理がないとハートが減る<br>・敵をたおすと経験値。レベルが上がるとハートが増える（3レベルごとにこうげき力もアップ）<br>・建物の前で「入る」。中の壺や箱を「しらべる」とお宝が見つかる。お宝はハドフで売れる<br>・牧場のクズモショから馬、みなとのカモメ船長からボートを買える<br>・コブンブタ、クロコブン、オヤブンブタ、パパオニに気をつけて</p>
 </section>
 
 <div class="overlay" id="cooking"><div><canvas id="potCv" width="260" height="260"></canvas><div id="cookMsg">ぐつぐつ……</div></div></div>
@@ -266,11 +266,11 @@ const NPCS=[
   {t:'r',id:'medama',s:'おなかがすいたねえ。目玉焼きでも食べたいよ'},
   {t:'r',id:'stew',s:'夜は冷えるねえ。キノコのクリームシチューが恋しいよ'},
   {t:'fx',fx:'warm',s:'ダイセンの話を聞いたら冷えてきた。ぽかぽかする料理をおくれ'}],th:'ありがとうねえ……あったかい味だ',done:'いつもありがとうね、レイン'},
- {id:'gon',n:'漁師のゴンさん',x:880,y:1890,draw:'gon',qs:[
+ {id:'gon',n:'サカナヤ',x:1005,y:2130,draw:'sakana',qs:[
   {t:'r',id:'shioyaki',s:'魚はな、塩焼きにかぎるんだ'},
   {t:'r',id:'zosui',s:'カニぞうすいで温まりてえなあ'},
   {t:'fx',fx:'cold',s:'ヒガシヤマの熱い湖で釣りがしたい。ひんやり料理を頼む'}],th:'うめえ！おまえ、いい腕してるな',done:'今度いっしょに釣りいこうぜ'},
- {id:'mina',n:'ミナ',x:360,y:2140,draw:'mina',qs:[
+ {id:'mina',n:'ミナ',host:'mamanun',x:360,y:2140,draw:'mina',qs:[
   {t:'r',id:'yakifruit',s:'ねえねえ、甘いのちょうだい！焼きフルーツ！'},
   {t:'r',id:'pancake',s:'ハチミツパンケーキって食べてみたい！'},
   {t:'gold',s:'ダイセンに金色のリンゴがあるんだって！それで何か作って！'}],th:'わあ！おいしい！レインすごい！',done:'レインのごはん、だいすき！'},
@@ -280,32 +280,32 @@ const NPCS=[
  {id:'akarun',n:'あかる',x:350,y:403,room:'ooji',rx:320,ry:160,draw:'akarun',qs:[
   {t:'r',id:'soup',s:'こんにちは！やさしい味の、野草のミルクスープがほしいな'},
   {t:'r',id:'omelet',s:'ふわとろオムレツ、つくれる？'}],th:'わあ、おいしい！にこにこしちゃう',done:'今日もいい天気だね！'},
- {id:'oka',n:'オーカ',x:1000,y:388,room:'wald',rx:450,ry:250,draw:'oka',qs:[
+ {id:'oka',n:'オーカ',host:'yusa',x:1000,y:388,draw:'oka',qs:[
   {t:'r',id:'takikomi',s:'おなかペッコペコ！キノコの炊き込みムギ！'},
   {t:'heal',n:12,s:'もっともっと！ハート6つ分くらいのでっかいごはん！'}],th:'うっまーーーい！！',done:'ごちそうさまーー！'},
- {id:'yoshi',n:'ヨシヨシ',x:300,y:1128,room:'bukuoff',rx:180,ry:330,draw:'yoshi',qs:[
+ {id:'yoshi',n:'ヨシヨシ',host:'hori',x:300,y:1128,draw:'yoshi',qs:[
   {t:'fx',fx:'cold',s:'……あついねえ……ひんやりするもの、ない……？'},
   {t:'r',id:'herbfish',s:'……香草焼き魚……いいにおい……'}],th:'……おいしい……ねむくなってきた……',done:'……すやぁ……'},
- {id:'saku',n:'サク',x:760,y:1420,draw:'saku',qs:[
-  {t:'r',id:'kushiyaki',s:'料理人のサクです！ さかなの串焼きを研究したいの。作ってくれる？'},
-  {t:'r',id:'yakigani',s:'こんどはカニ！ 焼きガニの味を知りたいな'}],th:'わあ、おいしい！ レシピ帳に書いておくね',done:'今日はなにを作ろうかな〜'},
+ {id:'saku',n:'リク',x:1290,y:1370,wander:70,draw:'riku',qs:[
+  {t:'r',id:'kushiyaki',s:'ぼくリク！ さかなの串焼き、食べてみたい！ 作って！'},
+  {t:'r',id:'yakigani',s:'こんどはカニ！ 焼きガニがいいな！'}],th:'うまーい！ ルカにも教えなきゃ！',done:'ルカと探検してくるね！'},
  {id:'mamanun',n:'ママヌーン',x:650,y:1728,room:'kokonu',rx:300,ry:160,wander:30,draw:'mamanun',shop:'sell',qs:[
   {t:'r',id:'bread',s:'うちの食堂でパンを出したいの。素朴なムギパン、作ってくれる？'}],th:'まあ、いい焼き色！お店に出すわね',done:'料理ができたら持ってきてね、高く買うよ〜'},
- {id:'yusa',n:'ユサ',x:1300,y:1895,draw:'yusa',shop:'weapon',qs:[],done:'よっ！武器もお宝の買い取りも任せとけ！'},
- {id:'mou',n:'牧場のモウさん',x:650,y:2905,draw:'rancher',sell:'horse',qs:[
+ {id:'yusa',n:'ハドフ',x:1390,y:1885,draw:'hadof',shop:'weapon',qs:[],done:'武器もお宝の買い取りも、まかせておけ！'},
+ {id:'mou',n:'クズモショ',x:650,y:2905,draw:'kuzu',sell:'horse',qs:[
   {t:'r',id:'honeyapple',s:'うちの馬たちに、ハチミツ焼きフルーツを食べさせてやりたいんだ'},
   {t:'r',id:'pancake',s:'朝ごはんにハチミツパンケーキが食べたいなあ'}],th:'ありがとう！馬たちも大よろこびだ',done:'馬に乗ったら、草原をかけまわってみな'},
- {id:'tsuyoshi',n:'冒険者ツヨシ',x:1180,y:2470,draw:'adventurer',qs:[
-  {t:'kill',n:10,s:'おれは冒険者ツヨシ！敵を10ぴきたおしたら認めてやるぜ'},
-  {t:'kill',n:50,s:'やるな！次は50ぴきだ！レベルも上がるぜ！'}],th:'すげえ！おまえ、強くなったな！',done:'レベルを上げて、パパオニをやっつけろ！'},
- {id:'hori',n:'ホリホリ博士',x:1490,y:1720,draw:'professor',qs:[
+ {id:'tsuyoshi',n:'ルカ',x:1180,y:2470,wander:60,draw:'ruka',qs:[
+  {t:'kill',n:10,s:'ルカだよ！ モンスターを10ぴきたおしたら、ぼくの子分にしてあげる！'},
+  {t:'kill',n:50,s:'すごい！ 次は50ぴき！ レベルも上がるよ！'}],th:'レインつよーい！',done:'レベルを上げて、パパオニをやっつけろ！'},
+ {id:'hori',n:'プクオフ',x:1490,y:1720,draw:'pukuof',qs:[
   {t:'t',id:'book',s:'ブクオフのどこかに「古い地図の本」があるはずじゃ。見つけてきてくれんか'},
   {t:'t',id:'ruby',s:'ふるい洞くつにはルビーが眠っておるらしい。ひとつ見せておくれ'},
   {t:'t',id:'crown',s:'アーチ城の奥に、むかしの王かんがあるという……かぎは海のむこうじゃ'}],th:'おお！これはすばらしい発見じゃ！',done:'お宝はハドフで売れるぞ。建物の中をよくしらべるのじゃ'},
  {id:'kamome',n:'カモメ船長',x:2850,y:2020,draw:'captain',sell:'boat',qs:[
   {t:'r',id:'herbfish',s:'うまい香草焼き魚を食わせてくれたら、船のことを教えてやろう'},
   {t:'fx',fx:'warm',s:'海の上は冷える。ぽかぽか料理をたのむ'}],th:'うまい！おまえ、いい船乗りになれるぞ',done:'東の海に、ひみつの島があるらしいぞ'},
- {id:'pikari',n:'灯台守のピカリさん',x:2860,y:1178,room:'light',rx:220,ry:210,draw:'keeper',qs:[
+ {id:'pikari',n:'ピカリさん',host:'kamome',x:2860,y:1178,draw:'keeper',qs:[
   {t:'r',id:'stew',s:'夜の見張りは冷えるんです。キノコのクリームシチューがほしいな'},
   {t:'heal',n:16,s:'ハート8つ分くらいの、元気が出るごはんを！'}],th:'あったまる……ありがとう',done:'灯台の中も見ていっていいですよ'}
 ];
@@ -442,7 +442,7 @@ items.push({k:'milk',x:HUT.x+60,y:HUT.y+20,ph:0,sp:{k:'milk',fixed:1}});
 
 // ================= 敵 =================
 const E=[];let butaT=3;
-function spawnButa(x,y,summoned,kind){kind=kind||'buta';const k=EK[kind];E.push({type:'buta',kind,x,y,hp:k.hp,max:k.hp,t:Math.random()*2,a:Math.random()*6,cd:0,fl:0,kx:0,ky:0,summoned})}
+function spawnButa(x,y,summoned,kind){kind=({buta:'slime',kuro:'boar',oyabun:'m51'})[kind||'buta']||kind;const k=EK[kind];E.push({type:'buta',kind,x,y,hp:k.hp,max:k.hp,t:Math.random()*2,a:Math.random()*6,cd:0,fl:0,kx:0,ky:0,summoned})}
 function spawnOni(){if(!E.some(e=>e.type==='oni')){const lv=Math.min(2,S.oniLv||0),hp=[40,60,85][lv];E.push({type:'oni',lv,x:FORT.x,y:FORT.y+40,hp,max:hp,cd:2,fl:0,wind:0,sx:0,sy:0,summ:0,kx:0,ky:0,atk:0,dash:0,tc:2});if(lv)toast(`パパオニがもどってきた！（${lv+1}回目）`)}}
 let oniT=0;const EB=[];
 function butaOK(e,x,y){if(x<20||y<20||x>W-20||y>H-20)return false;const r=region(x,y);if(e.summoned)return r==='hot'||r==='plains'||ROAM2.includes(r);return (S.stage>=2?ROAM2:ROAM1).includes(r)&&!safeZone(x,y)&&!footBlocked(x,y)}
@@ -651,7 +651,7 @@ function drawRoom(){
  cx.fillStyle='#6a4a2a';cx.fillRect(R.w/2-40,R.h-10,80,10);cx.fillStyle='#c8a060';cx.fillRect(R.w/2-34,R.h-24,68,14);
  label('出口',R.w/2,R.h+18,13);label(R.n,R.w/2,38,18,'#fffaf0');
  const objs=R.items.map((it,i)=>({y:it[2],f:()=>drawFurn(cx,it[0],it[1],it[2],SEARCH.includes(it[0])&&spotReady(i))}));
- softShadow(P.x+4,P.y+16,11,4);objs.push({y:P.y+10,f:drawBoy});if(RFOLK[roomId])objs.push({y:RFOLK[roomId].y,f:()=>drawFolk(RFOLK[roomId])});XF.forEach(f=>{if(f.room===roomId)objs.push({y:f.y,f:()=>{softShadow(f.x+3,f.y+2,10,3.5);drawFolk(f)}})});NPCS.forEach((n,i)=>{if(n.room===roomId)objs.push({y:n.ry,f:()=>{softShadow(n.rx+4,n.ry+2,12,4);drawNPC(n,i)}})});akObj(objs);objs.sort((a,b)=>a.y-b.y).forEach(o=>o.f());
+ softShadow(P.x+4,P.y+16,11,4);objs.push({y:P.y+10,f:drawBoy});if(RFOLK[roomId])objs.push({y:RFOLK[roomId].y,f:()=>drawFolk(RFOLK[roomId])});XF.forEach(f=>{if(f.room===roomId)objs.push({y:f.y,f:()=>{softShadow(f.x+3,f.y+2,10,3.5);drawFolk(f)}})});NPCS.forEach((n,i)=>{if(n.room===roomId&&!n.host)objs.push({y:n.ry,f:()=>{softShadow(n.rx+4,n.ry+2,12,4);drawNPC(n,i)}})});akObj(objs);objs.sort((a,b)=>a.y-b.y).forEach(o=>o.f());
  fxs.forEach(f=>{cx.globalAlpha=Math.max(0,f.t/f.T);cx.fillStyle=f.c;cx.font='900 16px "Zen Maru Gothic",sans-serif';cx.textAlign='center';cx.fillText(f.s,f.x,f.y-(1-f.t/f.T)*24);cx.globalAlpha=1});
  cx.setTransform(DPR,0,0,DPR,0,0);
  if(R.dark){const g=cx.createRadialGradient(P.x-cam.x,P.y-cam.y,60,P.x-cam.x,P.y-cam.y,280);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.82)');cx.fillStyle=g;cx.fillRect(0,0,VW,VH)}
@@ -696,8 +696,8 @@ const PZTREES=[{id:'L',x:440,y:1232,r:30},{id:'S',x:520,y:1272,r:13},{id:'M',x:6
 const PZROCK={x:520,y:1176},PZTAB={x:420,y:1338},ICECH={x:2560,y:330},POND={x:2200,y:2980,rx:150,ry:95,ir:38},LEVER={x:2196,y:2970};
 const PUZZLES=[
  {id:'trees',name:'森の3本の木',stage:1,place:{x:520,y:1240,r:210},hints:['ブクオフの森に、すこし変わった3本の木がある','石碑に、3つの木の絵がほられていた','ヨシヨシ「……石の絵……木の大きさ、かなあ……」'],npc:'yoshi',reward:{g:150,tre:'sapphire'},cache:{x:PZROCK.x,y:PZROCK.y+8}},
- {id:'ice',name:'凍った宝箱',stage:2,place:{x:ICECH.x,y:ICECH.y,r:230},hints:['ダイセンに、氷づけの宝箱がある','ふつうの武器では、びくともしない。ぽかぽか料理であたたまるのは、自分だけ','ユサ「氷？ 熱い刃なら、とかせるかもな」'],npc:'yusa',reward:{g:200,tre:'ruby'},cache:{x:ICECH.x,y:ICECH.y}},
- {id:'pond',name:'池のレバー',stage:1,place:{x:POND.x,y:POND.y,r:270},hints:['大草原の池のまん中に、レバーがある','とどいても、レバーは動かない。引っぱれるものが要る','ツヨシ「ブーメランは、帰ってくるときに引っかけられるんだぜ」'],npc:'tsuyoshi',reward:{g:120,tre:'brush'},cache:{x:POND.x+22,y:POND.y+10}}
+ {id:'ice',name:'凍った宝箱',stage:2,place:{x:ICECH.x,y:ICECH.y,r:230},hints:['ダイセンに、氷づけの宝箱がある','ふつうの武器では、びくともしない。ぽかぽか料理であたたまるのは、自分だけ','ハドフ「氷？ 熱い刃なら、とかせるかもしれんの」'],npc:'yusa',reward:{g:200,tre:'ruby'},cache:{x:ICECH.x,y:ICECH.y}},
+ {id:'pond',name:'池のレバー',stage:1,place:{x:POND.x,y:POND.y,r:270},hints:['大草原の池のまん中に、レバーがある','とどいても、レバーは動かない。引っぱれるものが要る','ルカ「ブーメランは、帰ってくるときに引っかけられるんだよ」'],npc:'tsuyoshi',reward:{g:120,tre:'brush'},cache:{x:POND.x+22,y:POND.y+10}}
 ];
 const pz=id=>{S.pz=S.pz||{};return S.pz[id]=S.pz[id]||{found:0,solved:0,hintLevel:0,state:{}}};
 const pzDef=id=>PUZZLES.find(p=>p.id===id);
@@ -795,7 +795,7 @@ function drawShadows(){
  if(S.build.house&&inView(BPOS.house.x,BPOS.house.y,80))softShadow(BPOS.house.x+8,BPOS.house.y+[0,16,28,34][S.build.house],[0,34,40,54][S.build.house],9);
  if(S.build.coop&&inView(BPOS.coop.x,BPOS.coop.y,60))softShadow(BPOS.coop.x+5,BPOS.coop.y+18,28,6);
  for(const c of[CHEST,CHEST2,ICHEST])if(inView(c.x,c.y,30))softShadow(c.x+3,c.y+9,15,4);
- for(const n of NPCS)if(!n.room&&inView(n.x,n.y,40))fastShadow(n.x+4,n.y+2,12,4);
+ for(const n of NPCS)if(!n.room&&!n.host&&inView(n.x,n.y,40))fastShadow(n.x+4,n.y+2,12,4);
  for(const e of E)if(inView(e.x,e.y,60)){const sc=e.type==='oni'?1.8+(e.lv||0)*.18:EK[e.kind||'buta'].s;softShadow(e.x+4*sc,e.y+2,12*sc,4.2*sc)}
  if(!P.ride&&!(P.flash>0&&Math.floor(time*20)%2))softShadow(P.x+4,P.y+16,11,4);
 }
@@ -1179,10 +1179,8 @@ Object.assign(CHAR,{
   g.lineWidth=.9;g.beginPath();for(const l of[-1,1]){g.moveTo(l*8,-21-b);g.lineTo(l*13,-22-b);g.moveTo(l*8,-19.5-b);g.lineTo(l*13,-19-b)}g.stroke();g.lineWidth=1.4}
 });
 // ================= 建物の人たち・Archくん =================
-const FOLK=[{draw:'hadof',n:'ハドフ',x:1390,y:1885,lines:['道具は 手入れしだいじゃ','いいゴーグルを しとるのう']}];
-const RFOLK={
- kuzu:{draw:'kuzu',n:'クズモショ',x:380,y:300,lines:['世界じゅうの品を あつめておる','ガラクタも だれかのお宝じゃ']},
- bukuoff:{draw:'pukuof',n:'プクオフ',x:320,y:330,lines:['本と地図は 旅の友だちだよ','「マップ」で 世界を見わたせるよ']}};
+const FOLK=[];
+const RFOLK={};
 function drawFolk(f){
  const d=Math.hypot(f.x-P.x,f.y-P.y);
  const w=f._w,mv=w&&w.mv;
@@ -1231,7 +1229,7 @@ function drawMapSheet(){
  lab('アーチ城',CASTLE.x,CASTLE.y-100,sm,'#ffe8a0');lab('ヒバシ',990,raY(900)+10,sm);lab('ぼくじょう',RANCH.x,RANCH.y-120,sm);lab('どうくつ',CAVE.x,CAVE.y-100,sm);lab('とうだい',LIGHT.x,LIGHT.y-130,sm);lab('みなと',PORT.x,PORT.y-40,sm);lab('とりで',FORT.x,FORT.y-90,sm);
  PLACES.forEach(p=>lab(p.n,p.x,p.y-p.h/2-14,sm,'#fffaf0'));
  {const[a,b]=M(CAMP.x,CAMP.y);g.fillStyle='#ff9a2a';g.beginPath();g.moveTo(a,b-6);g.quadraticCurveTo(a+5,b,a,b+3);g.quadraticCurveTo(a-5,b,a,b-6);g.fill()}
- NPCS.forEach((n,i)=>{const[a,b]=M(n.x,n.y);const q=S.q[i]<n.qs.length;g.fillStyle=q?'#ffd84a':'#fffaf0';g.strokeStyle='#3a2a1c';g.lineWidth=1.4;g.beginPath();g.arc(a,b,q?4.2:3,0,7);g.fill();g.stroke();if(q){g.fillStyle='#6a4a00';g.font='900 7px sans-serif';g.textAlign='center';g.fillText('!',a,b+2.5)}});
+ NPCS.forEach((n,i)=>{if(n.host)return;const h=n;const[a,b]=M(n.x,n.y);const q=npcGroupQ(n);g.fillStyle=q?'#ffd84a':'#fffaf0';g.strokeStyle='#3a2a1c';g.lineWidth=1.4;g.beginPath();g.arc(a,b,q?4.2:3,0,7);g.fill();g.stroke();if(q){g.fillStyle='#6a4a00';g.font='900 7px sans-serif';g.textAlign='center';g.fillText('!',a,b+2.5)}});
  const px=room?P.wx:P.x,py=room?P.wy:P.y,[a,b]=M(px,py);
  g.fillStyle='rgba(204,58,44,.25)';g.beginPath();g.arc(a,b,11,0,7);g.fill();g.fillStyle='#cc3a2c';g.strokeStyle='#fff';g.lineWidth=2;g.beginPath();g.arc(a,b,5,0,7);g.fill();g.stroke();
  g.font='900 11px "Zen Maru Gothic",sans-serif';g.textAlign='center';g.lineWidth=3;g.strokeStyle='#fff';g.strokeText('レイン',a,b-9);g.fillStyle='#cc3a2c';g.fillText('レイン',a,b-9)}
@@ -1360,8 +1358,11 @@ function drawCSpr(type,x,y,o){
  else{const col=o.d8!=null?o.d8:(o.dir>0?2:o.dir<0?6:0),row=o.mv?1+(Math.floor((o.st||0)*4/(Math.PI*2))%4+4)%4:0;cx.drawImage(c.img,col*CW,row*CH,CW,CH,x-FX*s,y-FY*s,CW*s,CH*s)}
  cx.globalAlpha=1;cx.imageSmoothingEnabled=true}
 // 村人の位置（家の中の人は roomId が一致するときだけ）
-const npcHere=n=>(n.room||null)===(roomId||null);
-const npcX=n=>n.room?n.rx:n.x,npcY=n=>n.room?n.ry:n.y;
+const NPCH=n=>n.host?(n._h||(n._h=NPCS.find(m=>m.id===n.host))):n;
+const npcHere=n=>(NPCH(n).room||null)===(roomId||null);
+const npcX=n=>{const h=NPCH(n);return h.room?h.rx:h.x},npcY=n=>{const h=NPCH(n);return h.room?h.ry:h.y};
+const npcDone=i=>{const n=NPCS[i];return S.q[i]>=n.qs.length&&!(n.sell&&!S.veh[n.sell])};
+const npcGroupQ=n=>NPCS.some((m,j)=>(m===n||m.host===n.id)&&S.q[j]<m.qs.length);
 function updNPCs(dt){
  for(const n of NPCS){if(!n.wander||!npcHere(n))continue;const w=n._w||(n._w={hx:npcX(n),hy:npcY(n),tx:npcX(n),ty:npcY(n),wait:1+Math.random()*2,st:0,mv:0});
   const x=npcX(n),y=npcY(n),pd=Math.hypot(P.x-x,P.y-y);
@@ -1375,7 +1376,7 @@ function drawNPC(n,i){
  const x=npcX(n),y=npcY(n),pd=Math.hypot(x-P.x,y-P.y),w=n._w;
  if(CSPR[n.draw]&&CSPR[n.draw].ok){const o={st:w?w.st:0,mv:w&&w.mv};o.d8=o.mv?w.d8:(pd<140?d8To(P.x-x,P.y-y):0);const ia=CSPR[n.draw].idle;if(ia&&!o.mv&&pd>=140&&(time+i*3)%9<6){o.act=ia;o.dir=1}drawCSpr(n.draw,x,y,o)}
  else if(!drawSmall(n.draw,x,y,false,0,false))drawChar(n.draw,x,y,{dir:x<P.x?1:-1,st:0});
- if(S.q[i]<n.qs.length){const by=Math.sin(time*4)*3;cx.fillStyle='#ffd84a';circ(cx,x,y-66+by,10);cx.fill();cx.fillStyle='#6a4a00';cx.font='900 14px sans-serif';cx.textAlign='center';cx.fillText('!',x,y-61+by)}
+ if(npcGroupQ(n)){const by=Math.sin(time*4)*3;cx.fillStyle='#ffd84a';circ(cx,x,y-66+by,10);cx.fill();cx.fillStyle='#6a4a00';cx.font='900 14px sans-serif';cx.textAlign='center';cx.fillText('!',x,y-61+by)}
  if(pd<120){cx.font='700 12px "Zen Maru Gothic",sans-serif';cx.textAlign='center';cx.fillStyle='#000a';cx.fillText(n.n,x+1,y+17);cx.fillStyle='#fff';cx.fillText(n.n,x,y+16)}}
 // ================= モンスター =================
 const BOOK=['スライム','イノシシ','キノコ','ドラゴンコウモリ','ウサギン','トゲリス','プヨゼリー','ハナムシ','ツノービー','ミミカル','ロックン','モグラドン','フラワン','リーファ','ヒツジール','カニッコ','タコポン','サンシェル','アイスライム','ファイアスライム','サンダースライム','ゴースライム','メタルスライム','ウッドゴーレム','ストーンゴーレム','アイアンゴーレム','マグマゴーレム','ミズドラゴン','フレイムドラゴン','グリーンドラゴン','アイスドラゴン','エレキドラゴン','スカルナイト','ゴブリン','オーク','オニゴブリン','ムーンウルフ','サンドワーム','バジリスク','ミミック','トレント','ウィスプ','カボチャナイト','ノーム','フェアリー','クラーケン','ワイバーン','グリフォン','ユキオロチ','フェニックス','ダークドラゴン','キングスライム','リッチ','古のドラゴン'];
@@ -1385,8 +1386,8 @@ const MONIMG=new Image(),BOOKIMG=new Image();let MON_OK=false,BOOK_OK=false;MONI
  Object.assign(EK,{slime:{n:'スライム',hp:2,spd:70,dmg:1,exp:2,s:1,coin:[3,4],mon:0,book:0,tier:1},boar:{n:'イノシシ',hp:5,spd:115,dmg:2,exp:5,s:1,coin:[5,5],mon:1,book:1,tier:2},kinoko:{n:'キノコ',hp:3,spd:60,dmg:1,exp:3,s:1,coin:[3,4],mon:2,book:2,tier:1},dbat:{n:'ドラゴンコウモリ',hp:6,spd:120,dmg:2,exp:7,s:1,coin:[6,6],mon:3,book:3,tier:2}});
  for(let i=4;i<BOOK.length;i++){const t=tier(i);EK['m'+i]=Object.assign({n:BOOK[i],icon:i,book:i,tier:t},T[t])}
  Object.assign(EK.m22,{hp:3,spd:170,exp:50,coin:[25,10],flee:1})}
-const MSPAWN={field:['slime','slime','kinoko','m4','buta','buta','boar','m22','m51'],meadow:['slime','m7','m12','m8','m14','buta','m44','m22'],forest:['kinoko','m5','m13','m9','dbat','m23','m40','m41','buta'],rock:['m10','m11','m24','m33','m43','buta','kuro'],
- plains:['boar','m14','m36','m34','m37','kuro','oyabun','m47','m46'],coast:['m15','m16','m6','m17','buta','kuro'],beach:['m15','m16','m17','m6','m45'],north:['m33','m35','m32','m42','m25','m38','m20','kuro','dbat','m50','m52'],
+const MSPAWN={field:['slime','slime','kinoko','m4','boar','m22','m51'],meadow:['slime','m7','m12','m8','m14','m44','m22'],forest:['kinoko','m5','m13','m9','dbat','m23','m40','m41'],rock:['m10','m11','m24','m33','m43'],
+ plains:['boar','m14','m36','m34','m37','m47','m46'],coast:['m15','m16','m6','m17'],beach:['m15','m16','m17','m6','m45'],north:['m33','m35','m32','m42','m25','m38','m20','dbat','m50','m52'],
  snow:['m18','m30','m21','m48','m53'],hot:['m19','m26','m28','m31','m49'],island:['m44','m39','m27'],river:['slime'],meadow2:[]};
 function pickKind(r){const L=MSPAWN[r]||MSPAWN.field;for(let t=0;t<6;t++){const k=L[Math.floor(Math.random()*L.length)],K=EK[k];if(K.tier===4&&(Math.random()>.18||S.stage<2||S.lv<6))continue;if(K.tier===3&&S.stage<2&&S.lv<5)continue;if(k==='m22'&&Math.random()>.25)continue;return k}return L[0]}
 function drawMon(e,K){
@@ -1403,10 +1404,7 @@ function drawMonBook(){
  box.innerHTML=h;$('mbCount').textContent=`${n} / ${BOOK.length}`}
 // ================= 村の人たち（追加） =================
 function drawSmall(){return false}
-const XF=[
- {draw:'sakana',n:'サカナヤ',x:1005,y:2130,lines:['今日は大物が釣れそうだ！','魚は焼くと 香ばしいぞ']},
- {draw:'riku',n:'リク',x:1290,y:1370,wander:70,lines:['ぼくはリク！ ルカと双子なんだ','たき火の料理、いいにおい！']},
- {draw:'ruka',n:'ルカ',x:1335,y:1390,wander:70,lines:['ルカだよ。にいちゃんと探検中！','Archくん かわいいね']}];
+const XF=[];
 CSPR.akarun={k:.56,act:{dash:0,atk:1,tool:2,pick:3,cook:4,done:5,sur:6,think:7,joy:8,sleep:9}};
 CSPR.sakana={k:.56,idle:'fish',act:{idle:0,sur:1,laugh:2,think:3,hold:4,fish:5,net:6,cut:7,carry:8,joy:9,tired:10,sleep:11}};
 CSPR.riku={k:.55,act:{idle:0,sur:1,laugh:2,think:3,joy:4,run:5,jump:6,sleep:7,wave:8,hold:9,cheer:10,sit:11}};
@@ -1531,7 +1529,7 @@ function draw(){
    drawIng(it.k,it.x,it.y+by);if(ING[it.k].rare&&!RM){const tw=(Math.sin(time*5+it.ph)+1)/2;cx.strokeStyle=`rgba(255,255,255,${tw})`;cx.lineWidth=1.5;cx.beginPath();cx.moveTo(it.x-9,it.y-14);cx.lineTo(it.x-9,it.y-14-8*tw);cx.moveTo(it.x-13,it.y-18);cx.lineTo(it.x-5,it.y-18);cx.stroke()}cx.fillStyle='#fff9';cx.beginPath();cx.arc(it.x+6,it.y-10+by,1.5+Math.sin(time*3+it.ph),0,7);cx.fill()}}));
  trees.forEach(t=>{if(inView(t.x,t.y,t.r+40))objs.push({y:t.y+4,f:()=>drawTree(t)})});
  pines.forEach(t=>inView(t.x,t.y,60)&&objs.push({y:t.y,f:()=>{cx.fillStyle='#4a3a2a';cx.fillRect(t.x-3,t.y-4,6,10);cx.fillStyle='#2e5040';cx.beginPath();cx.moveTo(t.x-t.r,t.y-2);cx.lineTo(t.x,t.y-t.r*2.6);cx.lineTo(t.x+t.r,t.y-2);cx.fill();cx.fillStyle='#fff';cx.beginPath();cx.moveTo(t.x-t.r*.45,t.y-t.r*1.5);cx.lineTo(t.x,t.y-t.r*2.6);cx.lineTo(t.x+t.r*.45,t.y-t.r*1.5);cx.fill()}}));
- NPCS.forEach((n,i)=>{if(!n.room)objs.push({y:n.y,f:()=>drawNPC(n,i)})});
+ NPCS.forEach((n,i)=>{if(!n.room&&!n.host)objs.push({y:n.y,f:()=>drawNPC(n,i)})});
  FOLK.forEach(f=>objs.push({y:f.y,f:()=>drawFolk(f)}));XF.forEach(f=>{if(!f.room&&inView(f.x,f.y,60))objs.push({y:f.y,f:()=>{fastShadow(f.x+3,f.y+2,10,3.5);drawFolk(f)}})});akObj(objs);
  E.forEach(e=>objs.push({y:e.y,f:()=>{
    if(e.type==='oni'&&e.wind>0){if(e.wt==='dash'){cx.strokeStyle='rgba(255,40,40,.6)';cx.lineWidth=26;cx.lineCap='round';cx.beginPath();cx.moveTo(e.x,e.y);cx.lineTo(e.x+(e.sx-e.x)*1.4,e.y+(e.sy-e.y)*1.4);cx.stroke()}else{cx.fillStyle=`rgba(255,40,40,${.3+Math.sin(time*20)*.15})`;circ(cx,e.sx,e.sy,74);cx.fill()}}
@@ -1641,7 +1639,7 @@ function updateEnemies(dt){
     else if(lv>=2&&e.cd<=0&&d>=130&&d<380){e.wind=.65;e.wt='dash';e.sx=P.x;e.sy=P.y}
     if(lv>=1){e.tc=(e.tc||2)-dt;if(e.tc<=0&&d>100&&d<400){e.tc=2.8-lv*.5;const n=lv>=2?3:1;for(let k=0;k<n;k++){const a=Math.atan2(dy,dx)+(k-(n-1)/2)*.35;EB.push({x:e.x+18,y:e.y-40,vx:Math.cos(a)*240,vy:Math.sin(a)*240,life:2,rot:0})}sfx.swing()}}
     if(d<30){hurt(2);tryMove(dx/d*40,dy/d*40)}}
-   if(!e.summ&&e.hp<=e.max/2){e.summ=1;for(let k=0;k<lv+2;k++)spawnButa(e.x-60+k*40,e.y+30,1);toast('パパオニがコブンブタを呼んだ！')}
+   if(!e.summ&&e.hp<=e.max/2){e.summ=1;for(let k=0;k<lv+2;k++)spawnButa(e.x-60+k*40,e.y+30,1,k%2?'boar':'dbat');toast('パパオニがモンスターを呼んだ！')}
   }
  }
 }
@@ -1719,14 +1717,14 @@ $('wpnBtn').addEventListener('pointerdown',e=>{e.preventDefault();au();const own
 $('rideBtn').addEventListener('pointerdown',e=>{e.preventDefault();au();if(storyEventActive)return;const a=rideAction();if(a&&!paused&&!anyOpen())a.f()});
 $('actBtn').addEventListener('pointerdown',e=>{e.preventDefault();au();doAction()});
 const near=(o,r)=>Math.hypot(o.x-P.x,o.y-P.y)<r;
-function nearestNPC(){let b=-1,bd=70;NPCS.forEach((n,i)=>{if(!npcHere(n))return;const d=Math.hypot(npcX(n)-P.x,npcY(n)-P.y);if(d<bd){bd=d;b=i}});return b}
+function nearestNPC(){let b=-1,bd=1e9;NPCS.forEach((n,i)=>{if(!npcHere(n))return;const d=Math.hypot(npcX(n)-P.x,npcY(n)-P.y);if(d>=70)return;const sc=d+(npcDone(i)?40:0)+(n.host?1:0);if(sc<bd){bd=sc;b=i}});return b}
 function context(){
- if(room){const ni=nearestNPC();if(ni>=0&&NPCS[ni].shop==='sell')return{label:'料理を売る',f:()=>open('sellSheet')};const i=nearSpot();if(i>=0)return{label:room.items[i][0]==='chest'?'宝箱をあける':'しらべる',f:()=>searchSpot(i)};return null}
+ if(room){const ni=nearestNPC();if(ni>=0&&NPCH(NPCS[ni]).shop==='sell')return{label:'料理を売る',f:()=>open('sellSheet')};const i=nearSpot();if(i>=0)return{label:room.items[i][0]==='chest'?'宝箱をあける':'しらべる',f:()=>searchSpot(i)};return null}
  if(!P.ride||P.ride==='horse'){const d=DOORS.find(d=>Math.hypot(d.x-P.x,d.y-P.y)<46&&!footBlocked(d.x,d.y));if(d)return{label:ROOMS[d.id].n+'に入る',f:()=>enterRoom(d.id)}}
  if(near(CAMP,90))return{label:'鍋で料理する',f:()=>{pot=[];open('cookSheet')}};
  const ni=nearestNPC();
- if(ni>=0&&NPCS[ni].shop==='sell')return{label:'料理を売る',f:()=>open('sellSheet')};
- if(ni>=0&&NPCS[ni].shop==='weapon')return{label:'ハドフのお店',f:()=>open('shopSheet')};
+ if(ni>=0&&NPCH(NPCS[ni]).shop==='sell')return{label:'料理を売る',f:()=>open('sellSheet')};
+ if(ni>=0&&NPCH(NPCS[ni]).shop==='weapon')return{label:'ハドフのお店',f:()=>open('shopSheet')};
  if(near(SIGN,60))return{label:'家を建てる',f:()=>open('buildSheet')};
  if(S.build.house&&near(BPOS.house,70))return{label:'おうちで休む',f:rest};
  return null;
@@ -1747,7 +1745,7 @@ const qText=q=>q.t==='t'?`お宝「${TRE[q.id].n}」`:q.t==='kill'?`敵を${q.n}
 function renderTalk(ni){
  const box=$('talk');
  if(ni<0){box.style.display='none';return}
- const n=NPCS[ni],qi=S.q[ni];box.style.display='block';$('talkName').textContent=n.n;
+ const n=NPCS[ni],qi=S.q[ni];box.style.display='block';$('talkName').textContent=n.host?`${NPCH(n).n}（${n.n}からのたのみ）`:n.n;
  if(n.id==='hana'&&!S.story.firstMemorySeen){$('talkLine').textContent='……ねえ、レイン。リンゴを使った料理が、なんだか無性に食べたくてねえ。';const di=S.dishes.findIndex(isAppleDish);$('talkAct').innerHTML=di>=0?`<button class="btn fire" id="give">「${S.dishes[di].name}」をわたす</button>`:'<div class="hint">ほしいもの：リンゴを使った料理（森でリンゴがとれる）</div>';if(di>=0)$('give').onclick=()=>{S.dishes.splice(di,1);sfx.pick();talkKey='';save();runStory('firstMemory')};return}
  let html='',give=null;
  if(qi>=n.qs.length){$('talkLine').textContent=n.done;if(n.shop)html=`<div class="hint">右下の「${n.shop==='sell'?'料理を売る':'ハドフのお店'}」から</div>`}
@@ -1912,7 +1910,7 @@ document.addEventListener('touchmove',e=>{if(e.touches.length>1)e.preventDefault
 let storyEventActive=false,storySkip=false,storyRes=null,storyTapOK=0;
 const STV={fade:0,fadeTo:0,fadeSpd:2,titleT:-1,mem:0,memTo:0,fires:-1,fireA:0,starT:-1,fly:null,bridgeBuild:0,glow:0,tint:0,actors:[],puffs:[],birds:[]};
 const BSTONE={x:966,y:raY(900)+92};
-const STORY_LINES={michiru:'この味……。前にも食べた気がするんだけどなあ。',saku:'最近さ。昨日作った料理の味が思い出せないの。',gon:'昔はこの辺、もっといい匂いがしてた気がするんだがなあ。',yoshi:'……ヒガシヤマの煙が出てから……かなあ……',mina:'ねえ。パパオニって、ほんとうに悪いやつなのかなあ。'};
+const STORY_LINES={michiru:'この味……。前にも食べた気がするんだけどなあ。',saku:'最近さ。昨日なに食べたか思い出せないんだ。',gon:'昔はこの辺、もっといい匂いがしてた気がするんだがなあ。',yoshi:'……ヒガシヤマの煙が出てから……かなあ……',mina:'ねえ。パパオニって、ほんとうに悪いやつなのかなあ。'};
 function storyWait(ms){return new Promise(r=>{storyRes=r;storyTapOK=performance.now()+250;if(ms!=null)setTimeout(()=>{if(storyRes===r){storyRes=null;r()}},ms)})}
 function storyAdvance(){if(storyRes&&performance.now()>storyTapOK){const r=storyRes;storyRes=null;r()}}
 function showSay(who,text){const b=$('storyBox');b.style.display='block';b.classList.toggle('narr',!who);$('storyName').textContent=who||'';$('storyText').innerHTML=text.replace(/《(.+?)》/g,'<span class="kw">《$1》</span>');$('storyText').classList.remove('in');void $('storyText').offsetWidth;$('storyText').classList.add('in')}
