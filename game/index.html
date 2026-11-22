@@ -447,7 +447,7 @@ function butaOK(e,x,y){if(x<20||y<20||x>W-20||y>H-20)return false;const r=region
 function randButaSpot(){for(let i=0;i<40;i++){const a=Math.random()*6.28,d=420+Math.random()*420,x=P.x+Math.cos(a)*d,y=P.y+Math.sin(a)*d;if(butaOK({},x,y)){const r=region(x,y),q=Math.random();const wild=['plains','coast','beach','snow'].includes(r);const kind=wild?(q<.07?'oyabun':q<.42?'kuro':'buta'):(S.stage>=2&&q<.15?'kuro':'buta');return{x,y,kind}}}return null}
 
 // ================= プレイヤー =================
-const P={x:CAMP.x,y:CAMP.y+70,dir:1,face:'d',_pd:1,smT:0,fx:1,fy:0,step:0,emote:'',emT:0,inv:0,flash:0,atkT:0,slash:0,slashT:.18};
+const P={x:CAMP.x,y:CAMP.y+70,dir:1,face:'d',d8:0,_pd:1,smT:0,act:'',actT:0,lastMove:0,fx:1,fy:0,step:0,emote:'',emT:0,inv:0,flash:0,atkT:0,slash:0,slashT:.18};
 const keys={};
 addEventListener('keydown',e=>{const k=e.key.toLowerCase();keys[k]=1;if(k===' '){e.preventDefault();attack()}if(k==='e')doAction()});
 addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=0});
@@ -616,9 +616,9 @@ function searchSpot(i){const it=room.items[i];S.srch=S.srch||{};S.got=S.got||{};
 }
 function updateRoom(dt){
  time+=dt;const inp=input();P.moving=inp.m>0;
- if(inp.m){const sp=160*inp.m,nx=P.x+inp.x*sp*dt,ny=P.y+inp.y*sp*dt;if(!roomBlocked(nx,P.y))P.x=nx;if(!roomBlocked(P.x,ny))P.y=ny;P.step+=dt*12*inp.m;P.fx=inp.x;P.fy=inp.y;if(Math.abs(inp.x)>.15)P.dir=inp.x>0?1:-1;P.face=Math.abs(inp.y)>Math.abs(inp.x)*1.15?(inp.y>0?'d':'u'):'s';P._pd=P.dir;
+ if(inp.m){const sp=160*inp.m,nx=P.x+inp.x*sp*dt,ny=P.y+inp.y*sp*dt;if(!roomBlocked(nx,P.y))P.x=nx;if(!roomBlocked(P.x,ny))P.y=ny;P.step+=dt*12*inp.m;P.fx=inp.x;P.fy=inp.y;if(Math.abs(inp.x)>.15)P.dir=inp.x>0?1:-1;setFace(inp.x,inp.y);
   if(P.y>room.h-24&&Math.abs(P.x-room.w/2)<46&&inp.y>.3){exitRoom();return}}
- if(P.atkT>0)P.atkT-=dt;if(P.slash>0)P.slash-=dt;if(P.emT>0)P.emT-=dt*.6;if(P.smT>0)P.smT-=dt;updAK(dt);
+ if(P.atkT>0)P.atkT-=dt;if(P.slash>0)P.slash-=dt;if(P.emT>0)P.emT-=dt*.6;if(P.smT>0)P.smT-=dt;if(P.actT>0)P.actT-=dt;updAK(dt);
  for(let i=fxs.length-1;i>=0;i--){fxs[i].t-=dt;if(fxs[i].t<=0)fxs.splice(i,1)}
  if(talkKey!=='room'){talkKey='room';$('talk').style.display='none'}
  const a=context();const ak=a?a.label:'';if(ak!==actKey){actKey=ak;$('actBtn').style.display=a?'block':'none';$('actBtn').textContent=ak}
@@ -1321,6 +1321,21 @@ function drawRain(g,o){
  g.restore();
 }
 function rainExp(){if(P.smT>0)return'smile';if(P.emT>0&&P.emote){if(P.emote.includes('！'))return'sur';if(P.emote.includes('？'))return'q'}return''}
+// ================= レインのドット絵スプライト =================
+const RSP={img:new Image(),ok:false,CW:112,CH:124,FX:56,FY:118,AW:146,AH:150,AY:620,AFX:73,AFY:140,
+ act:{dash:0,atk:1,tool:2,pick:3,cook:4,done:5,sur:6,think:7,joy:8,sleep:9},oct:[2,1,0,7,6,5,4,3]};
+RSP.img.onload=()=>{RSP.ok=true};RSP.img.src='rain_sprites.png?v=1';
+function setFace(x,y){P.face=Math.abs(y)>Math.abs(x)*1.15?(y>0?'d':'u'):'s';const k=((Math.round(Math.atan2(y,x)/(Math.PI/4))%8)+8)%8;P.d8=RSP.oct[k];P._pd=P.dir}
+// 8方向コマ: col(0前 1右前 2右 3右後 4後 5左後 6左 7左前), row(0立ち 1-4歩き)
+function rainSpr(g,col,row,x,y,s){const{CW,CH,FX,FY}=RSP;g.drawImage(RSP.img,col*CW,row*CH,CW,CH,x-FX*s,y-FY*s,CW*s,CH*s)}
+function rainAct(g,name,x,y,s,flip){const i=RSP.act[name],c=i%6,r=(i/6)|0,{AW,AH,AY,AFX,AFY}=RSP;g.save();g.translate(x,y);if(flip)g.scale(-1,1);g.drawImage(RSP.img,c*AW,AY+r*AH,AW,AH,-AFX*s,-AFY*s,AW*s,AH*s);g.restore()}
+function rainPose(){
+ if(P.ride)return null;
+ if(P.actT>0&&P.act)return P.act;
+ if(P.smT>0)return'joy';
+ if(!P.moving&&P.emT>1.2&&P.emote){if(P.emote.includes('！'))return'sur';if(P.emote.includes('？')||P.emote.includes('…。')&&false)return'think'}
+ if(!P.moving&&!storyEventActive&&time-(P.lastMove||0)>15)return'sleep';
+ return null}
 function drawBoy(){
  if(P.ride==='horse'){drawHorse(cx,P.x,P.y+14,P.dir,P.step,P.moving);cx.save();cx.translate(0,-18)}
  else if(P.ride==='boat'){cx.fillStyle='rgba(10,40,70,.32)';cx.beginPath();cx.ellipse(P.x+5,P.y+18,34,9,0,0,7);cx.fill();drawBoat(cx,P.x,P.y+10+Math.sin(time*3)*1.5,P.dir);cx.save();cx.translate(0,-2)}
@@ -1332,7 +1347,13 @@ function drawBoy0(){
  const {x,y}=P,b=P.moving?Math.abs(Math.sin(P.step))*2.4:Math.sin(time*2)*.5;
  if(P.flash>0&&Math.floor(time*20)%2)return;
  const w=weapon();
- if(P._pd!==P.dir){P.face='s';P._pd=P.dir}
+ if(P._pd!==P.dir){P.face='s';P.d8=P.dir>0?2:6;P._pd=P.dir}
+ if(P.moving)P.lastMove=time;
+ if(RSP.ok){const SS=.5,pose=rainPose();cx.save();
+  if(pose)rainAct(cx,pose,x,y+15,SS,P.dir<0);
+  else rainSpr(cx,P.d8==null?0:P.d8,P.moving?1+(Math.floor(P.step*4/(Math.PI*2))%4+4)%4:0,x,y+15+(P.moving?0:Math.sin(time*2)*.3),SS);
+  cx.restore();
+ }else{
  const f=P.face||'d',mv=!!P.moving,exp=rainExp();
  let dx,dy;if(mv){const l=Math.hypot(P.fx,P.fy)||1;dx=-P.fx/l;dy=-P.fy/l*.7}else{dx=f==='s'?-P.dir*.6:(f==='u'?.1:.4);dy=f==='u'?.6:.5}
  const nx=x+(f==='s'?-3*P.dir:0),ny=y-b-8.5;
@@ -1341,6 +1362,7 @@ function drawBoy0(){
  drawRain(cx,{face:f,st:P.step,mv,exp,w:(w&&P.slash<=0)?w.id:null,tilt:exp==='q'?.13:0});
  cx.restore();
  if(f==='u')rainScarfTail(cx,nx,ny,dx,dy,time,mv);
+ }
  if(P.slash>0&&w&&w.type==='melee'){const p=1-P.slash/P.slashT;cx.save();cx.translate(x,y-8);if(w.wide){cx.strokeStyle='rgba(255,240,150,.85)';cx.lineWidth=6;cx.beginPath();cx.arc(0,0,44,0,p*Math.PI*2);cx.stroke();cx.rotate(p*Math.PI*2);cx.translate(44,0);cx.scale(.7,.7);drawWeapon(cx,w.id)}else{const a=Math.atan2(P.fy,P.fx);cx.rotate(a);cx.strokeStyle=w.fire?'rgba(255,140,40,.9)':w.heavy?'rgba(200,200,210,.9)':'rgba(255,255,255,.9)';cx.lineWidth=w.heavy?8:5;cx.beginPath();cx.arc(0,0,32,-1.2,-1.2+p*2.4);cx.stroke();cx.rotate(-1.2+p*2.4);cx.translate(24,0);cx.rotate(Math.PI/2);cx.scale(w.heavy?.9:.75,w.heavy?.9:.75);drawWeapon(cx,w.id)}cx.restore()}
  if(P.emT>0){cx.save();cx.globalAlpha=Math.min(1,P.emT);cx.font='700 13px "Zen Maru Gothic",sans-serif';const tw=Math.max(44,cx.measureText(P.emote).width+20);cx.fillStyle='#fffaf0';cx.beginPath();cx.roundRect(x-tw/2,y-64,tw,24,10);cx.fill();cx.fillStyle='#3a2a1c';cx.textAlign='center';cx.fillText(P.emote,x,y-47);cx.restore()}
 }
@@ -1480,7 +1502,7 @@ function update(dt){
  if(S.story.bridgeReady&&!S.story.bridgeStorySeen&&S.stage<2&&Math.hypot(P.x-BSTONE.x,P.y-(BSTONE.y+20))<90){runStory('hibashi');return}
  time+=dt;if(shake>0)shake-=dt;
  const inp=input(),reg=region(P.x,P.y);P.moving=inp.m>0;
- if(inp.m){let sp=175*inp.m;if(P.ride==='horse')sp*=1.9;else if(P.ride==='boat')sp*=2;else{if(wasWading)sp*=.65;if(reg==='snow')sp*=.75}if(P.ride==='horse'&&wasWading)sp*=.7;tryMove(inp.x*sp*dt,inp.y*sp*dt);P.step+=dt*12*inp.m;P.fx=inp.x;P.fy=inp.y;if(Math.abs(inp.x)>.15)P.dir=inp.x>0?1:-1;P.face=Math.abs(inp.y)>Math.abs(inp.x)*1.15?(inp.y>0?'d':'u'):'s';P._pd=P.dir}
+ if(inp.m){let sp=175*inp.m;if(P.ride==='horse')sp*=1.9;else if(P.ride==='boat')sp*=2;else{if(wasWading)sp*=.65;if(reg==='snow')sp*=.75}if(P.ride==='horse'&&wasWading)sp*=.7;tryMove(inp.x*sp*dt,inp.y*sp*dt);P.step+=dt*12*inp.m;P.fx=inp.x;P.fy=inp.y;if(Math.abs(inp.x)>.15)P.dir=inp.x>0?1:-1;setFace(inp.x,inp.y)}
  if(P.atkT>0)P.atkT-=dt;if(P.slash>0)P.slash-=dt;if(P.inv>0)P.inv-=dt;if(P.flash>0)P.flash-=dt;
  // 効果と環境
  if(S.fx){S.fxT-=dt;if(S.fxT<=0){S.fx=null;toast('料理の効果が切れた')}}
@@ -1505,7 +1527,7 @@ function update(dt){
  trees.forEach(t=>{if(t.cd>0)t.cd-=dt;if(t.sh>0)t.sh-=dt});
  updateEnemies(dt);updateProj(dt);updatePT(dt);wadeFX(dt);seaSplash(dt);boatWake(dt);ambientFX(dt);updatePuzzles(dt);
  for(let i=fxs.length-1;i>=0;i--){fxs[i].t-=dt;if(fxs[i].t<=0)fxs.splice(i,1)}
- if(P.emT>0)P.emT-=dt*.6;if(P.smT>0)P.smT-=dt;updAK(dt);
+ if(P.emT>0)P.emT-=dt*.6;if(P.smT>0)P.smT-=dt;if(P.actT>0)P.actT-=dt;updAK(dt);
  // 会話と行動
  const ni=nearestNPC();
  const k=ni<0?'':[ni,S.q[ni],S.dishes.length,S.g,S.kills,JSON.stringify(S.tre),S.veh.horse,S.veh.boat].join(':');
@@ -1547,7 +1569,7 @@ function attack(){
  if(!w){if(P.atkT<=0){P.atkT=.6;say('……(武器がない)')}return}
  if(P.atkT>0||paused||anyOpen())return;
  if(w.type==='boom'&&PR.some(p=>p.kind==='boom'))return;
- P.atkT=w.cd;sfx.swing();const A=w.atk+atkBonus();
+ P.atkT=w.cd;sfx.swing();P.act=w.type==='melee'?'atk':'tool';P.actT=w.type==='melee'?((w.wide||w.heavy)?.36:.26):.35;const A=w.atk+atkBonus();
  {let best=null,bd=w.type==='melee'?150:320;E.forEach(e=>{const d=Math.hypot(e.x-P.x,e.y-P.y);if(d<bd){bd=d;best=e}});if(!best){let bd2=w.type==='melee'?80:w.type==='boom'||w.type==='throw'?300:0;pzTargets().forEach(t=>{const d=Math.hypot(t.x-P.x,t.y-P.y);if(d<bd2){bd2=d;best={x:t.x,y:t.y+12}}})}if(best){const dx=best.x-P.x,dy=best.y-12-(P.y-6),d=Math.hypot(dx,dy)||1;P.fx=dx/d;P.fy=dy/d;if(Math.abs(P.fx)>.15)P.dir=P.fx>0?1:-1}}
  const fx=P.fx,fy=P.fy;
  if(w.type==='melee'){
@@ -1578,7 +1600,7 @@ function oniDefeated(e){
 function pop(x,y,s,c){fxs.push({x,y,s,c,t:.9,T:.9})}
 function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;if(!paused&&!anyOpen())update(dt);draw();requestAnimationFrame(loop)}
 
-function gain(k){S.bag[k]=(S.bag[k]||0)+1;sfx.pick();toast(`${ING[k].n} を手に入れた${ING[k].rare?'！':''}`);if(ING[k].rare)say('……！');save()}
+function gain(k){S.bag[k]=(S.bag[k]||0)+1;if(!P.ride){P.act='pick';P.actT=.45}sfx.pick();toast(`${ING[k].n} を手に入れた${ING[k].rare?'！':''}`);if(ING[k].rare)say('……！');save()}
 function faint(){
  paused=true;$('fade').style.opacity=1;
  setTimeout(()=>{room=null;roomId=null;P.ride=null;P.x=CAMP.x;P.y=CAMP.y+70;S.hp=S.max;S.fx=null;E.forEach(e=>{if(e.type==='oni'){e.hp=e.max;e.summ=0;e.x=FORT.x;e.y=FORT.y+40;e.wind=0;e.dash=0;EB.length=0}});for(let i=E.length-1;i>=0;i--)if(E[i].summoned)E.splice(i,1);save();$('fade').style.opacity=0;paused=false;last=performance.now();say('……(たおれていた)');toast('キャンプで目がさめた')},900);
@@ -1770,14 +1792,14 @@ function potAnim(list,great,done){
   else if(t<1.2){hand2={x:-14,y:-15+(reduce?0:Math.sin(t*14)*1.5)}}
   else if(t<2.5){hand2={x:-14+Math.cos(a)*2.5,y:-8+Math.sin(a)*1.2};hand={x:9,y:0}}
   else{exp=great?'sur':'smile';if(great){hand2={x:-11,y:-12};hand={x:11,y:-12}}}
-  c.save();c.translate(RX,RY);c.scale(RS,RS);rainScarfTail(c,-2,-3.5,.5,.4,t,false);drawRain(c,{face:'d',crouch:1,exp,tilt,hand,hand2});c.restore();
+  if(RSP.ok){const sx=206,sy=198,ss=1.1;if(t<.5)rainSpr(c,7,0,sx,sy,ss);else rainAct(c,t<1.2?'tool':t<2.5?'cook':great?'joy':'done',sx,sy,ss,true)}else{c.save();c.translate(RX,RY);c.scale(RS,RS);rainScarfTail(c,-2,-3.5,.5,.4,t,false);drawRain(c,{face:'d',crouch:1,exp,tilt,hand,hand2});c.restore();}
   c.fillStyle='#f6a02a';c.beginPath();c.moveTo(80,230);c.quadraticCurveTo(130,150+Math.sin(t*20)*6,180,230);c.fill();
   c.fillStyle='#ffe07a';c.beginPath();c.moveTo(105,230);c.quadraticCurveTo(130,185,155,230);c.fill();
   c.fillStyle='#2a2a2a';c.beginPath();c.ellipse(130+sh,165,75,42,0,0,Math.PI);c.fill();c.fillRect(55+sh,132,150,34);
   c.fillStyle='#d8b070';c.beginPath();c.ellipse(130+sh,132,75,17,0,0,7);c.fill();
   for(let i=0;i<5;i++){c.fillStyle='#fff6';c.beginPath();c.arc(90+i*20+sh,130+Math.sin(t*8+i)*3,3+Math.abs(Math.sin(t*6+i))*3,0,7);c.fill()}
   list.forEach((k,i)=>{const a2=t*4+i*1.3,h=reduce?20:Math.abs(Math.sin(t*5+i))*70;drawIng(k,130+Math.cos(a2)*40+sh,120-h,1.8,c)});
-  if(t>=1.2&&t<2.5){const hx=RX+(-14+Math.cos(a)*2.5)*RS,hy=RY+(-8+Math.sin(a)*1.2)*RS,lx=145+Math.cos(a)*16,ly=132+Math.sin(a)*5;c.lineCap='round';c.strokeStyle=INK;c.lineWidth=6;c.beginPath();c.moveTo(hx,hy);c.lineTo(lx,ly);c.stroke();c.strokeStyle='#b07a44';c.lineWidth=3.6;c.stroke();circ(c,hx,hy,2.6*RS);c.fillStyle=INK;c.fill();circ(c,hx,hy,2.6*RS-1.4);c.fillStyle='#7a4a28';c.fill()}
+  if(!RSP.ok&&t>=1.2&&t<2.5){const hx=RX+(-14+Math.cos(a)*2.5)*RS,hy=RY+(-8+Math.sin(a)*1.2)*RS,lx=145+Math.cos(a)*16,ly=132+Math.sin(a)*5;c.lineCap='round';c.strokeStyle=INK;c.lineWidth=6;c.beginPath();c.moveTo(hx,hy);c.lineTo(lx,ly);c.stroke();c.strokeStyle='#b07a44';c.lineWidth=3.6;c.stroke();circ(c,hx,hy,2.6*RS);c.fillStyle=INK;c.fill();circ(c,hx,hy,2.6*RS-1.4);c.fillStyle='#7a4a28';c.fill()}
   if(t>1.8){for(let i=0;i<3;i++){const st=(t*.8+i/3)%1;c.fillStyle=`rgba(255,255,255,${.5*(1-st)})`;c.beginPath();c.arc(110+i*20+Math.sin(t*3+i)*6,120-st*70,6+st*10,0,7);c.fill()}}
   if(t>2.2&&t<2.5){c.fillStyle=`rgba(255,255,255,${(t-2.2)/.3})`;c.fillRect(0,0,260,260)}
   if(t>=2.5){c.fillStyle=`rgba(255,255,255,${Math.max(0,1-(t-2.5)/.35)})`;c.fillRect(0,0,260,260);$('cookMsg').textContent=great?'……！ 大成功！':'……できた！';
