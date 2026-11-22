@@ -1181,8 +1181,6 @@ Object.assign(CHAR,{
 // ================= 建物の人たち・Archくん =================
 const FOLK=[{draw:'hadof',n:'ハドフ',x:1390,y:1885,lines:['道具は 手入れしだいじゃ','いいゴーグルを しとるのう']}];
 const RFOLK={
- ohno:{draw:'ohno',n:'オーノ',x:180,y:300,lines:['植物学者のオーノです','森には めずらしい草が たくさんあるよ']},
- kokonu:{draw:'kokonu',n:'ココヌ',x:110,y:340,lines:['ようこそ！ 村の案内役ココヌだよ','困ったら「マップ」を見てね']},
  kuzu:{draw:'kuzu',n:'クズモショ',x:380,y:300,lines:['世界じゅうの品を あつめておる','ガラクタも だれかのお宝じゃ']},
  bukuoff:{draw:'pukuof',n:'プクオフ',x:320,y:330,lines:['本と地図は 旅の友だちだよ','「マップ」で 世界を見わたせるよ']}};
 function drawFolk(f){
@@ -1404,27 +1402,11 @@ function drawMonBook(){
  BOOK.forEach((nm,i)=>{const c=S.mk[i]||0;if(c)n++;const x=(i%9)*60,y=((i/9)|0)*60;h+=`<div class="mb${c?'':' un'}"><i style="background-position:-${x}px -${y}px"></i><b>${c?nm:'？？？'}</b>${c?`<small>×${c}</small>`:''}</div>`});
  box.innerHTML=h;$('mbCount').textContent=`${n} / ${BOOK.length}`}
 // ================= 村の人たち（追加） =================
-const FOLKIMG=new Image();let FOLKIMG_OK=false;FOLKIMG.onload=()=>FOLKIMG_OK=true;FOLKIMG.src='folks.png?v=1';
-const SMALLF={gita:0,elm:1,moro:2,rurumi:3,poston:4,tomoe:5,gardon:6,hanami:7,mokko:8,tekka:9,panna:10,yadorou:11};
-const FOLKIMG2=new Image();let FOLKIMG2_OK=false;FOLKIMG2.onload=()=>FOLKIMG2_OK=true;FOLKIMG2.src='folks2.png?v=1';
-const SMALLF2={gon:0,mina:1,yoshi:2,oka:3,yusa:4,rancher:5,adventurer:6,professor:7,keeper:8,saku:9,ohno:10,kokonu:11};
-function drawSmall(key,x,y,mv,st,flip){const a=SMALLF[key]!=null?[FOLKIMG,SMALLF[key],FOLKIMG_OK]:SMALLF2[key]!=null?[FOLKIMG2,SMALLF2[key],FOLKIMG2_OK]:null;if(!a||!a[2])return false;const s=.72,b=mv?Math.abs(Math.sin(st))*2.5:Math.sin(time*2+a[1])*.4;cx.save();cx.translate(x,y-b);if(flip)cx.scale(-1,1);cx.drawImage(a[0],a[1]*72,0,72,72,-36*s,-68*s,72*s,72*s);cx.restore();return true}
+function drawSmall(){return false}
 const XF=[
  {draw:'sakana',n:'サカナヤ',x:1005,y:2130,lines:['今日は大物が釣れそうだ！','魚は焼くと 香ばしいぞ']},
  {draw:'riku',n:'リク',x:1290,y:1370,wander:70,lines:['ぼくはリク！ ルカと双子なんだ','たき火の料理、いいにおい！']},
- {draw:'ruka',n:'ルカ',x:1335,y:1390,wander:70,lines:['ルカだよ。にいちゃんと探検中！','Archくん かわいいね']},
- {draw:'moro',n:'ドクター・モロ',x:1020,y:1185,lines:['ドクター・モロじゃ。ケガに気をつけるんじゃぞ','よく食べて よく眠る。それが一番の薬じゃ']},
- {draw:'gardon',n:'ガードン',x:1235,y:1160,lines:['警備隊長のガードンだ。城はまかせろ','パパオニには 気をつけるんだぞ']},
- {draw:'mokko',n:'モッコ',x:935,y:1125,lines:['大工のモッコだ！ 家なら看板を見てくれ','木材は 木を切ると手に入るぞ']},
- {draw:'poston',n:'ポストン',x:1160,y:1500,wander:90,lines:['お手紙をとどけに 走りまわってるよ！','「マップ」で 村の場所が見られるよ']},
- {draw:'elm',n:'エルム',x:1255,y:1625,lines:['この景色を 絵にしたいの','レインくんも 描いてあげようか？']},
- {draw:'hanami',n:'ハナミ',x:1360,y:1665,lines:['お花はいかが？','花は 思い出をよびおこすのよ']},
- {draw:'rurumi',n:'ルルミ',x:720,y:1250,lines:['薬草と魔法の研究をしているの','森のキノコには ふしぎな力があるのよ']},
- {draw:'gita',n:'ギータ',room:'ooji',x:545,y:300,lines:['♪〜 旅の歌を ひとつどう？','火のまわりで歌うと 心があたたまるんだ']},
- {draw:'yadorou',n:'ヤドロウ',room:'ooji',x:110,y:260,lines:['宿屋のヤドロウだ。ゆっくりしていきな','旅の話を 聞かせておくれ']},
- {draw:'tomoe',n:'トモエ',room:'bukuoff',x:470,y:285,lines:['図書館司書のトモエです','本は しずかに読んでね']},
- {draw:'tekka',n:'テッカ',room:'ohno',x:345,y:300,lines:['鍛冶見習いのテッカ！ オーカししょうはきびしいんだ','いつか すごい剣をつくるよ']},
- {draw:'panna',n:'パンナ',room:'kokonu',x:505,y:185,lines:['パン屋のパンナです！','ムギがあれば パンが焼けるよ']}];
+ {draw:'ruka',n:'ルカ',x:1335,y:1390,wander:70,lines:['ルカだよ。にいちゃんと探検中！','Archくん かわいいね']}];
 CSPR.akarun={k:.56,act:{dash:0,atk:1,tool:2,pick:3,cook:4,done:5,sur:6,think:7,joy:8,sleep:9}};
 CSPR.sakana={k:.56,idle:'fish',act:{idle:0,sur:1,laugh:2,think:3,hold:4,fish:5,net:6,cut:7,carry:8,joy:9,tired:10,sleep:11}};
 CSPR.riku={k:.55,act:{idle:0,sur:1,laugh:2,think:3,joy:4,run:5,jump:6,sleep:7,wave:8,hold:9,cheer:10,sit:11}};
