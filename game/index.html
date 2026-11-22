@@ -438,7 +438,8 @@ let gameStarted=false;
 function save(){if(!gameStarted)return;const j=stateJ();if(j!==lastLocalJ){S.savedAt=Date.now();lastLocalJ=j}try{localStorage.setItem('ren-cook3',JSON.stringify(S));lastSave=new Date()}catch(e){canSave=false}cloudSave()}
 function cloudSave(first){if(!cloudRef||cloudBusy)return;const j=stateJ();if(j===lastCloudJ)return;cloudBusy=true;cloudRef.set({json:JSON.stringify(S),t:S.savedAt||Date.now()}).then(()=>{lastCloudJ=j;if(!cloudOK)toast('アカウントにセーブできた！');cloudOK=true;cloudState='セーブできています';lastSave=new Date()},e=>{if(e&&e.code==='unavailable')setTimeout(cloudSave,3000+Math.random()*2000);else{cloudRef=null;cloudOK=false;cloudState='書きこめません（'+((e&&e.code)||'?')+'）'}}).finally(()=>{cloudBusy=false})}
 const toCode=()=>btoa(unescape(encodeURIComponent(JSON.stringify(S))));
-function fromCode(c){applyObj(JSON.parse(decodeURIComponent(escape(atob(c.replace(/\s+/g,''))))))}
+function cleanCode(c){c=String(c||'').replace(/[Ａ-Ｚａ-ｚ０-９＋／＝]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0xFEE0)).replace(/-/g,'+').replace(/_/g,'/');const m=c.match(/[A-Za-z0-9+\/=\s]{40,}/g);if(m)c=m.sort((a,b)=>b.length-a.length)[0];c=c.replace(/[^A-Za-z0-9+\/]/g,'');while(c.length%4)c+='=';return c}
+function fromCode(c){const t=cleanCode(c);let o;try{o=JSON.parse(decodeURIComponent(escape(atob(t))))}catch(e){try{o=JSON.parse(atob(t))}catch(e2){throw 'decode'}}if(!o||!Array.isArray(o.q))throw 'shape';applyObj(o)}
 function applyObj(o){if(!o||!Array.isArray(o.q))throw 0;room=null;roomId=null;P.ride=null;const d=DEF();Object.keys(d).forEach(k=>S[k]=o[k]!==undefined?o[k]:d[k]);Object.keys(o).forEach(k=>{if(!(k in d))S[k]=o[k]});while(S.q.length<NPCS.length)S.q.push(0);S.tre=S.tre||{};S.srch=S.srch||{};S.got=S.got||{};S.veh=Object.assign({horse:0,boat:0},S.veh);S.lv=S.lv||1;S.exp=S.exp||0;S.kills=S.kills||0;S.pz=S.pz||{};fixStory()}
 const stars=()=>S.q.reduce((a,b)=>a+b,0)+((S.story&&S.story.stars)||0);
 const weapon=()=>WEAPONS.find(x=>x.id===S.eq&&S.weapons.includes(x.id))||null;
@@ -2786,7 +2787,7 @@ $('clearPot').onclick=()=>{pot=[];render()};
 function saveInfo(){const t=lastSave?lastSave.toTimeString().slice(0,5):'まだ';$('saveInfo').innerHTML=`${window.claude?`アカウントにセーブ：<b>${cloudState}</b><br>`:''}この端末にセーブ：<b>${canSave?'できます':'できません'}</b><br>最後のセーブ：${t}<br>${cloudOK?'閉じても、別の端末でも続きから遊べます。':canSave?'同じ端末・同じブラウザなら続きから遊べます。念のため、ふっかつのじゅもんもメモしておくと安心です。':'<b>この画面ではセーブが残りません。</b>やめる前に「ふっかつのじゅもんを出す」でコピーして、メモアプリにはっておいてね。'}`}
 $('saveBtn').onclick=()=>{save();saveInfo();toast(cloudOK?'アカウントにセーブした！':canSave?'セーブした！':'この画面ではセーブできない。じゅもんを使ってね')};
 $('codeBtn').onclick=()=>{const c=toCode(),b=$('codeBox');b.value=c;try{navigator.clipboard.writeText(c).then(()=>toast('じゅもんをコピーした！メモアプリにはっておこう'),()=>toast('じゅもんを長押ししてコピーしてね'))}catch(e){toast('じゅもんを長押ししてコピーしてね')}};
-$('loadBtn').onclick=()=>{const c=$('codeBox').value.trim();if(!c){toast('じゅもんをはりつけてね');return}try{fromCode(c);E.length=0;PR.length=0;TR.length=0;EB.length=0;P.x=CAMP.x;P.y=CAMP.y+70;statKey='';talkKey='';save();closeAll();sfx.win();toast('じゅもんで再開した！')}catch(e){sfx.meh();toast('じゅもんがちがうみたい')}};
+$('loadBtn').onclick=()=>{const c=$('codeBox').value.trim();if(!c){toast('じゅもんをはりつけてね');return}try{fromCode(c);E.length=0;PR.length=0;TR.length=0;EB.length=0;P.x=CAMP.x;P.y=CAMP.y+70;statKey='';talkKey='';save();closeAll();sfx.win();toast('じゅもんで再開した！')}catch(e){sfx.meh();toast(e==='shape'?'このゲームのじゅもんではないみたい':'じゅもんが途中で切れているかも（'+cleanCode(c).length+'文字）')}};
 setInterval(()=>{if(!paused)save()},8000);setInterval(()=>{if($('bookSheet').classList.contains('on'))saveInfo()},1000);
 addEventListener('pagehide',save);document.addEventListener('visibilitychange',()=>{if(document.hidden)save()});
 
@@ -3043,6 +3044,9 @@ requestAnimationFrame(loop);
 const summary=o=>{const st=(o.q||[]).reduce((a,b)=>a+b,0),w=WEAPONS.find(x=>x.id===o.eq);return `Lv${o.lv||1}・★${st}/${TOTAL}・${o.g||0}G・${w?w.n:'武器なし'}・ステージ${o.stage||1}${o.oniDown?'・クリア済み':''}`};
 const when=t=>t?new Date(t).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'';
 function startGame(){gameStarted=true;$('title').classList.remove('on');paused=false;last=performance.now();E.length=0;PR.length=0;TR.length=0;EB.length=0;P.x=CAMP.x;P.y=CAMP.y+70;statKey='';talkKey='';save();checkStage();say('……。')}
+function titleCodeHook(){const b=$('tCodeBtn');if(!b)return;b.onclick=()=>{au();const keep=$('titleBody').innerHTML;$('titleBody').innerHTML=`<p><b>ふっかつのじゅもん</b><br><small>メモしておいた じゅもんを まるごと はりつけてね</small></p><textarea id="tCode" rows="5" style="width:100%;font-size:13px;word-break:break-all" placeholder="ここに はりつけ"></textarea><p class="hint2" id="tCodeMsg"></p><div class="row"><button class="btn fire" id="tCodeGo">このじゅもんで はじめる</button><button class="btn" id="tCodeBack">もどる</button></div>`;
+ $('tCodeBack').onclick=()=>{$('titleBody').innerHTML=keep;titleFlow()};
+ $('tCodeGo').onclick=()=>{const v=$('tCode').value;if(!v.trim()){$('tCodeMsg').textContent='じゅもんを はりつけてね';return}try{fromCode(v);S.story.introSeen=1;startGame();P.x=CAMP.x;P.y=CAMP.y+70;statKey='';talkKey='';save();sfx.win();toast('じゅもんで再開した！')}catch(e){sfx.meh();$('tCodeMsg').textContent=e==='shape'?'これは このゲームの じゅもんでは ないみたい':'じゅもんが とちゅうで切れているかも。さいごまで コピーできているか たしかめてね（文字数：'+cleanCode(v).length+'）'}}}}
 async function titleFlow(){
  const t0=Date.now();while(!cloudDone&&Date.now()-t0<15000)await new Promise(r=>setTimeout(r,200));
  const localHas=(S.savedAt||0)>0||S.q.some(v=>v)||Object.keys(S.bag).length||S.weapons.length;
@@ -3050,10 +3054,11 @@ async function titleFlow(){
  if(cloudData)best={src:'アカウント',t:cloudData.t,s:cloudData.s};
  if(localHas&&(!best||(S.savedAt||0)>best.t))best={src:'この端末',t:S.savedAt||0,s:JSON.parse(JSON.stringify(S))};
  const where=cloudRef?'セーブはあなたのclaude.aiアカウントに残ります':canSave?'セーブはこの端末に残ります':'この画面ではセーブが残りません（手帳のじゅもんを使ってね）';
- if(best){$('titleBody').innerHTML=`<div class="row" style="flex-direction:column"><button class="btn fire" id="contBtn" style="min-height:64px;line-height:1.4;white-space:normal">つづきから<br><small style="font-weight:500">${summary(best.s)}<br>${when(best.t)} にセーブ（${best.src}）</small></button><button class="btn" id="newBtn">はじめから</button></div><p class="hint2">${where}</p>`;
+ if(best){$('titleBody').innerHTML=`<div class="row" style="flex-direction:column"><button class="btn fire" id="contBtn" style="min-height:64px;line-height:1.4;white-space:normal">つづきから<br><small style="font-weight:500">${summary(best.s)}<br>${when(best.t)} にセーブ（${best.src}）</small></button><button class="btn" id="newBtn">はじめから</button><button class="btn" id="tCodeBtn">ふっかつのじゅもんで つづける</button></div><p class="hint2">${where}</p>`;
   $('contBtn').onclick=()=>{au();try{applyObj(best.s)}catch(e){}startGame();toast('つづきから はじめた')};
   $('newBtn').onclick=()=>{$('titleBody').innerHTML=`<p><b>本当にはじめから？</b><br>いまのセーブデータは消えてしまいます。</p><div class="row"><button class="btn fire" id="newYes">はじめから遊ぶ</button><button class="btn" id="newNo">もどる</button></div>`;$('newYes').onclick=()=>{au();applyObj(DEF());S.savedAt=0;startGame();runStory('opening')};$('newNo').onclick=titleFlow};
- }else{$('titleBody').innerHTML=`<div class="row"><button class="btn fire" id="newYes" style="min-height:56px;font-size:18px">はじめる</button></div><p class="hint2">${where}</p>`;$('newYes').onclick=()=>{au();startGame();if(!S.story.introSeen)runStory('opening')}}
+ }else{$('titleBody').innerHTML=`<div class="row"><button class="btn fire" id="newYes" style="min-height:56px;font-size:18px">はじめる</button></div><div class="row"><button class="btn" id="tCodeBtn">ふっかつのじゅもんで つづける</button></div><p class="hint2">${where}</p>`;$('newYes').onclick=()=>{au();startGame();if(!S.story.introSeen)runStory('opening')}}
+ titleCodeHook();
 }
 titleFlow();
 // セーブボタン
