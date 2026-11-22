@@ -287,8 +287,8 @@ const NPCS=[
   {t:'fx',fx:'cold',s:'……あついねえ……ひんやりするもの、ない……？'},
   {t:'r',id:'herbfish',s:'……香草焼き魚……いいにおい……'}],th:'……おいしい……ねむくなってきた……',done:'……すやぁ……'},
  {id:'saku',n:'サク',x:760,y:1420,draw:'saku',qs:[
-  {t:'r',id:'kushiyaki',s:'ニャー！さかな！さかなの串焼きくれ！'},
-  {t:'r',id:'yakigani',s:'ニャニャ！こんどはカニ！焼きガニ！'}],th:'ニャーーン！（ゴロゴロ）',done:'ニャ。（しっぽをふる）'},
+  {t:'r',id:'kushiyaki',s:'料理人のサクです！ さかなの串焼きを研究したいの。作ってくれる？'},
+  {t:'r',id:'yakigani',s:'こんどはカニ！ 焼きガニの味を知りたいな'}],th:'わあ、おいしい！ レシピ帳に書いておくね',done:'今日はなにを作ろうかな〜'},
  {id:'mamanun',n:'ママヌーン',x:650,y:1728,room:'kokonu',rx:300,ry:160,wander:30,draw:'mamanun',shop:'sell',qs:[
   {t:'r',id:'bread',s:'うちの食堂でパンを出したいの。素朴なムギパン、作ってくれる？'}],th:'まあ、いい焼き色！お店に出すわね',done:'料理ができたら持ってきてね、高く買うよ〜'},
  {id:'yusa',n:'ユサ',x:1300,y:1895,draw:'yusa',shop:'weapon',qs:[],done:'よっ！武器もお宝の買い取りも任せとけ！'},
@@ -620,7 +620,7 @@ function updateRoom(dt){
  time+=dt;const inp=input();P.moving=inp.m>0;
  if(inp.m){const sp=160*inp.m,nx=P.x+inp.x*sp*dt,ny=P.y+inp.y*sp*dt;if(!roomBlocked(nx,P.y))P.x=nx;if(!roomBlocked(P.x,ny))P.y=ny;P.step+=dt*12*inp.m;P.fx=inp.x;P.fy=inp.y;if(Math.abs(inp.x)>.15)P.dir=inp.x>0?1:-1;setFace(inp.x,inp.y);
   if(P.y>room.h-24&&Math.abs(P.x-room.w/2)<46&&inp.y>.3){exitRoom();return}}
- if(P.atkT>0)P.atkT-=dt;if(P.slash>0)P.slash-=dt;if(P.emT>0)P.emT-=dt*.6;if(P.smT>0)P.smT-=dt;if(P.actT>0)P.actT-=dt;updAK(dt);updNPCs(dt);
+ if(P.atkT>0)P.atkT-=dt;if(P.slash>0)P.slash-=dt;if(P.emT>0)P.emT-=dt*.6;if(P.smT>0)P.smT-=dt;if(P.actT>0)P.actT-=dt;updAK(dt);updNPCs(dt);updFolk(dt);
  for(let i=fxs.length-1;i>=0;i--){fxs[i].t-=dt;if(fxs[i].t<=0)fxs.splice(i,1)}
  {const ni=nearestNPC();const k=ni<0?'room':['r',ni,S.q[ni],S.dishes.length,S.g,S.kills,JSON.stringify(S.tre)].join(':');if(k!==talkKey){talkKey=k;renderTalk(ni)}}
  const a=context();const ak=a?a.label:'';if(ak!==actKey){actKey=ak;$('actBtn').style.display=a?'block':'none';$('actBtn').textContent=ak}
@@ -651,7 +651,7 @@ function drawRoom(){
  cx.fillStyle='#6a4a2a';cx.fillRect(R.w/2-40,R.h-10,80,10);cx.fillStyle='#c8a060';cx.fillRect(R.w/2-34,R.h-24,68,14);
  label('出口',R.w/2,R.h+18,13);label(R.n,R.w/2,38,18,'#fffaf0');
  const objs=R.items.map((it,i)=>({y:it[2],f:()=>drawFurn(cx,it[0],it[1],it[2],SEARCH.includes(it[0])&&spotReady(i))}));
- softShadow(P.x+4,P.y+16,11,4);objs.push({y:P.y+10,f:drawBoy});if(RFOLK[roomId])objs.push({y:RFOLK[roomId].y,f:()=>drawFolk(RFOLK[roomId])});NPCS.forEach((n,i)=>{if(n.room===roomId)objs.push({y:n.ry,f:()=>{softShadow(n.rx+4,n.ry+2,12,4);drawNPC(n,i)}})});akObj(objs);objs.sort((a,b)=>a.y-b.y).forEach(o=>o.f());
+ softShadow(P.x+4,P.y+16,11,4);objs.push({y:P.y+10,f:drawBoy});if(RFOLK[roomId])objs.push({y:RFOLK[roomId].y,f:()=>drawFolk(RFOLK[roomId])});XF.forEach(f=>{if(f.room===roomId)objs.push({y:f.y,f:()=>{softShadow(f.x+3,f.y+2,10,3.5);drawFolk(f)}})});NPCS.forEach((n,i)=>{if(n.room===roomId)objs.push({y:n.ry,f:()=>{softShadow(n.rx+4,n.ry+2,12,4);drawNPC(n,i)}})});akObj(objs);objs.sort((a,b)=>a.y-b.y).forEach(o=>o.f());
  fxs.forEach(f=>{cx.globalAlpha=Math.max(0,f.t/f.T);cx.fillStyle=f.c;cx.font='900 16px "Zen Maru Gothic",sans-serif';cx.textAlign='center';cx.fillText(f.s,f.x,f.y-(1-f.t/f.T)*24);cx.globalAlpha=1});
  cx.setTransform(DPR,0,0,DPR,0,0);
  if(R.dark){const g=cx.createRadialGradient(P.x-cam.x,P.y-cam.y,60,P.x-cam.x,P.y-cam.y,280);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.82)');cx.fillStyle=g;cx.fillRect(0,0,VW,VH)}
@@ -1181,13 +1181,15 @@ Object.assign(CHAR,{
 // ================= 建物の人たち・Archくん =================
 const FOLK=[{draw:'hadof',n:'ハドフ',x:1390,y:1885,lines:['道具は 手入れしだいじゃ','いいゴーグルを しとるのう']}];
 const RFOLK={
- ohno:{draw:'ohno',n:'オーノ',x:180,y:300,lines:['……オーノだ。鍛冶をやっとる','火は こわすより つくるためにある']},
- kokonu:{draw:'kokonu',n:'ココヌ',x:110,y:340,lines:['畑のやさいは ぜんぶ自慢よ！','たき火で焼くと 甘くなるの']},
+ ohno:{draw:'ohno',n:'オーノ',x:180,y:300,lines:['植物学者のオーノです','森には めずらしい草が たくさんあるよ']},
+ kokonu:{draw:'kokonu',n:'ココヌ',x:110,y:340,lines:['ようこそ！ 村の案内役ココヌだよ','困ったら「マップ」を見てね']},
  kuzu:{draw:'kuzu',n:'クズモショ',x:380,y:300,lines:['世界じゅうの品を あつめておる','ガラクタも だれかのお宝じゃ']},
  bukuoff:{draw:'pukuof',n:'プクオフ',x:320,y:330,lines:['本と地図は 旅の友だちだよ','「マップ」で 世界を見わたせるよ']}};
 function drawFolk(f){
  const d=Math.hypot(f.x-P.x,f.y-P.y);
- if(CSPR[f.draw]&&CSPR[f.draw].ok){const o={d8:d<140?d8To(P.x-f.x,P.y-f.y):0};if(CSPR[f.draw].idle&&d>=110){o.act=CSPR[f.draw].idle;o.dir=1}drawCSpr(f.draw,f.x,f.y,o)}else drawChar(f.draw,f.x,f.y,{dir:f.x<P.x?1:-1,st:0});
+ const w=f._w,mv=w&&w.mv;
+ if(drawSmall(f.draw,f.x,f.y,mv,w?w.st:0,mv&&w.d8>=5)){}
+ else if(CSPR[f.draw]&&CSPR[f.draw].ok){const o={d8:mv?w.d8:(d<140?d8To(P.x-f.x,P.y-f.y):0),mv,st:w?w.st:0};if(!mv&&CSPR[f.draw].idle&&d>=110){o.act=CSPR[f.draw].idle;o.dir=1}drawCSpr(f.draw,f.x,f.y,o)}else drawChar(f.draw,f.x,f.y,{dir:f.x<P.x?1:-1,st:0});
  if(d<120){cx.font='700 12px "Zen Maru Gothic",sans-serif';cx.textAlign='center';cx.fillStyle='#000a';cx.fillText(f.n,f.x+1,f.y+17);cx.fillStyle='#fff';cx.fillText(f.n,f.x,f.y+16)}
  if(d<95){const t=f.lines[Math.floor(time/3.5)%f.lines.length];cx.font='700 12px "Zen Maru Gothic",sans-serif';const tw=cx.measureText(t).width+18,by=f.y-78;cx.fillStyle='#fffaf0';cx.strokeStyle='#3a2a1c';cx.lineWidth=1.5;cx.beginPath();cx.roundRect(f.x-tw/2,by,tw,24,10);cx.fill();cx.stroke();cx.beginPath();cx.moveTo(f.x-5,by+24);cx.lineTo(f.x,by+31);cx.lineTo(f.x+5,by+24);cx.fill();cx.fillStyle='#3a2a1c';cx.fillText(t,f.x,by+16.5)}}
 const AK={x:0,y:0,dir:1,st:0,init:0};
@@ -1236,6 +1238,7 @@ function drawMapSheet(){
  g.fillStyle='rgba(204,58,44,.25)';g.beginPath();g.arc(a,b,11,0,7);g.fill();g.fillStyle='#cc3a2c';g.strokeStyle='#fff';g.lineWidth=2;g.beginPath();g.arc(a,b,5,0,7);g.fill();g.stroke();
  g.font='900 11px "Zen Maru Gothic",sans-serif';g.textAlign='center';g.lineWidth=3;g.strokeStyle='#fff';g.strokeText('レイン',a,b-9);g.fillStyle='#cc3a2c';g.fillText('レイン',a,b-9)}
 function drawChar(type,x,y,o={}){
+ if(!CHAR[type]&&!(CSPR[type]&&CSPR[type].ok))return;
  if(CSPR[type]&&CSPR[type].ok&&!o.vec){const oo=Object.assign({},o);if(oo.atk&&type==='papaoni')oo.act='power';if(oo.d8==null&&oo.dir!=null&&o.face8!=null)oo.d8=o.face8;drawCSpr(type,x,y,oo);return}
  const g=cx,s=o.s||1;g.save();g.translate(x,y);
  
@@ -1373,7 +1376,7 @@ function updNPCs(dt){
 function drawNPC(n,i){
  const x=npcX(n),y=npcY(n),pd=Math.hypot(x-P.x,y-P.y),w=n._w;
  if(CSPR[n.draw]&&CSPR[n.draw].ok){const o={st:w?w.st:0,mv:w&&w.mv};o.d8=o.mv?w.d8:(pd<140?d8To(P.x-x,P.y-y):0);const ia=CSPR[n.draw].idle;if(ia&&!o.mv&&pd>=140&&(time+i*3)%9<6){o.act=ia;o.dir=1}drawCSpr(n.draw,x,y,o)}
- else drawChar(n.draw,x,y,{dir:x<P.x?1:-1,st:0});
+ else if(!drawSmall(n.draw,x,y,false,0,false))drawChar(n.draw,x,y,{dir:x<P.x?1:-1,st:0});
  if(S.q[i]<n.qs.length){const by=Math.sin(time*4)*3;cx.fillStyle='#ffd84a';circ(cx,x,y-66+by,10);cx.fill();cx.fillStyle='#6a4a00';cx.font='900 14px sans-serif';cx.textAlign='center';cx.fillText('!',x,y-61+by)}
  if(pd<120){cx.font='700 12px "Zen Maru Gothic",sans-serif';cx.textAlign='center';cx.fillStyle='#000a';cx.fillText(n.n,x+1,y+17);cx.fillStyle='#fff';cx.fillText(n.n,x,y+16)}}
 // ================= モンスター =================
@@ -1400,6 +1403,37 @@ function drawMonBook(){
  const box=$('monBook');if(!box)return;S.mk=S.mk||{};let n=0,h='';
  BOOK.forEach((nm,i)=>{const c=S.mk[i]||0;if(c)n++;const x=(i%9)*60,y=((i/9)|0)*60;h+=`<div class="mb${c?'':' un'}"><i style="background-position:-${x}px -${y}px"></i><b>${c?nm:'？？？'}</b>${c?`<small>×${c}</small>`:''}</div>`});
  box.innerHTML=h;$('mbCount').textContent=`${n} / ${BOOK.length}`}
+// ================= 村の人たち（追加） =================
+const FOLKIMG=new Image();let FOLKIMG_OK=false;FOLKIMG.onload=()=>FOLKIMG_OK=true;FOLKIMG.src='folks.png?v=1';
+const SMALLF={gita:0,elm:1,moro:2,rurumi:3,poston:4,tomoe:5,gardon:6,hanami:7,mokko:8,tekka:9,panna:10,yadorou:11};
+const FOLKIMG2=new Image();let FOLKIMG2_OK=false;FOLKIMG2.onload=()=>FOLKIMG2_OK=true;FOLKIMG2.src='folks2.png?v=1';
+const SMALLF2={gon:0,mina:1,yoshi:2,oka:3,yusa:4,rancher:5,adventurer:6,professor:7,keeper:8,saku:9,ohno:10,kokonu:11};
+function drawSmall(key,x,y,mv,st,flip){const a=SMALLF[key]!=null?[FOLKIMG,SMALLF[key],FOLKIMG_OK]:SMALLF2[key]!=null?[FOLKIMG2,SMALLF2[key],FOLKIMG2_OK]:null;if(!a||!a[2])return false;const s=.72,b=mv?Math.abs(Math.sin(st))*2.5:Math.sin(time*2+a[1])*.4;cx.save();cx.translate(x,y-b);if(flip)cx.scale(-1,1);cx.drawImage(a[0],a[1]*72,0,72,72,-36*s,-68*s,72*s,72*s);cx.restore();return true}
+const XF=[
+ {draw:'sakana',n:'サカナヤ',x:1005,y:2130,lines:['今日は大物が釣れそうだ！','魚は焼くと 香ばしいぞ']},
+ {draw:'riku',n:'リク',x:1290,y:1370,wander:70,lines:['ぼくはリク！ ルカと双子なんだ','たき火の料理、いいにおい！']},
+ {draw:'ruka',n:'ルカ',x:1335,y:1390,wander:70,lines:['ルカだよ。にいちゃんと探検中！','Archくん かわいいね']},
+ {draw:'moro',n:'ドクター・モロ',x:1020,y:1185,lines:['ドクター・モロじゃ。ケガに気をつけるんじゃぞ','よく食べて よく眠る。それが一番の薬じゃ']},
+ {draw:'gardon',n:'ガードン',x:1235,y:1160,lines:['警備隊長のガードンだ。城はまかせろ','パパオニには 気をつけるんだぞ']},
+ {draw:'mokko',n:'モッコ',x:935,y:1125,lines:['大工のモッコだ！ 家なら看板を見てくれ','木材は 木を切ると手に入るぞ']},
+ {draw:'poston',n:'ポストン',x:1160,y:1500,wander:90,lines:['お手紙をとどけに 走りまわってるよ！','「マップ」で 村の場所が見られるよ']},
+ {draw:'elm',n:'エルム',x:1255,y:1625,lines:['この景色を 絵にしたいの','レインくんも 描いてあげようか？']},
+ {draw:'hanami',n:'ハナミ',x:1360,y:1665,lines:['お花はいかが？','花は 思い出をよびおこすのよ']},
+ {draw:'rurumi',n:'ルルミ',x:720,y:1250,lines:['薬草と魔法の研究をしているの','森のキノコには ふしぎな力があるのよ']},
+ {draw:'gita',n:'ギータ',room:'ooji',x:545,y:300,lines:['♪〜 旅の歌を ひとつどう？','火のまわりで歌うと 心があたたまるんだ']},
+ {draw:'yadorou',n:'ヤドロウ',room:'ooji',x:110,y:260,lines:['宿屋のヤドロウだ。ゆっくりしていきな','旅の話を 聞かせておくれ']},
+ {draw:'tomoe',n:'トモエ',room:'bukuoff',x:470,y:285,lines:['図書館司書のトモエです','本は しずかに読んでね']},
+ {draw:'tekka',n:'テッカ',room:'ohno',x:345,y:300,lines:['鍛冶見習いのテッカ！ オーカししょうはきびしいんだ','いつか すごい剣をつくるよ']},
+ {draw:'panna',n:'パンナ',room:'kokonu',x:505,y:185,lines:['パン屋のパンナです！','ムギがあれば パンが焼けるよ']}];
+CSPR.akarun={k:.56,act:{dash:0,atk:1,tool:2,pick:3,cook:4,done:5,sur:6,think:7,joy:8,sleep:9}};
+CSPR.sakana={k:.56,idle:'fish',act:{idle:0,sur:1,laugh:2,think:3,hold:4,fish:5,net:6,cut:7,carry:8,joy:9,tired:10,sleep:11}};
+CSPR.riku={k:.55,act:{idle:0,sur:1,laugh:2,think:3,joy:4,run:5,jump:6,sleep:7,wave:8,hold:9,cheer:10,sit:11}};
+CSPR.ruka={k:.55,act:{idle:0,sur:1,laugh:2,think:3,joy:4,run:5,jump:6,sleep:7,wave:8,hold:9,cheer:10,sit:11}};
+for(const k of['akarun','sakana','riku','ruka']){const c=CSPR[k];c.img=new Image();c.img.onload=()=>{c.ok=true};c.img.src='spr_'+k+'.png?v=1'}
+function updFolk(dt){for(const f of XF){if(!f.wander||(f.room||null)!==(roomId||null))continue;const w=f._w||(f._w={hx:f.x,hy:f.y,tx:f.x,ty:f.y,wait:Math.random()*3,st:0,mv:0,d8:0});
+ if(Math.hypot(P.x-f.x,P.y-f.y)<90||storyEventActive){w.mv=0;continue}if(w.wait>0){w.wait-=dt;w.mv=0;continue}
+ const dx=w.tx-f.x,dy=w.ty-f.y,d=Math.hypot(dx,dy);if(d<3){w.wait=1+Math.random()*3;const a=Math.random()*6.28,r=Math.random()*f.wander;w.tx=w.hx+Math.cos(a)*r;w.ty=w.hy+Math.sin(a)*r*.6;w.mv=0;continue}
+ const sp=Math.min(d,42*dt),nx=f.x+dx/d*sp,ny=f.y+dy/d*sp;if(!room&&footBlocked(nx,ny)){w.tx=w.hx;w.ty=w.hy;continue}f.x=nx;f.y=ny;w.mv=1;w.st+=dt*9;w.d8=d8To(dx,dy)}}
 function drawBoy(){
  if(P.ride==='horse'){drawHorse(cx,P.x,P.y+14,P.dir,P.step,P.moving);cx.save();cx.translate(0,-18)}
  else if(P.ride==='boat'){cx.fillStyle='rgba(10,40,70,.32)';cx.beginPath();cx.ellipse(P.x+5,P.y+18,34,9,0,0,7);cx.fill();drawBoat(cx,P.x,P.y+10+Math.sin(time*3)*1.5,P.dir);cx.save();cx.translate(0,-2)}
@@ -1516,7 +1550,7 @@ function draw(){
  trees.forEach(t=>{if(inView(t.x,t.y,t.r+40))objs.push({y:t.y+4,f:()=>drawTree(t)})});
  pines.forEach(t=>inView(t.x,t.y,60)&&objs.push({y:t.y,f:()=>{cx.fillStyle='#4a3a2a';cx.fillRect(t.x-3,t.y-4,6,10);cx.fillStyle='#2e5040';cx.beginPath();cx.moveTo(t.x-t.r,t.y-2);cx.lineTo(t.x,t.y-t.r*2.6);cx.lineTo(t.x+t.r,t.y-2);cx.fill();cx.fillStyle='#fff';cx.beginPath();cx.moveTo(t.x-t.r*.45,t.y-t.r*1.5);cx.lineTo(t.x,t.y-t.r*2.6);cx.lineTo(t.x+t.r*.45,t.y-t.r*1.5);cx.fill()}}));
  NPCS.forEach((n,i)=>{if(!n.room)objs.push({y:n.y,f:()=>drawNPC(n,i)})});
- FOLK.forEach(f=>objs.push({y:f.y,f:()=>drawFolk(f)}));akObj(objs);
+ FOLK.forEach(f=>objs.push({y:f.y,f:()=>drawFolk(f)}));XF.forEach(f=>{if(!f.room&&inView(f.x,f.y,60))objs.push({y:f.y,f:()=>{fastShadow(f.x+3,f.y+2,10,3.5);drawFolk(f)}})});akObj(objs);
  E.forEach(e=>objs.push({y:e.y,f:()=>{
    if(e.type==='oni'&&e.wind>0){if(e.wt==='dash'){cx.strokeStyle='rgba(255,40,40,.6)';cx.lineWidth=26;cx.lineCap='round';cx.beginPath();cx.moveTo(e.x,e.y);cx.lineTo(e.x+(e.sx-e.x)*1.4,e.y+(e.sy-e.y)*1.4);cx.stroke()}else{cx.fillStyle=`rgba(255,40,40,${.3+Math.sin(time*20)*.15})`;circ(cx,e.sx,e.sy,74);cx.fill()}}
    if(e.type==='oni'&&e.lv){cx.fillStyle=`rgba(255,${e.lv>1?40:120},40,${.18+Math.sin(time*6)*.08})`;circ(cx,e.x,e.y-40,60+e.lv*8);cx.fill()}
@@ -1590,7 +1624,7 @@ function update(dt){
  trees.forEach(t=>{if(t.cd>0)t.cd-=dt;if(t.sh>0)t.sh-=dt});
  updateEnemies(dt);updateProj(dt);updatePT(dt);wadeFX(dt);seaSplash(dt);boatWake(dt);ambientFX(dt);updatePuzzles(dt);
  for(let i=fxs.length-1;i>=0;i--){fxs[i].t-=dt;if(fxs[i].t<=0)fxs.splice(i,1)}
- if(P.emT>0)P.emT-=dt*.6;if(P.smT>0)P.smT-=dt;if(P.actT>0)P.actT-=dt;updAK(dt);updNPCs(dt);
+ if(P.emT>0)P.emT-=dt*.6;if(P.smT>0)P.smT-=dt;if(P.actT>0)P.actT-=dt;updAK(dt);updNPCs(dt);updFolk(dt);
  // 会話と行動
  const ni=nearestNPC();
  const k=ni<0?'':[ni,S.q[ni],S.dishes.length,S.g,S.kills,JSON.stringify(S.tre),S.veh.horse,S.veh.boat].join(':');
@@ -1896,7 +1930,7 @@ document.addEventListener('touchmove',e=>{if(e.touches.length>1)e.preventDefault
 let storyEventActive=false,storySkip=false,storyRes=null,storyTapOK=0;
 const STV={fade:0,fadeTo:0,fadeSpd:2,titleT:-1,mem:0,memTo:0,fires:-1,fireA:0,starT:-1,fly:null,bridgeBuild:0,glow:0,tint:0,actors:[],puffs:[],birds:[]};
 const BSTONE={x:966,y:raY(900)+92};
-const STORY_LINES={michiru:'この味……。前にも食べた気がするんだけどなあ。',saku:'最近さ。昨日の晩ごはんが思い出せないんだニャ。',gon:'昔はこの辺、もっといい匂いがしてた気がするんだがなあ。',yoshi:'……ヒガシヤマの煙が出てから……かなあ……',mina:'ねえ。パパオニって、ほんとうに悪いやつなのかなあ。'};
+const STORY_LINES={michiru:'この味……。前にも食べた気がするんだけどなあ。',saku:'最近さ。昨日作った料理の味が思い出せないの。',gon:'昔はこの辺、もっといい匂いがしてた気がするんだがなあ。',yoshi:'……ヒガシヤマの煙が出てから……かなあ……',mina:'ねえ。パパオニって、ほんとうに悪いやつなのかなあ。'};
 function storyWait(ms){return new Promise(r=>{storyRes=r;storyTapOK=performance.now()+250;if(ms!=null)setTimeout(()=>{if(storyRes===r){storyRes=null;r()}},ms)})}
 function storyAdvance(){if(storyRes&&performance.now()>storyTapOK){const r=storyRes;storyRes=null;r()}}
 function showSay(who,text){const b=$('storyBox');b.style.display='block';b.classList.toggle('narr',!who);$('storyName').textContent=who||'';$('storyText').innerHTML=text.replace(/《(.+?)》/g,'<span class="kw">《$1》</span>');$('storyText').classList.remove('in');void $('storyText').offsetWidth;$('storyText').classList.add('in')}
