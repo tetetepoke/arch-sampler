@@ -49,6 +49,13 @@ input,textarea,select{font-size:16px}
 #talk .hint{font-size:13px;color:#8a6a40}
 .sheet{position:fixed;left:0;right:0;bottom:0;max-height:86%;background:var(--paper);border-radius:22px 22px 0 0;padding:18px 16px max(18px,env(safe-area-inset-bottom));box-shadow:0 -8px 30px #0006;transform:translateY(105%);transition:transform .28s ease;overflow-y:auto;max-width:640px;margin:0 auto;z-index:4}
 .sheet.on{transform:none}
+.wm{position:relative;border:3px solid #6a4020;border-radius:14px;overflow:hidden;line-height:0}.wm>img{width:100%;display:block;image-rendering:pixelated}
+.wmL{position:absolute;transform:translate(-50%,-50%);line-height:1.1;white-space:nowrap;font-size:9px;font-weight:900;color:#fff8e6;background:rgba(58,36,20,.9);border:1px solid #f0d8a0;border-radius:999px;padding:1px 5px;text-align:center;font-family:inherit}
+.wmL small{display:block;font-size:8.5px;color:#ffd84a}.wmL.lock{background:rgba(40,40,48,.88);color:#c8c8d0;border-color:#888}.wmL.home{background:linear-gradient(#8a4a20,#5a2a10);font-size:10.5px;border-color:#ffd84a}.wmL.new{animation:wmn 1s infinite alternate}@keyframes wmn{to{box-shadow:0 0 0 4px #ffd84a}}
+.wmTop{position:absolute;right:4px;top:4px;line-height:1.2;text-align:right}.wmTop span{display:block;background:rgba(58,36,20,.92);color:#fff8e6;border:1px solid #f0d8a0;border-radius:999px;padding:1px 6px;margin-bottom:2px;font-size:9.5px;font-weight:900}
+.wmBtns{position:absolute;left:4px;right:4px;bottom:4px;display:flex;justify-content:space-between;line-height:1.1}.wmBtns button{font:inherit;font-size:10px;font-weight:900;background:#fff3d8;color:#5a3418;border:1.5px solid #8a5a30;border-radius:999px;padding:3px 9px}
+.wmMe{position:absolute;width:12px;height:12px;border-radius:50%;background:#cc3a2c;border:2px solid #fff;transform:translate(-50%,-50%);animation:wmn 0.8s infinite alternate}
+
 .dpic,.ipic{display:block;margin:0 auto 2px;background-repeat:no-repeat;image-rendering:pixelated}.dpic{width:48px;height:48px;background-image:url(dishes.png?v=1)}.ipic{width:40px;height:40px;background-image:url(ings.png?v=1)}.dpic.gold{filter:sepia(.6) saturate(2) brightness(1.1)}
 .card .dpic{transform:scale(2);margin:30px auto 28px}.slot .ipic{width:40px;height:40px;transform:scale(.85)}.li .dpic{flex:none;margin:0}
 .rbook{background:linear-gradient(#f6e7c8,#ecd5a6);border:3px solid #7a4a26;border-radius:16px;padding:8px;box-shadow:inset 0 0 0 2px #f9efd8}
@@ -173,7 +180,9 @@ body.story #talk,body.story #actBtn,body.story #atkBtn,body.story #wpnBtn,body.s
 </section>
 <section class="sheet" id="mapSheet" aria-label="全体マップ">
   <button class="btn close" data-close>とじる</button>
-  <h2>全体マップ</h2>
+  <h2>ワールドマップ</h2>
+  <div class="wm" id="wm"></div>
+  <h3 id="wmLocal">いまいる地方のくわしい地図</h3>
   <canvas id="mapCv" style="width:100%;display:block;border-radius:12px;border:2px solid #3a2a1c"></canvas>
   <p style="font-size:13px;margin:8px 0 0">赤い丸がレイン。<span style="background:#ffd84a;border-radius:8px;padding:0 5px">！</span>はたのみごとがある人。</p>
 </section>
@@ -194,7 +203,7 @@ body.story #talk,body.story #actBtn,body.story #atkBtn,body.story #wpnBtn,body.s
   <textarea id="codeBox" rows="3" placeholder="ふっかつのじゅもんをここにはりつけ" aria-label="ふっかつのじゅもん"></textarea>
   <div class="row"><button class="btn" id="loadBtn">じゅもんで再開する</button></div>
   <h3>メモ</h3>
-  <p class="sub">・左下をドラッグして歩く。右下で攻撃（武器が必要）。その左のボタンで武器を切りかえ<br>・ダイセンにも宝箱があるらしい<br>・ブクオフの近くの森に宝箱があるらしい<br>・料理はココヌ（ママヌーンの食堂）で売れる。武器はハドフの店で<br>・家づくりはアーチ城の西の看板で<br>・ダイセンはぽかぽか料理、ヒガシヤマはひんやり料理がないとハートが減る<br>・敵をたおすと経験値。レベルが上がるとハートが増える（3レベルごとにこうげき力もアップ）<br>・建物の前で「入る」。中の壺や箱を「しらべる」とお宝が見つかる。お宝はハドフで売れる<br>・牧場のクズモショから馬、みなとのカモメ船長からボートを買える<br>・コブンブタ、クロコブン、オヤブンブタ、パパオニに気をつけて</p>
+  <p class="sub">・木や岩をこうげきすると、材料が落ちることがある。水辺でこうげきすると魚がとれる。調味料は建物の中で見つかる<br>・左下をドラッグして歩く。右下で攻撃（武器が必要）。その左のボタンで武器を切りかえ<br>・ダイセンにも宝箱があるらしい<br>・ブクオフの近くの森に宝箱があるらしい<br>・料理はココヌ（ママヌーンの食堂）で売れる。武器はハドフの店で<br>・家づくりはアーチ城の西の看板で<br>・ダイセンはぽかぽか料理、ヒガシヤマはひんやり料理がないとハートが減る<br>・敵をたおすと経験値。レベルが上がるとハートが増える（3レベルごとにこうげき力もアップ）<br>・建物の前で「入る」。中の壺や箱を「しらべる」とお宝が見つかる。お宝はハドフで売れる<br>・牧場のクズモショから馬、みなとのカモメ船長からボートを買える<br>・コブンブタ、クロコブン、オヤブンブタ、パパオニに気をつけて</p>
 </section>
 
 <div class="overlay" id="cooking"><div><canvas id="potCv" width="260" height="260"></canvas><div id="cookMsg">ぐつぐつ……</div></div></div>
@@ -474,24 +483,15 @@ for(let i=pines.length-1;i>=0;i--)if(Math.hypot(pines[i].x-2560,pines[i].y-330)<
 const DET=[];for(let i=0;i<1800;i++){const x=rnd()*W,y=rnd()*H,r=region(x,y);if(['field','meadow','north','plains','coast','forest'].includes(r)&&!nearPlace(x,y,6)&&!(((x-2200)/160)**2+((y-2980)/105)**2<1))DET.push({x,y,t:rnd()<.78,c:r==='forest'?'#3e6a30':'#5f9a3e',s:1.5+rnd()*2.2})}
 for(let i=0;i<34;i++)cracks.push({x:HOT.x+20+rnd()*(HOT.w-40),y:HOT.y+20+rnd()*(HOT.h-40),a:rnd()*6,l:20+rnd()*40});
 const SPAWN=[
- {k:'kinoko',r:'forest',n:8},{k:'pokadake',r:'forest',n:4},{k:'ringo',r:'forest',n:6},{k:'mitsu',r:'forest',n:3},
- {k:'berry',r:'field',n:5},{k:'herb',r:'field',n:7},{k:'mint',r:'rock',n:5},{k:'shio',r:'rock',n:5},
- {k:'tamago',r:'meadow',n:5},{k:'mugi',r:'meadow',n:7},
- {k:'sakana',r:'river',n:8},{k:'kani',r:'river',n:4},
- {k:'ringo',r:'north',n:4},{k:'mitsu',r:'north',n:2},{k:'pokadake',r:'north',n:3},{k:'herb',r:'north',n:3},
- {k:'gold',r:'snow',n:2},{k:'yukishiro',r:'snow',n:3},
- {k:'chili',r:'hot',n:4},{k:'hinotori',r:'hot',n:2},
- {k:'mugi',r:'plains',n:5},{k:'tamago',r:'plains',n:3},{k:'berry',r:'plains',n:4},{k:'herb',r:'plains',n:3},{k:'pokadake',r:'plains',n:2},
- {k:'ringo',r:'coast',n:3},{k:'mitsu',r:'coast',n:2},{k:'kinoko',r:'coast',n:3},{k:'mint',r:'coast',n:2},
- {k:'shio',r:'beach',n:3},{k:'kani',r:'beach',n:4},{k:'gold',r:'island',n:1},
- {k:'jaga',r:'field',n:4},{k:'negi',r:'field',n:4},{k:'ninjin',r:'field',n:4},{k:'tomato',r:'field',n:4},{k:'kome',r:'field',n:4},{k:'cabbage',r:'field',n:3},{k:'ichigo',r:'field',n:2},
- {k:'lettuce',r:'meadow',n:3},{k:'mugi',r:'meadow',n:2},{k:'kome',r:'meadow',n:3},{k:'tomato',r:'meadow',n:3},{k:'pasta',r:'meadow',n:3},{k:'sato',r:'meadow',n:2},
- {k:'shimeji',r:'forest',n:4},{k:'ninniku',r:'forest',n:2},{k:'koshou',r:'forest',n:2},
- {k:'shoyu',r:'rock',n:3},{k:'miso',r:'rock',n:3},{k:'su',r:'rock',n:2},{k:'curry',r:'rock',n:2},
- {k:'cheese',r:'plains',n:3},{k:'butter',r:'plains',n:3},{k:'cream',r:'plains',n:2},{k:'panko',r:'plains',n:2},
- {k:'sake',r:'river',n:3},{k:'tai',r:'beach',n:2},{k:'sakana',r:'beach',n:2},{k:'ebi',r:'beach',n:3},{k:'ika',r:'beach',n:3},{k:'ebi',r:'coast',n:2},
- {k:'oil',r:'coast',n:3},{k:'lemon',r:'coast',n:3},{k:'ketchup',r:'coast',n:2},{k:'mayo',r:'coast',n:2},{k:'sauce',r:'north',n:2},{k:'consomme',r:'north',n:2},{k:'koshou',r:'north',n:2},
- {k:'jaga',r:'north',n:2},{k:'kome',r:'plains',n:2},{k:'pasta',r:'north',n:2}
+ {k:'kinoko',r:'forest',n:4},{k:'pokadake',r:'forest',n:2},{k:'shimeji',r:'forest',n:2},
+ {k:'herb',r:'field',n:3},{k:'berry',r:'field',n:2},{k:'mint',r:'rock',n:2},
+ {k:'tamago',r:'meadow',n:2},{k:'mugi',r:'meadow',n:3},
+ {k:'pokadake',r:'north',n:2},{k:'herb',r:'north',n:2},
+ {k:'yukishiro',r:'snow',n:2},{k:'gold',r:'snow',n:1},
+ {k:'chili',r:'hot',n:2},{k:'hinotori',r:'hot',n:1},
+ {k:'mugi',r:'plains',n:2},{k:'tamago',r:'plains',n:2},{k:'kome',r:'plains',n:2},
+ {k:'jaga',r:'field',n:2},{k:'negi',r:'field',n:2},{k:'ninjin',r:'field',n:2},{k:'tomato',r:'meadow',n:2},{k:'cabbage',r:'meadow',n:1},{k:'lettuce',r:'meadow',n:1},{k:'kome',r:'field',n:2},{k:'ichigo',r:'meadow',n:1},
+ {k:'ninniku',r:'forest',n:1},{k:'kani',r:'beach',n:2},{k:'gold',r:'island',n:1}
 ];
 const items=[],respawn=[],coins=[],fxs=[];
 function spawnOne(sp){
@@ -503,6 +503,7 @@ function spawnOne(sp){
 }
 SPAWN.forEach(sp=>{for(let i=0;i<sp.n;i++)spawnOne(sp)});
 items.push({k:'milk',x:HUT.x+60,y:HUT.y+20,ph:0,sp:{k:'milk',fixed:1}});
+[['cheese',-120,40],['butter',-80,60],['cream',120,50]].forEach(([k,dx,dy])=>items.push({k,x:RANCH.x+dx,y:RANCH.y+dy,ph:0,sp:{k,fixed:1}}));
 
 // ================= 敵 =================
 const E=[];let butaT=3;
@@ -689,7 +690,7 @@ function updateRoom(dt){
  time+=dt;const inp=input();P.moving=inp.m>0;
  if(inp.m){const sp=160*inp.m,nx=P.x+inp.x*sp*dt,ny=P.y+inp.y*sp*dt;if(!roomBlocked(nx,P.y))P.x=nx;if(!roomBlocked(P.x,ny))P.y=ny;P.step+=dt*12*inp.m;P.fx=inp.x;P.fy=inp.y;if(Math.abs(inp.x)>.15)P.dir=inp.x>0?1:-1;setFace(inp.x,inp.y);
   if(P.y>room.h-24&&Math.abs(P.x-room.w/2)<46&&inp.y>.3){exitRoom();return}}
- if(P.atkT>0)P.atkT-=dt;if(P.slash>0)P.slash-=dt;if(P.emT>0)P.emT-=dt*.6;if(P.smT>0)P.smT-=dt;if(P.actT>0)P.actT-=dt;updAK(dt);updNPCs(dt);updFolk(dt);
+ if(P.atkT>0)P.atkT-=dt;if(P.slash>0)P.slash-=dt;if(P.emT>0)P.emT-=dt*.6;if(P.smT>0)P.smT-=dt;if(P.actT>0)P.actT-=dt;updAK(dt);updNPCs(dt);updFolk(dt);if((wmT-=dt)<0){wmT=2;wmCheck()}
  for(let i=fxs.length-1;i>=0;i--){fxs[i].t-=dt;if(fxs[i].t<=0)fxs.splice(i,1)}
  {const ni=nearestNPC();const k=ni<0?'room':['r',ni,S.q[ni],S.dishes.length,S.g,S.kills,JSON.stringify(S.tre)].join(':');if(k!==talkKey){talkKey=k;renderTalk(ni)}}
  const a=context();const ak=a?a.label:'';if(ak!==actKey){actKey=ak;$('actBtn').style.display=a?'block':'none';$('actBtn').textContent=ak}
@@ -1011,7 +1012,16 @@ function hitArea(hx,hy,r,atk,fx,fy,kb){
  if(hit){sfx.hit();shake=Math.max(shake,.12)}
  return hit;
 }
-function chopTree(hx,hy,r){let got=false;trees.forEach(t=>{if(Math.hypot(t.x-hx,t.y-hy)<r){t.sh=.3;if(t.cd<=0){t.cd=18;S.wood++;got=true;pop(t.x,t.y-40,'木材 +1','#f4e0b0')}}});if(got){sfx.hit();save()}}
+const TREEDROP={forest:[['ringo',.3],['mitsu',.12]],north:[['ringo',.3],['mitsu',.1]],coast:[['lemon',.35]],beach:[['lemon',.25]],field:[['ringo',.18]],meadow:[['ringo',.12],['mitsu',.08]],plains:[['ringo',.12]],island:[['lemon',.3]],snow:[['ringo',.15]]};
+const ROCKDROP=[['shio',.4],['mint',.1]];
+const FISH={river:[['sakana',.45],['sake',.25],['kani',.12]],sea:[['tai',.25],['ebi',.25],['ika',.2],['sakana',.15]],beach:[['ebi',.3],['kani',.25]]};
+function dropRoll(T){let q=Math.random();for(const[k,p]of T){if(q<p)return k;q-=p}return null}
+function dropItem(k,x,y){items.push({k,x:x+(Math.random()-.5)*24,y:y+14+Math.random()*10,bx:x,by:y,ph:0,sp:{k,fixed:1,drop:1}});pop(x,y-30,ING[k].n+'！','#ffe08a')}
+function chopTree(hx,hy,r){let got=false;trees.forEach(t=>{if(Math.hypot(t.x-hx,t.y-hy)<r){t.sh=.3;if(t.cd<=0){t.cd=18;S.wood++;got=true;pop(t.x,t.y-40,'木材 +1','#f4e0b0')}
+  if(!(t.fcd>time)){t.fcd=time+40;const k=dropRoll(TREEDROP[region(t.x,t.y)]||[]);if(k)dropItem(k,t.x,t.y)}}});
+ rocks.forEach(o=>{if(Math.hypot(o.x-hx,o.y-hy)<r+o.r*.5&&!(o.cd>time)){o.cd=time+35;got=true;const k=dropRoll(ROCKDROP);if(k)dropItem(k,o.x,o.y);else pop(o.x,o.y-20,'カツン','#ddd')}});
+ if(got){sfx.hit();save()}}
+function tryFish(hx,hy){if(!(P.fishCd>time)&&isWater(hx,hy)){P.fishCd=time+1.2;const r=region(hx,hy),k=dropRoll(FISH[r==='river'?'river':(r==='sea'?'sea':'beach')]||[]);if(k){gain(k);pop(hx,hy-10,ING[k].n+'がとれた！','#bfe8ff');sfx.splash&&sfx.splash()}else pop(hx,hy-10,'ぱしゃ…','#bfe8ff')}}
 function updateProj(dt){
  for(let i=PR.length-1;i>=0;i--){const p=PR[i];
   if(p.kind==='star'){p.x+=p.vx*dt;p.y+=p.vy*dt;p.rot+=dt*22;p.life-=dt;
@@ -1512,6 +1522,38 @@ function drawRecipeBook(){
  el.querySelectorAll('[data-rbc]').forEach(b=>b.onclick=()=>{rbCat=b.dataset.rbc;drawRecipeBook()});
  el.querySelectorAll('[data-rbs]').forEach(b=>b.onclick=()=>{rbSel=b.dataset.rbs;drawRecipeBook()});
 }
+
+// ================= ワールドマップ =================
+const WA=[
+ {n:'はじまりの村',x:760,y:563,home:1,q:['hana','michiru','mamanun','mina','saku','oka'],i:['herb','berry','jaga','negi','ninjin','kome']},
+ {n:'みどりの森',x:673,y:342,q:[],i:['kinoko','pokadake','shimeji','ninniku','ringo','mitsu']},
+ {n:'こうざん',x:985,y:392,q:[],i:['shio','mint']},
+ {n:'はなの丘',x:1005,y:652,q:['hori','yoshi'],i:['tamago','mugi','tomato','cabbage','lettuce','ichigo']},
+ {n:'きらめきの川',x:710,y:688,q:['gon'],i:['sakana','sake','kani']},
+ {n:'のどかな牧場',x:480,y:522,q:['mou','tsuyoshi'],i:['milk','cheese','butter','cream']},
+ {n:'しろの都',x:915,y:137,u:()=>S.stage>=2,q:['akarun'],i:[]},
+ {n:'ゆきの山脈',x:370,y:203,u:()=>S.stage>=2,q:[],i:['yukishiro','gold']},
+ {n:'ほのおの火山',x:1300,y:270,u:()=>S.stage>=3,q:[],i:['chili','hinotori']},
+ {n:'かいぞくの島',x:265,y:780,u:()=>S.stage>=2,q:['kamome','pikari'],i:['lemon','tai','ebi','ika']},
+ {n:'なつの島',x:700,y:888,u:()=>!!S.veh.boat,q:[],i:[]},
+ {n:'まよいの森',x:210,y:392,u:()=>!!S.oniDown,soon:1},{n:'しずみの湿原',x:180,y:563,u:()=>!!S.oniDown,soon:1},
+ {n:'いにしえの遺跡',x:1140,y:838,u:()=>!!S.oniDown,soon:1},{n:'おんせん郷',x:1330,y:677,u:()=>!!S.oniDown,soon:1},{n:'さばくの大地',x:1340,y:442,u:()=>!!S.oniDown,soon:1}];
+const waOpen=a=>!a.u||a.u();
+function waStars(a){let d=0,t=0;(a.q||[]).forEach(id=>{const i=NPCS.findIndex(n=>n.id===id);if(i>=0){t+=NPCS[i].qs.length;d+=Math.min(S.q[i],NPCS[i].qs.length)}});(a.i||[]).forEach(k=>{t++;if(S.ig&&S.ig[k]||S.bag[k])d++});return[d,t]}
+let wmT=0;
+function wmCheck(){if(!S.wmSeen){S.wmSeen={};WA.forEach(a=>{if(waOpen(a))S.wmSeen[a.n]=1})}WA.forEach(a=>{if(waOpen(a)&&!S.wmSeen[a.n]){S.wmSeen[a.n]=1;if(a.u){toast(`ワールドマップに「${a.n}」が解放された！`);S.wmNew=S.wmNew||{};S.wmNew[a.n]=1;save()}}})}
+function drawWorldMap(){
+ const el=$('wm');if(!el)return;wmCheck();const op=WA.filter(waOpen).length;
+ let h=`<img src="worldmap.png?v=1" alt="ワールドマップ"><div class="wmTop"><span>マップ解放率 ${Math.round(op/WA.length*100)}%</span><span>★ ${stars()}/${TOTAL}</span></div>`;
+ WA.forEach((a,i)=>{const o=waOpen(a),[d,t]=waStars(a),nw=S.wmNew&&S.wmNew[a.n];h+=`<button class="wmL${o?'':' lock'}${a.home?' home':''}${nw?' new':''}" data-wa="${i}" style="left:${a.x/15.36}%;top:${a.y/10.24}%">${o?'':'🔒'}${a.n}${o&&t?`<small>★ ${d}/${t}</small>`:''}</button>`});
+ const px=room?P.wx:P.x,py=room?P.wy:P.y,r=region(px,py),cur={forest:1,rock:2,meadow:3,river:4,plains:5,north:6,snow:7,hot:8,coast:9,beach:9,island:10}[r]||0;
+ h+=`<div class="wmMe" style="left:${WA[cur].x/15.36}%;top:${(WA[cur].y-62)/10.24}%"></div><div class="wmBtns"><button id="wmHere">現在地</button><span><button id="wmStory">ストーリー</button> <button id="wmBook">図鑑</button> <button id="wmSet">設定</button></span></div>`;
+ el.innerHTML=h;
+ el.querySelectorAll('[data-wa]').forEach(b=>b.onclick=()=>{const a=WA[+b.dataset.wa];if(S.wmNew)delete S.wmNew[a.n];const[d,t]=waStars(a);
+  toast(!waOpen(a)?`${a.n}：まだ行けない`:a.soon?`${a.n}：道がひらいた！ この先の冒険は、これから……`:`${a.n}${t?`：★ ${d}/${t}（たのみごとと材料）`:''}`);b.classList.remove('new')});
+ $('wmHere').onclick=()=>$('wmLocal').scrollIntoView({behavior:'smooth'});
+ $('wmBook').onclick=()=>{open('bookSheet')};$('wmStory').onclick=()=>{open('bookSheet');setTimeout(()=>{const q=$('storyList');q&&q.scrollIntoView()},100)};$('wmSet').onclick=()=>{open('bookSheet');setTimeout(()=>{const q=$('qualRow');q&&q.scrollIntoView()},100)};
+}
 function drawBoy(){
  if(P.ride==='horse'){drawHorse(cx,P.x,P.y+14,P.dir,P.step,P.moving);cx.save();cx.translate(0,-18)}
  else if(P.ride==='boat'){cx.fillStyle='rgba(10,40,70,.32)';cx.beginPath();cx.ellipse(P.x+5,P.y+18,34,9,0,0,7);cx.fill();drawBoat(cx,P.x,P.y+10+Math.sin(time*3)*1.5,P.dir);cx.save();cx.translate(0,-2)}
@@ -1689,7 +1731,7 @@ function update(dt){
  for(let i=items.length-1;i>=0;i--){const it=items[i];if(Math.hypot(it.x-P.x,it.y-P.y)<24){
    items.splice(i,1);
    if(it.k==='sakana'){startFishing(it);return}
-   gain(it.k);if(!it.sp.drop)respawn.push({sp:it.sp,t:it.sp.fixed?25:35+Math.random()*30,x:it.x,y:it.y})}}
+   gain(it.k);if(!it.sp.drop)respawn.push({sp:it.sp,t:it.sp.fixed?120:90+Math.random()*90,x:it.x,y:it.y})}}
  for(let i=respawn.length-1;i>=0;i--){respawn[i].t-=dt;if(respawn[i].t<=0){const r=respawn.splice(i,1)[0];if(r.sp.fixed)items.push({k:r.sp.k,x:r.x,y:r.y,ph:0,sp:r.sp});else spawnOne(r.sp)}}
  for(let i=coins.length-1;i>=0;i--){const c=coins[i];if(Math.hypot(c.x-P.x,c.y-P.y)<28){S.g+=c.v;coins.splice(i,1);sfx.coin();pop(P.x,P.y-30,`+${c.v}G`,'#ffd84a');save()}}
  // 宝箱
@@ -1756,6 +1798,7 @@ function attack(){
   if(w.heavy){shake=.35;sfx.boom();RG.push({x:hx,y:hy+6,r:w.r,t:.35,T:.35,c:'255,255,255'})}
   if(w.fire)RG.push({x:hx,y:hy,r:w.r*.8,t:.2,T:.2,c:'255,120,40'});
   if(!hit||w.heavy||w.wide)chopTree(hx,hy+6,w.wide?64:w.heavy?60:34);
+  if(!hit)tryFish(hx,hy+10);
   {const r=w.wide?64:42;let bt=null,bd=r;PZTREES.forEach(t=>{const d=Math.hypot(t.x-hx,t.y-(hy+6));if(d<bd){bd=d;bt=t}});if(bt)treeHit(bt);if(S.stage>=2&&Math.hypot(ICECH.x-hx,ICECH.y-(hy+6))<(w.wide?70:48))iceHit(w);for(let i=0;i<(RM?0:4);i++)emit(hx,hy,(Math.random()-.5)*90,(Math.random()-.5)*90,.25,w.fire?'#ff9a3a':'#ffffff',2.5,0)}
  }
  else if(w.type==='throw')PR.push({kind:'star',x:P.x,y:P.y-10,vx:fx*540,vy:fy*540,life:.75,atk:A,rot:0});
@@ -1809,7 +1852,7 @@ const anyOpen=()=>sheets.some(s=>$(s).classList.contains('on'))||!!document.quer
 function open(id){sheets.forEach(s=>$(s).classList.toggle('on',s===id));stick.id=null;render()}
 function closeAll(){resetZoom();sheets.forEach(s=>$(s).classList.remove('on'));talkKey='';last=performance.now()}
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=closeAll);
-$('bagBtn').onclick=()=>{au();open('bagSheet')};$('bookBtn').onclick=()=>{au();open('bookSheet')};$('mapBtn').onclick=()=>{au();open('mapSheet');requestAnimationFrame(drawMapSheet)};
+$('bagBtn').onclick=()=>{au();open('bagSheet')};$('bookBtn').onclick=()=>{au();open('bookSheet')};$('mapBtn').onclick=()=>{au();open('mapSheet');drawWorldMap();requestAnimationFrame(drawMapSheet)};
 $('atkBtn').addEventListener('pointerdown',e=>{e.preventDefault();attack()});
 $('wpnBtn').addEventListener('pointerdown',e=>{e.preventDefault();au();const own=WEAPONS.filter(x=>S.weapons.includes(x.id));if(own.length<2){toast(own.length?'武器はひとつだけ':'武器がない');return}const i=own.findIndex(x=>x.id===S.eq);S.eq=own[(i+1)%own.length].id;sfx.pick();toast(weapon().n+' に持ちかえた');save()});
 $('rideBtn').addEventListener('pointerdown',e=>{e.preventDefault();au();if(storyEventActive)return;const a=rideAction();if(a&&!paused&&!anyOpen())a.f()});
