@@ -49,6 +49,16 @@ input,textarea,select{font-size:16px}
 #talk .hint{font-size:13px;color:#8a6a40}
 .sheet{position:fixed;left:0;right:0;bottom:0;max-height:86%;background:var(--paper);border-radius:22px 22px 0 0;padding:18px 16px max(18px,env(safe-area-inset-bottom));box-shadow:0 -8px 30px #0006;transform:translateY(105%);transition:transform .28s ease;overflow-y:auto;max-width:640px;margin:0 auto;z-index:4}
 .sheet.on{transform:none}
+.dpic,.ipic{display:block;margin:0 auto 2px;background-repeat:no-repeat;image-rendering:pixelated}.dpic{width:48px;height:48px;background-image:url(dishes.png?v=1)}.ipic{width:40px;height:40px;background-image:url(ings.png?v=1)}.dpic.gold{filter:sepia(.6) saturate(2) brightness(1.1)}
+.card .dpic{transform:scale(2);margin:30px auto 28px}.slot .ipic{width:40px;height:40px;transform:scale(.85)}.li .dpic{flex:none;margin:0}
+.rbook{background:linear-gradient(#f6e7c8,#ecd5a6);border:3px solid #7a4a26;border-radius:16px;padding:8px;box-shadow:inset 0 0 0 2px #f9efd8}
+.rbHead{display:flex;align-items:center;gap:8px;background:linear-gradient(#8a5a30,#6a4020);color:#fff3d8;border-radius:12px;padding:4px 10px 4px 4px;margin-bottom:8px}.rbHead img{width:56px;height:43px;image-rendering:pixelated}.rbHead b{font-size:19px;letter-spacing:.06em}.rbHead small{display:block;font-size:11px;opacity:.9}
+.rbTabs{display:flex;gap:4px;margin-bottom:6px;overflow-x:auto}.rbTabs button{flex:1 0 auto;font:inherit;font-weight:700;font-size:13px;border:2px solid #9a6a3a;background:#fff4dc;color:#5a3418;border-radius:10px 10px 4px 4px;padding:6px 8px}.rbTabs button.on{background:linear-gradient(#ffb340,#f08a1a);color:#fff;border-color:#c06a10}
+.rbCats{display:flex;gap:4px;overflow-x:auto;padding-bottom:4px;margin-bottom:6px}.rbCats button{flex:none;font:inherit;font-size:12px;font-weight:700;border:1.5px solid #c8a070;background:#fffaf0;color:#6a4020;border-radius:999px;padding:3px 10px}.rbCats button.on{background:#e8742a;color:#fff;border-color:#c05a10}
+.rbCount{font-weight:900;color:#5a3418;margin:2px 4px 6px}.rbGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:6px}
+.rc{background:#fffaf0;border:2px solid #d8b888;border-radius:10px;padding:4px 2px 5px;text-align:center;font-size:10.5px;font-weight:700;line-height:1.2;color:#4a2a14;position:relative;cursor:pointer;font-family:inherit}.rc.sel{border-color:#f0a020;box-shadow:0 0 0 2px #ffd060}.rc .st{position:absolute;top:2px;right:3px;font-size:9px;color:#d08a00}.rc svg{width:40px;height:40px;display:block;margin:4px auto}.rc.un .dpic,.rc.un .ipic,.rc.un svg{filter:brightness(0) opacity(.22)}.rc.un b{color:#a89070}.rc small{display:block;color:#9a7a50;font-weight:400}
+.rbDet{display:flex;gap:10px;align-items:center;background:#fff7e6;border:2px solid #d8b888;border-radius:12px;padding:8px;margin-top:8px}.rbDet .dpic{transform:scale(1.5);margin:14px 18px}.rbDet h4{margin:0 0 2px;font-size:15px;color:#5a3418}.rbDet p{margin:2px 0;font-size:12px}.rbNeed{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}.rbNeed span{display:inline-flex;align-items:center;gap:2px;background:#fff;border:1px solid #e0c8a0;border-radius:8px;padding:1px 6px 1px 1px;font-size:11px}.rbNeed .ipic{width:40px;height:40px;transform:scale(.6);margin:-8px}
+
 .monbook{display:grid;grid-template-columns:repeat(auto-fill,minmax(66px,1fr));gap:6px;margin-top:6px}.monbook .mb{background:#fff8ea;border:1.5px solid #e2cfa8;border-radius:10px;padding:4px 2px 5px;text-align:center;font-size:10px;line-height:1.25}.monbook i{image-rendering:pixelated;display:block;width:60px;height:60px;margin:0 auto;background:url(monbook.png?v=2) no-repeat;background-size:540px 360px}.monbook .un i{filter:brightness(0);opacity:.22}.monbook b{display:block;font-weight:700}.monbook small{color:#9a7a50}
 .sheet h2{margin:0 0 4px;font-size:22px;font-weight:900;padding-right:80px}
 .sheet h3{margin:16px 0 6px;font-size:17px}
@@ -170,13 +180,11 @@ body.story #talk,body.story #actBtn,body.story #atkBtn,body.story #wpnBtn,body.s
 <section class="sheet book" id="bookSheet" aria-label="手帳">
   <button class="btn close" data-close>とじる</button>
   <h2>旅の手帳</h2>
+  <div class="rbook" id="rbook"></div>
   <p class="sub" id="stageLine"></p>
   <h3>思い出</h3><div id="storyList"></div>
-  <h3>モンスター図鑑 <span id="mbCount" style="font-size:13px"></span></h3><div id="monBook" class="monbook"></div>
   <h3>ふしぎ</h3><div id="pzList"></div>
   <h3>頼まれごと</h3><div id="questList"></div>
-  <h3 id="bookCount"></h3>
-  <div class="grid" id="bookGrid"></div>
   <h3>画質</h3>
   <div class="row" id="qualRow" style="justify-content:flex-start"></div>
   <p class="hint2" id="qualInfo"></p>
@@ -217,8 +225,19 @@ const ING={
  sakana:{n:'カワザカナ',t:'fish',v:3,c:'#7fa6c6'},
  kani:{n:'サワガニ',t:'crab',v:2,c:'#e2603a'},
  shio:{n:'岩塩',t:'salt',v:0,c:'#f0d8e0'},
- milk:{n:'ヤギミルク',t:'milk',v:2,c:'#ffffff'}
+ milk:{n:'ヤギミルク',t:'milk',v:2,c:'#ffffff'},
+ gyu:{n:'牛肉',t:'meat',v:3,c:'#c84040',pic:0},buta2:{n:'豚肉',t:'meat',v:3,c:'#e89a9a',pic:1},tori:{n:'鶏肉',t:'meat',v:3,c:'#f0c0a8',pic:2},hiki:{n:'ひき肉',t:'meat',v:2,c:'#d87070',pic:3},bacon:{n:'ベーコン',t:'meat',v:2,c:'#d88070',pic:4},
+ sake:{n:'さけ',t:'fish',v:3,c:'#f08050',pic:5},tai:{n:'たい',t:'fish',v:4,c:'#f0a0a0',pic:6},
+ ebi:{n:'えび',t:'sea',v:3,c:'#f07040',pic:8},ika:{n:'いか',t:'sea',v:2,c:'#e8b0a8',pic:9},
+ cheese:{n:'チーズ',t:'dairy',v:2,c:'#f8d040',pic:12},butter:{n:'バター',t:'dairy',v:1,c:'#f8e070',pic:13},cream:{n:'生クリーム',t:'dairy',v:2,c:'#fafafa',pic:43},
+ kome:{n:'米',t:'rice',v:2,c:'#f4f0e8',pic:15},panko:{n:'パン粉',t:'grain',v:1,c:'#e8d8a8',pic:16},pasta:{n:'パスタ',t:'pasta',v:2,c:'#f0d070',pic:17},
+ jaga:{n:'じゃがいも',t:'veg',v:2,c:'#c8a060',pic:18},negi:{n:'たまねぎ',t:'veg',v:1,c:'#e0a050',pic:19},ninjin:{n:'にんじん',t:'veg',v:1,c:'#f08030',pic:20},tomato:{n:'トマト',t:'tomato',v:1,c:'#e83a2a',pic:21},cabbage:{n:'キャベツ',t:'veg',v:1,c:'#90c860',pic:22},lettuce:{n:'レタス',t:'veg',v:1,c:'#80c050',pic:23},
+ shimeji:{n:'しめじ',t:'mush',v:1,c:'#b89870',pic:42},ichigo:{n:'いちご',t:'fruit',v:2,c:'#e83040',pic:26},lemon:{n:'レモン',t:'fruit',v:1,c:'#f8e040',pic:28},
+ koshou:{n:'こしょう',t:'spice',v:0,c:'#806048',pic:31},shoyu:{n:'しょうゆ',t:'soy',v:0,c:'#402018',pic:32},miso:{n:'みそ',t:'miso',v:1,c:'#b07030',pic:33},su:{n:'酢',t:'sauce',v:0,c:'#e8d070',pic:34},oil:{n:'オリーブオイル',t:'oil',v:0,c:'#c8c040',pic:35},
+ sato:{n:'砂糖',t:'sugar',v:1,c:'#ffffff',pic:37},consomme:{n:'コンソメ',t:'salt',v:0,c:'#f0a030',pic:38},ketchup:{n:'ケチャップ',t:'tomato',v:0,c:'#d02020',pic:39},mayo:{n:'マヨネーズ',t:'sauce',v:1,c:'#f8f0c0',pic:40},sauce:{n:'ソース',t:'sauce',v:0,c:'#502010',pic:41},
+ curry:{n:'カレー粉',t:'spice',v:0,c:'#c08020',pic:44},ninniku:{n:'にんにく',t:'oil',v:0,c:'#f0e8d8',pic:46}
 };
+Object.assign(ING.kinoko,{pic:24});Object.assign(ING.ringo,{pic:25});Object.assign(ING.berry,{pic:27});Object.assign(ING.mitsu,{pic:36});Object.assign(ING.herb,{pic:29});Object.assign(ING.chili,{pic:45});Object.assign(ING.tamago,{pic:10});Object.assign(ING.mugi,{pic:14});Object.assign(ING.sakana,{pic:7});Object.assign(ING.shio,{pic:30});Object.assign(ING.milk,{pic:11});
 const RECIPES=[
  {id:'tart',n:'フルーツタルト',req:['fruit','grain','egg','honey'],opt:['milk'],h:'果物・粉・たまご・甘いもの'},
  {id:'pancake',n:'ハチミツパンケーキ',req:['grain','egg','milk','honey'],opt:[],h:'ふわふわには4つ必要'},
@@ -238,10 +257,47 @@ const RECIPES=[
  {id:'yakigani',n:'焼きガニ',req:['crab'],opt:['salt'],h:'カニだけで'},
  {id:'medama',n:'目玉焼き',req:['egg'],opt:['salt'],h:'たまごだけで'},
  {id:'itame',n:'野草いため',req:['herb'],opt:['salt'],h:'草だけで'},
+ {id:'omurice',n:'オムライス',req:['rice', 'egg', 'tomato'],opt:['salt', 'meat', 'veg'],pic:1,cat:'main',h:'＠rice・＠egg・＠tomato'},
+ {id:'hamburg',n:'ハンバーグデミグラス',req:['meat', 'egg', 'grain'],opt:['veg', 'salt', 'spice', 'sauce'],pic:2,cat:'meat',h:'＠meat・＠egg・＠grain'},
+ {id:'roastchicken',n:'ローストチキン',req:['meat', 'herb', 'oil'],opt:['salt', 'spice', 'veg'],pic:3,cat:'meat',h:'＠meat・＠herb・＠oil'},
+ {id:'beefstew',n:'ビーフシチュー',req:['meat', 'veg', 'tomato'],opt:['salt', 'herb', 'spice', 'mush'],pic:4,cat:'meat',h:'＠meat・＠veg・＠tomato'},
+ {id:'curry',n:'カレーライス',req:['rice', 'meat', 'veg', 'spice'],opt:['salt', 'tomato'],pic:5,cat:'main',h:'＠rice・＠meat・＠veg・＠spice'},
+ {id:'paella',n:'海鮮パエリア',req:['rice', 'sea', 'tomato'],opt:['fish', 'oil', 'herb', 'salt'],pic:6,cat:'fish',h:'＠rice・＠sea・＠tomato'},
+ {id:'onigiri',n:'おにぎり',req:['rice', 'salt'],opt:['fish'],pic:7,cat:'main',h:'＠rice・＠salt'},
+ {id:'dashimaki',n:'だし巻きたまご',req:['egg', 'soy'],opt:['sugar', 'salt'],pic:8,cat:'veg',h:'＠egg・＠soy'},
+ {id:'meuniere',n:'サーモンのムニエル',req:['fish', 'dairy', 'grain'],opt:['salt', 'herb', 'fruit'],pic:9,cat:'fish',h:'＠fish・＠dairy・＠grain'},
+ {id:'acqua',n:'アクアパッツァ',req:['fish', 'tomato', 'oil'],opt:['sea', 'herb', 'salt'],pic:10,cat:'fish',h:'＠fish・＠tomato・＠oil'},
+ {id:'tempura',n:'天ぷら盛り合わせ',req:['sea', 'veg', 'grain', 'oil'],opt:['egg', 'salt'],pic:11,cat:'fish',h:'＠sea・＠veg・＠grain・＠oil'},
+ {id:'lasagna',n:'ラザニア',req:['pasta', 'meat', 'tomato', 'dairy'],opt:['milk', 'herb'],pic:12,cat:'main',h:'＠pasta・＠meat・＠tomato・＠dairy'},
+ {id:'gratin',n:'グラタン',req:['pasta', 'milk', 'dairy'],opt:['meat', 'sea', 'mush', 'salt'],pic:13,cat:'main',h:'＠pasta・＠milk・＠dairy'},
+ {id:'teriyaki',n:'てりやきチキン',req:['meat', 'soy', 'sugar'],opt:['oil'],pic:14,cat:'meat',h:'＠meat・＠soy・＠sugar'},
+ {id:'kakuni',n:'豚の角煮',req:['meat', 'soy', 'sugar', 'veg'],opt:['oil'],pic:15,cat:'meat',h:'＠meat・＠soy・＠sugar・＠veg'},
+ {id:'nikujaga',n:'肉じゃが',req:['meat', 'veg', 'soy'],opt:['sugar'],pic:16,cat:'meat',h:'＠meat・＠veg・＠soy'},
+ {id:'ratatouille',n:'野菜のラタトゥイユ',req:['veg', 'tomato', 'oil'],opt:['herb', 'salt'],pic:18,cat:'veg',h:'＠veg・＠tomato・＠oil'},
+ {id:'caesar',n:'シーザーサラダ',req:['veg', 'dairy', 'sauce'],opt:['meat', 'egg', 'spice'],pic:19,cat:'veg',h:'＠veg・＠dairy・＠sauce'},
+ {id:'potesala',n:'ポテトサラダ',req:['veg', 'egg', 'sauce'],opt:['salt', 'spice', 'meat'],pic:20,cat:'veg',h:'＠veg・＠egg・＠sauce'},
+ {id:'risotto',n:'きのこのリゾット',req:['rice', 'mush', 'dairy'],opt:['milk', 'salt', 'herb'],pic:21,cat:'main',h:'＠rice・＠mush・＠dairy'},
+ {id:'carbonara',n:'カルボナーラ',req:['pasta', 'egg', 'dairy', 'meat'],opt:['spice', 'salt'],pic:22,cat:'main',h:'＠pasta・＠egg・＠dairy・＠meat'},
+ {id:'genovese',n:'ジェノベーゼ',req:['pasta', 'herb', 'oil'],opt:['dairy', 'salt'],pic:23,cat:'main',h:'＠pasta・＠herb・＠oil'},
+ {id:'tomatosoup',n:'トマトスープ',req:['tomato', 'veg'],opt:['salt', 'herb', 'spice'],pic:24,cat:'soup',h:'＠tomato・＠veg'},
+ {id:'minestrone',n:'ミネストローネ',req:['tomato', 'veg', 'pasta'],opt:['salt', 'meat', 'herb'],pic:25,cat:'soup',h:'＠tomato・＠veg・＠pasta'},
+ {id:'pudding',n:'プリン',req:['egg', 'milk', 'sugar'],opt:['dairy', 'honey'],pic:26,cat:'sweet',h:'＠egg・＠milk・＠sugar'},
+ {id:'shortcake',n:'ショートケーキ',req:['grain', 'egg', 'fruit', 'dairy', 'sugar'],opt:['milk'],pic:27,cat:'sweet',h:'＠grain・＠egg・＠fruit・＠dairy・＠sugar'},
+ {id:'applepie',n:'アップルパイ',req:['fruit', 'grain', 'dairy', 'sugar'],opt:['spice', 'egg'],pic:28,cat:'sweet',h:'＠fruit・＠grain・＠dairy・＠sugar'},
+ {id:'ramen',n:'ラーメン',req:['pasta', 'meat', 'soy', 'egg'],opt:['veg', 'salt'],pic:30,cat:'main',h:'＠pasta・＠meat・＠soy・＠egg'},
+ {id:'nabe',n:'具だくさん鍋',req:['meat', 'veg', 'mush', 'soy'],opt:['fish', 'sea', 'miso'],pic:31,cat:'soup',h:'＠meat・＠veg・＠mush・＠soy'},
+ {id:'blt',n:'BLTサンド',req:['grain', 'meat', 'veg', 'tomato'],opt:['sauce', 'dairy'],pic:32,cat:'main',h:'＠grain・＠meat・＠veg・＠tomato'},
+ {id:'pizza',n:'ピザ',req:['grain', 'tomato', 'dairy', 'herb'],opt:['meat', 'oil'],pic:33,cat:'main',h:'＠grain・＠tomato・＠dairy・＠herb'},
+ {id:'oyakodon',n:'親子丼',req:['rice', 'meat', 'egg', 'soy'],opt:['veg', 'sugar'],pic:34,cat:'main',h:'＠rice・＠meat・＠egg・＠soy'},
+ {id:'gyudon',n:'牛丼',req:['rice', 'meat', 'soy'],opt:['veg', 'sugar'],pic:35,cat:'main',h:'＠rice・＠meat・＠soy'},
+ {id:'misoshiru',n:'味噌汁',req:['miso', 'veg'],opt:['mush', 'fish', 'sea'],pic:36,cat:'soup',h:'＠miso・＠veg'},
+ {id:'berrytart',n:'ベリータルト',req:['fruit', 'grain', 'dairy'],opt:['sugar', 'egg', 'honey'],pic:37,cat:'sweet',h:'＠fruit・＠grain・＠dairy'},
  {id:'mystery',n:'ふしぎな料理',req:[],opt:[],h:'組み合わせが合わないとき'}
 ];
 const FX={warm:'ぽかぽか',cold:'ひんやり'};
-const tagName={mush:'キノコ',fruit:'果物',honey:'ハチミツ',herb:'草',egg:'たまご',grain:'ムギ',fish:'魚',crab:'カニ',salt:'塩',milk:'ミルク'};
+const tagName={mush:'キノコ',fruit:'果物',honey:'ハチミツ',herb:'草',egg:'たまご',grain:'ムギ・粉',fish:'魚',crab:'カニ',salt:'塩',milk:'ミルク',meat:'肉',sea:'えび・いか',dairy:'チーズ・バター',rice:'米',pasta:'パスタ',veg:'やさい',tomato:'トマト',spice:'スパイス',soy:'しょうゆ',miso:'みそ',sauce:'ソース類',oil:'オイル',sugar:'砂糖'};
+RECIPES.forEach(r=>{if(r.h&&r.h.includes('＠'))r.h=r.req.map(t=>tagName[t]).join('・')});
+{const PM={stew:[0,'soup'],shioyaki:[17,'fish'],tart:[29,'sweet'],takikomi:[null,'main'],omelet:[null,'veg'],pancake:[null,'sweet'],zosui:[null,'main'],herbfish:[null,'fish'],honeyapple:[null,'sweet'],hotmilk:[null,'drink'],bread:[null,'main'],soup:[null,'soup'],saute:[null,'veg'],yakifruit:[null,'sweet'],kushiyaki:[null,'fish'],yakigani:[null,'fish'],medama:[null,'veg'],itame:[null,'veg'],mystery:[null,'other']};RECIPES.forEach(r=>{const m=PM[r.id];if(m){if(m[0]!=null)r.pic=m[0];r.cat=m[1]}})}
 const WEAPONS=[
  {id:'stick',n:'木の棒',atk:1,p:0,type:'melee',cd:.32,reach:26,r:36,d:'ブクオフの森の宝箱にあった'},
  {id:'wsword',n:'木の剣',atk:2,p:40,type:'melee',cd:.3,reach:26,r:38,d:'軽くて使いやすい'},
@@ -314,7 +370,7 @@ const STORY_DEF=()=>({chapter:0,introSeen:0,firstMemorySeen:0,fourFiresExplained
 function fixStory(){S.story=Object.assign(STORY_DEF(),S.story||{});if(S.stage>=2&&!S.story.bridgeStorySeen){S.story.bridgeStorySeen=1;S.story.bridgeReady=1}}
 
 // ================= セーブ =================
-const DEF=()=>({story:STORY_DEF(),pz:{},mk:{},lv:1,exp:0,kills:0,tre:{},srch:{},got:{},veh:{horse:0,boat:0},islandChest:0,bag:{},dishes:[],found:{},q:NPCS.map(()=>0),hp:6,max:6,fx:null,fxT:0,g:0,wood:0,weapons:[],stage:1,build:{house:0,farm:0,coop:0,flower:0},chest:0,oniDown:0,farmT:0,coopT:0,allDone:0});
+const DEF=()=>({story:STORY_DEF(),pz:{},mk:{},ig:{},lv:1,exp:0,kills:0,tre:{},srch:{},got:{},veh:{horse:0,boat:0},islandChest:0,bag:{},dishes:[],found:{},q:NPCS.map(()=>0),hp:6,max:6,fx:null,fxT:0,g:0,wood:0,weapons:[],stage:1,build:{house:0,farm:0,coop:0,flower:0},chest:0,oniDown:0,farmT:0,coopT:0,allDone:0});
 let S=DEF();
 try{
  const s3=JSON.parse(localStorage.getItem('ren-cook3')||'null');
@@ -427,7 +483,15 @@ const SPAWN=[
  {k:'chili',r:'hot',n:4},{k:'hinotori',r:'hot',n:2},
  {k:'mugi',r:'plains',n:5},{k:'tamago',r:'plains',n:3},{k:'berry',r:'plains',n:4},{k:'herb',r:'plains',n:3},{k:'pokadake',r:'plains',n:2},
  {k:'ringo',r:'coast',n:3},{k:'mitsu',r:'coast',n:2},{k:'kinoko',r:'coast',n:3},{k:'mint',r:'coast',n:2},
- {k:'shio',r:'beach',n:3},{k:'kani',r:'beach',n:4},{k:'gold',r:'island',n:1}
+ {k:'shio',r:'beach',n:3},{k:'kani',r:'beach',n:4},{k:'gold',r:'island',n:1},
+ {k:'jaga',r:'field',n:4},{k:'negi',r:'field',n:4},{k:'ninjin',r:'field',n:4},{k:'tomato',r:'field',n:4},{k:'kome',r:'field',n:4},{k:'cabbage',r:'field',n:3},{k:'ichigo',r:'field',n:2},
+ {k:'lettuce',r:'meadow',n:3},{k:'mugi',r:'meadow',n:2},{k:'kome',r:'meadow',n:3},{k:'tomato',r:'meadow',n:3},{k:'pasta',r:'meadow',n:3},{k:'sato',r:'meadow',n:2},
+ {k:'shimeji',r:'forest',n:4},{k:'ninniku',r:'forest',n:2},{k:'koshou',r:'forest',n:2},
+ {k:'shoyu',r:'rock',n:3},{k:'miso',r:'rock',n:3},{k:'su',r:'rock',n:2},{k:'curry',r:'rock',n:2},
+ {k:'cheese',r:'plains',n:3},{k:'butter',r:'plains',n:3},{k:'cream',r:'plains',n:2},{k:'panko',r:'plains',n:2},
+ {k:'sake',r:'river',n:3},{k:'tai',r:'beach',n:2},{k:'sakana',r:'beach',n:2},{k:'ebi',r:'beach',n:3},{k:'ika',r:'beach',n:3},{k:'ebi',r:'coast',n:2},
+ {k:'oil',r:'coast',n:3},{k:'lemon',r:'coast',n:3},{k:'ketchup',r:'coast',n:2},{k:'mayo',r:'coast',n:2},{k:'sauce',r:'north',n:2},{k:'consomme',r:'north',n:2},{k:'koshou',r:'north',n:2},
+ {k:'jaga',r:'north',n:2},{k:'kome',r:'plains',n:2},{k:'pasta',r:'north',n:2}
 ];
 const items=[],respawn=[],coins=[],fxs=[];
 function spawnOne(sp){
@@ -457,9 +521,9 @@ addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=0});
 // ================= キャンバスとスティック =================
 const cv=$('game'),cx=cv.getContext('2d');
 let VW=0,VH=0,DPR=1;const cam={x:0,y:0};let shake=0,camLerp=0;
-const QUAL={std:1.25,high:2,max:3},QN={std:'標準',high:'高画質',max:'最高画質'};let quality='high';try{quality=localStorage.getItem('ren-quality')||'high'}catch(e){}if(!QUAL[quality])quality='high';
-const resize=()=>{VW=innerWidth;VH=innerHeight;let d=Math.min(QUAL[quality],devicePixelRatio||1);if(VW*VH*d*d>3.3e6)d=Math.sqrt(3.3e6/(VW*VH));d=Math.max(1,d);const ch=d!==DPR;DPR=d;cv.width=Math.round(VW*DPR);cv.height=Math.round(VH*DPR);if(ch){try{SPR.clear();SHADOW_SPR=null}catch(e){}}};
-function setQuality(q){quality=q;try{localStorage.setItem('ren-quality',q)}catch(e){}resize();render();toast(QN[q]+'（内部 '+DPR.toFixed(2).replace(/\.?0+$/,'')+'倍）')}
+const QUAL={dot:1,std:1.25,high:2,max:3},QN={dot:'ドット',std:'標準',high:'高画質',max:'最高画質'};let quality='dot';try{quality=localStorage.getItem('ren-quality2')||'dot'}catch(e){}if(!QUAL[quality])quality='dot';
+const resize=()=>{VW=innerWidth;VH=innerHeight;cv.style.imageRendering=quality==='dot'?'pixelated':'auto';let d=Math.min(QUAL[quality],devicePixelRatio||1);if(VW*VH*d*d>3.3e6)d=Math.sqrt(3.3e6/(VW*VH));d=Math.max(1,d);const ch=d!==DPR;DPR=d;cv.width=Math.round(VW*DPR);cv.height=Math.round(VH*DPR);if(ch){try{SPR.clear();SHADOW_SPR=null}catch(e){}}};
+function setQuality(q){quality=q;try{localStorage.setItem('ren-quality2',q)}catch(e){}resize();render();toast(QN[q]+'（内部 '+DPR.toFixed(2).replace(/\.?0+$/,'')+'倍）')}
 const ro=new ResizeObserver(resize);ro.observe(document.body);resize();
 const stick={id:null,ox:0,oy:0,x:0,y:0};
 cv.addEventListener('pointerdown',e=>{au();if(storyEventActive)return;if(stick.id==null&&e.clientX<VW*.62){stick.id=e.pointerId;stick.ox=stick.x=e.clientX;stick.oy=stick.y=e.clientY;try{cv.setPointerCapture(e.pointerId)}catch(_){}}});
@@ -477,6 +541,8 @@ function input(){
 
 // ================= アイコン =================
 function icon(k,dish){
+ if(dish){const R=RECIPES.find(r=>r.id===dish.rid);if(R&&R.pic!=null)return `<i class="dpic${dish.gold?' gold':''}" style="background-position:-${(R.pic%10)*48}px -${((R.pic/10)|0)*48}px"></i>`}
+ else if(ING[k]&&ING[k].pic!=null){const q=ING[k].pic;return `<i class="ipic" style="background-position:-${(q%10)*40}px -${((q/10)|0)*40}px"></i>`}
  if(dish){const d=dish;return `<svg viewBox="0 0 40 40"><ellipse cx="20" cy="27" rx="17" ry="7" fill="${d.gold?'#f6dc7a':'#e9e2d2'}" stroke="#9c8a6a"/><ellipse cx="20" cy="24" rx="11" ry="6" fill="${d.c}"/>${d.rid==='medama'||d.rid==='omelet'?'<circle cx="21" cy="24" r="3.5" fill="#f6b820"/>':''}<circle cx="16" cy="22" r="2" fill="#fff8"/>${d.fx==='warm'?'<path d="M30 8q3 4 0 8q-3-4 0-8" fill="#e8742a"/>':d.fx==='cold'?'<path d="M30 7v10M25 12h10" stroke="#3fb6c8" stroke-width="2"/>':''}</svg>`}
  const I=ING[k],c=I.c,sh=I.s||I.t;
  const shapes={
@@ -499,9 +565,12 @@ const buildIcon=id=>({house:`<svg viewBox="0 0 40 40"><path d="M6 20L20 8l14 12v
 
 // ================= 描画: 材料 =================
 let time=0;
+const INGIMG=new Image();let INGIMG_OK=false;INGIMG.onload=()=>INGIMG_OK=true;INGIMG.src='ings.png?v=1';
+const DISHIMG=new Image();DISHIMG.src='dishes.png?v=1';
 function drawIng(k,x,y,s=1,g=cx){
  const I=ING[k],c=I.c,t=I.s||I.t;g.save();g.translate(x,y);g.scale(s,s);
  g.fillStyle='#0003';g.beginPath();g.ellipse(0,8,9,3,0,0,7);g.fill();
+ if(I.pic!=null&&INGIMG_OK){const q=I.pic;g.imageSmoothingEnabled=false;g.drawImage(INGIMG,(q%10)*40,((q/10)|0)*40,40,40,-11,-13,22,22);g.imageSmoothingEnabled=true;g.restore();return}
  g.fillStyle=c;
  if(t==='mush'){g.fillStyle='#f3e6cc';g.fillRect(-3,-2,6,9);g.fillStyle=c;g.beginPath();g.arc(0,-2,9,Math.PI,0);g.fill()}
  else if(t==='fruit'){g.beginPath();g.arc(0,0,7,0,7);g.fill();g.fillStyle='#5aa04a';g.fillRect(0,-10,4,3)}
@@ -612,7 +681,7 @@ function searchSpot(i){const it=room.items[i];S.srch=S.srch||{};S.got=S.got||{};
  const tot=room.loot.reduce((a,b)=>a+b[1],0);let r=Math.random()*tot,pick='none';for(const [k,w] of room.loot){if((r-=w)<0){pick=k;break}}
  if(pick==='none'){toast('……なにもなかった');say('……。')}
  else if(pick==='g'){const v=10+Math.floor(Math.random()*30);S.g+=v;sfx.coin();pop(P.x,P.y-40,`+${v}G`,'#ffd84a');toast(`${v}G 見つけた`)}
- else if(pick==='ing'){const ks=['kinoko','ringo','mugi','tamago','milk','mitsu','herb','shio'];gain(ks[Math.floor(Math.random()*ks.length)])}
+ else if(pick==='ing'){const ks=['kinoko','ringo','mugi','tamago','milk','mitsu','herb','shio','shoyu','miso','sato','koshou','oil','curry','sauce','mayo','ketchup','consomme','su','butter','cheese','pasta','kome','panko','bacon'];gain(ks[Math.floor(Math.random()*ks.length)])}
  else{S.tre[pick]=(S.tre[pick]||0)+1;sfx.win();pop(P.x,P.y-40,TRE[pick].n,'#ffd84a');toast(`お宝「${TRE[pick].n}」を見つけた！`);say('……！')}
  talkKey='x';save();
 }
@@ -934,7 +1003,7 @@ const PR=[],TR=[],RG=[];
 function damageEnemy(e,dmg,kx,ky){
  const i=E.indexOf(e);if(i<0)return;
  e.hp-=dmg;e.fl=.3;for(let k=0;k<6;k++)emit(e.x,e.y-16,(Math.random()-.5)*140,-Math.random()*120,.35,k%2?'#ffd84a':'#ffffff',3,200);const oni=e.type==='oni';e.kx=kx*(oni?.25:1);e.ky=ky*(oni?.25:1);pop(e.x,e.y-40,'-'+dmg,'#fff');
- if(e.hp<=0){E.splice(i,1);S.kills=(S.kills||0)+1;talkKey='';if(oni){gainExp(60*((e.lv||0)+1));oniDefeated(e)}else{const K=EK[e.kind||'buta'];if(K.book!=null){S.mk=S.mk||{};const f=!S.mk[K.book];S.mk[K.book]=(S.mk[K.book]||0)+1;if(f)toast(`モンスター図鑑に「${K.n}」が登録された！`)}const n=1+Math.floor(Math.random()*2)+(K.crown?3:0);for(let j=0;j<n;j++)coins.push({x:e.x+(Math.random()-.5)*30*K.s,y:e.y+(Math.random()-.5)*20,v:K.coin[0]+Math.floor(Math.random()*K.coin[1])});pop(e.x,e.y-30,`+${K.exp}EXP`,'#ffd84a');gainExp(K.exp)}}
+ if(e.hp<=0){E.splice(i,1);S.kills=(S.kills||0)+1;talkKey='';if(oni){gainExp(60*((e.lv||0)+1));oniDefeated(e)}else{const K=EK[e.kind||'buta'];if(K.book!=null&&Math.random()<.35){const mk=['gyu','buta2','tori','hiki','bacon'];const mi=mk[Math.floor(Math.random()*mk.length)];items.push({k:mi,x:e.x,y:e.y,bx:e.x,by:e.y,ph:0,sp:{k:mi,fixed:1,drop:1}})}if(K.book!=null){S.mk=S.mk||{};const f=!S.mk[K.book];S.mk[K.book]=(S.mk[K.book]||0)+1;if(f)toast(`モンスター図鑑に「${K.n}」が登録された！`)}const n=1+Math.floor(Math.random()*2)+(K.crown?3:0);for(let j=0;j<n;j++)coins.push({x:e.x+(Math.random()-.5)*30*K.s,y:e.y+(Math.random()-.5)*20,v:K.coin[0]+Math.floor(Math.random()*K.coin[1])});pop(e.x,e.y-30,`+${K.exp}EXP`,'#ffd84a');gainExp(K.exp)}}
 }
 function hitArea(hx,hy,r,atk,fx,fy,kb){
  let hit=false;
@@ -1399,9 +1468,9 @@ function drawMon(e,K){
  else if(K.icon!=null&&BOOK_OK){const i=K.icon,k=.46*s,c=i%9,r=(i/9)|0;cx.save();cx.translate(e.x,e.y-b);if(e._vx>2)cx.scale(-1,1);cx.drawImage(BOOKIMG,c*100,r*100,100,100,-50*k,-96*k,100*k,100*k);cx.restore()}
  cx.globalAlpha=1;cx.imageSmoothingEnabled=true}
 function drawMonBook(){
- const box=$('monBook');if(!box)return;S.mk=S.mk||{};let n=0,h='';
+ const box=$('rbBody');if(!box)return;S.mk=S.mk||{};let n=0,h='';
  BOOK.forEach((nm,i)=>{const c=S.mk[i]||0;if(c)n++;const x=(i%9)*60,y=((i/9)|0)*60;h+=`<div class="mb${c?'':' un'}"><i style="background-position:-${x}px -${y}px"></i><b>${c?nm:'？？？'}</b>${c?`<small>×${c}</small>`:''}</div>`});
- box.innerHTML=h;$('mbCount').textContent=`${n} / ${BOOK.length}`}
+ box.innerHTML=`<div class="rbCount">モンスター ${n} / ${BOOK.length}</div><div class="monbook">${h}</div>`}
 // ================= 村の人たち（追加） =================
 function drawSmall(){return false}
 const XF=[];
@@ -1414,6 +1483,35 @@ function updFolk(dt){for(const f of XF){if(!f.wander||(f.room||null)!==(roomId||
  if(Math.hypot(P.x-f.x,P.y-f.y)<90||storyEventActive){w.mv=0;continue}if(w.wait>0){w.wait-=dt;w.mv=0;continue}
  const dx=w.tx-f.x,dy=w.ty-f.y,d=Math.hypot(dx,dy);if(d<3){w.wait=1+Math.random()*3;const a=Math.random()*6.28,r=Math.random()*f.wander;w.tx=w.hx+Math.cos(a)*r;w.ty=w.hy+Math.sin(a)*r*.6;w.mv=0;continue}
  const sp=Math.min(d,42*dt),nx=f.x+dx/d*sp,ny=f.y+dy/d*sp;if(!room&&footBlocked(nx,ny)){w.tx=w.hx;w.ty=w.hy;continue}f.x=nx;f.y=ny;w.mv=1;w.st+=dt*9;w.d8=d8To(dx,dy)}}
+
+// ================= 料理図鑑（手帳） =================
+let rbTab='recipe',rbCat='all',rbSel=null;
+const RBCAT=[['all','すべて'],['main','主食'],['meat','肉料理'],['fish','魚料理'],['veg','野菜料理'],['soup','スープ'],['sweet','デザート'],['drink','飲み物']];
+const tagIcon=t=>{const k=Object.keys(ING).find(k=>ING[k].t===t&&ING[k].pic!=null)||Object.keys(ING).find(k=>ING[k].t===t);return k?icon(k):''};
+const tagHave=t=>Object.keys(ING).filter(k=>ING[k].t===t).reduce((a,k)=>a+(S.bag[k]||0),0);
+function drawRecipeBook(){
+ const el=$('rbook');if(!el)return;S.ig=S.ig||{};
+ const list=RECIPES.filter(r=>r.id!=='mystery').sort((a,b)=>(a.pic==null)-(b.pic==null));const nf=list.filter(r=>S.found[r.id]).length;
+ const ik=Object.keys(ING),ni=ik.filter(k=>S.ig[k]||S.bag[k]).length;
+ let h=`<div class="rbHead"><img src="chef.png?v=1" alt=""><div><b>料理図鑑</b><small>作ったことのある料理と、集めた食材</small></div></div>
+ <div class="rbTabs"><button data-rbt="recipe" class="${rbTab==='recipe'?'on':''}">レシピ</button><button data-rbt="ing" class="${rbTab==='ing'?'on':''}">食材図鑑</button><button data-rbt="mon" class="${rbTab==='mon'?'on':''}">モンスター</button></div><div id="rbBody">`;
+ if(rbTab==='recipe'){
+  h+=`<div class="rbCats">${RBCAT.map(([k,n])=>`<button data-rbc="${k}" class="${rbCat===k?'on':''}">${n}</button>`).join('')}</div><div class="rbCount">レシピ ${nf} / ${list.length}</div><div class="rbGrid">`;
+  list.filter(r=>rbCat==='all'||r.cat===rbCat).forEach(r=>{const k=!!S.found[r.id];h+=`<button class="rc${k?'':' un'}${rbSel===r.id?' sel':''}" data-rbs="${r.id}"><span class="st">${'★'.repeat(Math.min(5,Math.max(1,r.req.length)))}</span>${icon(0,{rid:r.id,c:S.found[r.id]||'#c8b898'})}<b>${k?r.n:'？？？'}</b></button>`});
+  h+='</div>';
+  const R=RECIPES.find(r=>r.id===rbSel);
+  if(R){const k=!!S.found[R.id];h+=`<div class="rbDet">${icon(0,{rid:R.id,c:S.found[R.id]||'#c8b898'})}<div><h4>${k?R.n:'？？？'} <span style="color:#d08a00;font-size:12px">${'★'.repeat(Math.max(1,R.req.length))}</span></h4><p>${k?'必要な材料（持っている数）':'ヒント：この材料を組み合わせてみよう'}</p><div class="rbNeed">${R.req.map(t=>`<span>${tagIcon(t)}${tagName[t]} <b>${tagHave(t)}</b></span>`).join('')}</div>${R.opt.length?`<p style="color:#9a7a50">入れてもOK：${R.opt.map(t=>tagName[t]).join('・')}</p>`:''}</div></div>`}
+ }else if(rbTab==='ing'){
+  h+=`<div class="rbCount">食材 ${ni} / ${ik.length}</div><div class="rbGrid">`;
+  ik.forEach(k=>{const seen=S.ig[k]||S.bag[k];h+=`<div class="rc${seen?'':' un'}">${icon(k)}<b>${seen?ING[k].n:'？？？'}</b>${seen?`<small>×${S.bag[k]||0}・${tagName[ING[k].t]||''}</small>`:''}</div>`});
+  h+='</div>';
+ }
+ h+='</div>';el.innerHTML=h;
+ if(rbTab==='mon')drawMonBook();
+ el.querySelectorAll('[data-rbt]').forEach(b=>b.onclick=()=>{rbTab=b.dataset.rbt;drawRecipeBook()});
+ el.querySelectorAll('[data-rbc]').forEach(b=>b.onclick=()=>{rbCat=b.dataset.rbc;drawRecipeBook()});
+ el.querySelectorAll('[data-rbs]').forEach(b=>b.onclick=()=>{rbSel=b.dataset.rbs;drawRecipeBook()});
+}
 function drawBoy(){
  if(P.ride==='horse'){drawHorse(cx,P.x,P.y+14,P.dir,P.step,P.moving);cx.save();cx.translate(0,-18)}
  else if(P.ride==='boat'){cx.fillStyle='rgba(10,40,70,.32)';cx.beginPath();cx.ellipse(P.x+5,P.y+18,34,9,0,0,7);cx.fill();drawBoat(cx,P.x,P.y+10+Math.sin(time*3)*1.5,P.dir);cx.save();cx.translate(0,-2)}
@@ -1591,7 +1689,7 @@ function update(dt){
  for(let i=items.length-1;i>=0;i--){const it=items[i];if(Math.hypot(it.x-P.x,it.y-P.y)<24){
    items.splice(i,1);
    if(it.k==='sakana'){startFishing(it);return}
-   gain(it.k);respawn.push({sp:it.sp,t:it.sp.fixed?25:35+Math.random()*30,x:it.x,y:it.y})}}
+   gain(it.k);if(!it.sp.drop)respawn.push({sp:it.sp,t:it.sp.fixed?25:35+Math.random()*30,x:it.x,y:it.y})}}
  for(let i=respawn.length-1;i>=0;i--){respawn[i].t-=dt;if(respawn[i].t<=0){const r=respawn.splice(i,1)[0];if(r.sp.fixed)items.push({k:r.sp.k,x:r.x,y:r.y,ph:0,sp:r.sp});else spawnOne(r.sp)}}
  for(let i=coins.length-1;i>=0;i--){const c=coins[i];if(Math.hypot(c.x-P.x,c.y-P.y)<28){S.g+=c.v;coins.splice(i,1);sfx.coin();pop(P.x,P.y-30,`+${c.v}G`,'#ffd84a');save()}}
  // 宝箱
@@ -1679,7 +1777,7 @@ function oniDefeated(e){
 function pop(x,y,s,c){fxs.push({x,y,s,c,t:.9,T:.9})}
 function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;if(!paused&&!anyOpen())update(dt);draw();requestAnimationFrame(loop)}
 
-function gain(k){S.bag[k]=(S.bag[k]||0)+1;if(!P.ride){P.act='pick';P.actT=.45}sfx.pick();toast(`${ING[k].n} を手に入れた${ING[k].rare?'！':''}`);if(ING[k].rare)say('……！');save()}
+function gain(k){S.bag[k]=(S.bag[k]||0)+1;S.ig=S.ig||{};S.ig[k]=1;if(!P.ride){P.act='pick';P.actT=.45}sfx.pick();toast(`${ING[k].n} を手に入れた${ING[k].rare?'！':''}`);if(ING[k].rare)say('……！');save()}
 function faint(){
  paused=true;$('fade').style.opacity=1;
  setTimeout(()=>{room=null;roomId=null;P.ride=null;P.x=CAMP.x;P.y=CAMP.y+70;S.hp=S.max;S.fx=null;E.forEach(e=>{if(e.type==='oni'){e.hp=e.max;e.summ=0;e.x=FORT.x;e.y=FORT.y+40;e.wind=0;e.dash=0;EB.length=0}});for(let i=E.length-1;i>=0;i--)if(E[i].summoned)E.splice(i,1);save();$('fade').style.opacity=0;paused=false;last=performance.now();say('……(たおれていた)');toast('キャンプで目がさめた')},900);
@@ -1711,7 +1809,7 @@ const anyOpen=()=>sheets.some(s=>$(s).classList.contains('on'))||!!document.quer
 function open(id){sheets.forEach(s=>$(s).classList.toggle('on',s===id));stick.id=null;render()}
 function closeAll(){resetZoom();sheets.forEach(s=>$(s).classList.remove('on'));talkKey='';last=performance.now()}
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=closeAll);
-$('bagBtn').onclick=()=>{au();open('bagSheet')};$('bookBtn').onclick=()=>{au();open('bookSheet');drawMonBook()};$('mapBtn').onclick=()=>{au();open('mapSheet');requestAnimationFrame(drawMapSheet)};
+$('bagBtn').onclick=()=>{au();open('bagSheet')};$('bookBtn').onclick=()=>{au();open('bookSheet')};$('mapBtn').onclick=()=>{au();open('mapSheet');requestAnimationFrame(drawMapSheet)};
 $('atkBtn').addEventListener('pointerdown',e=>{e.preventDefault();attack()});
 $('wpnBtn').addEventListener('pointerdown',e=>{e.preventDefault();au();const own=WEAPONS.filter(x=>S.weapons.includes(x.id));if(own.length<2){toast(own.length?'武器はひとつだけ':'武器がない');return}const i=own.findIndex(x=>x.id===S.eq);S.eq=own[(i+1)%own.length].id;sfx.pick();toast(weapon().n+' に持ちかえた');save()});
 $('rideBtn').addEventListener('pointerdown',e=>{e.preventDefault();au();if(storyEventActive)return;const a=rideAction();if(a&&!paused&&!anyOpen())a.f()});
@@ -1819,9 +1917,7 @@ function render(){
  $('storyList').innerHTML=drawStoryJournal();
  $('pzList').innerHTML=drawPuzzleJournal();
  $('questList').innerHTML=NPCS.filter(n=>n.qs.length).map(n=>{const i=NPCS.indexOf(n);return S.q[i]>=n.qs.length?`<div class="quest done">${n.n}：ぜんぶ叶えた</div>`:`<div class="quest"><b>${n.n}</b>（★${S.q[i]}/${n.qs.length}）<br>ほしいもの：${qText(n.qs[S.q[i]])}</div>`}).join('');
- const nf=RECIPES.filter(r=>S.found[r.id]).length;
- $('bookCount').textContent=`レシピ ${nf} / ${RECIPES.length}`;
- $('bookGrid').innerHTML=RECIPES.map(r=>S.found[r.id]?`<div class="item">${icon(0,{c:S.found[r.id],rid:r.id})}${r.n}<div class="hint2">${r.req.map(t=>tagName[t]).join('＋')||'なんでも'}</div></div>`:`<div class="item unk"><svg viewBox="0 0 40 40"><ellipse cx="20" cy="27" rx="17" ry="7" fill="#e5dcc8"/><text x="20" y="28" text-anchor="middle" font-size="14" fill="#b5a07c">?</text></svg>？？？<div class="hint2">${r.h}</div></div>`).join('');
+ drawRecipeBook();
 }
 $('clearPot').onclick=()=>{pot=[];render()};
 function saveInfo(){const t=lastSave?lastSave.toTimeString().slice(0,5):'まだ';$('saveInfo').innerHTML=`${window.claude?`アカウントにセーブ：<b>${cloudState}</b><br>`:''}この端末にセーブ：<b>${canSave?'できます':'できません'}</b><br>最後のセーブ：${t}<br>${cloudOK?'閉じても、別の端末でも続きから遊べます。':canSave?'同じ端末・同じブラウザなら続きから遊べます。念のため、ふっかつのじゅもんもメモしておくと安心です。':'<b>この画面ではセーブが残りません。</b>やめる前に「ふっかつのじゅもんを出す」でコピーして、メモアプリにはっておいてね。'}`}
@@ -1833,7 +1929,7 @@ addEventListener('pagehide',save);document.addEventListener('visibilitychange',(
 
 function judge(list){
  const tags=new Set(list.map(k=>ING[k].t));
- const r=RECIPES.find(r=>r.req.length&&r.req.every(t=>tags.has(t))&&[...tags].every(t=>r.req.includes(t)||r.opt.includes(t)))||RECIPES[RECIPES.length-1];
+ const r=RECIPES.filter(r=>r.req.length&&r.req.every(t=>tags.has(t))&&[...tags].every(t=>r.req.includes(t)||r.opt.includes(t))).sort((a,b)=>b.req.length-a.req.length)[0]||RECIPES[RECIPES.length-1];
  const fx={};list.forEach(k=>{const e=ING[k].e;if(e)fx[e]=(fx[e]||0)+1});
  const fxKey=fx.warm&&fx.cold?null:(Object.keys(fx)[0]||null);
  const gold=list.some(k=>ING[k].gold),great=r.id!=='mystery'&&Math.random()<.15;
@@ -1861,7 +1957,7 @@ $('doCook').onclick=()=>{
  });
 };
 function potAnim(list,great,done){
- const pc=$('potCv');if(pc.width!==Math.round(260*DPR)){pc.width=pc.height=Math.round(260*DPR)}const c=pc.getContext('2d');c.setTransform(DPR,0,0,DPR,0,0);const t0=performance.now(),reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+ const pc=$('potCv');pc.style.imageRendering=quality==='dot'?'pixelated':'auto';if(pc.width!==Math.round(260*DPR)){pc.width=pc.height=Math.round(260*DPR)}const c=pc.getContext('2d');c.setTransform(DPR,0,0,DPR,0,0);const t0=performance.now(),reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
  const RX=206,RY=142,RS=2.05;
  const f=now=>{const t=(now-t0)/1000;c.clearRect(0,0,260,260);
   const sh=reduce?0:Math.sin(t*30)*2*(t>1.6&&t<2.5?2:1)*(t<2.5?1:0);
