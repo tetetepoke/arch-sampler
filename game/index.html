@@ -49,7 +49,7 @@ input,textarea,select{font-size:16px}
 #talk .hint{font-size:13px;color:#8a6a40}
 .sheet{position:fixed;left:0;right:0;bottom:0;max-height:86%;background:var(--paper);border-radius:22px 22px 0 0;padding:18px 16px max(18px,env(safe-area-inset-bottom));box-shadow:0 -8px 30px #0006;transform:translateY(105%);transition:transform .28s ease;overflow-y:auto;max-width:640px;margin:0 auto;z-index:4}
 .sheet.on{transform:none}
-.monbook{display:grid;grid-template-columns:repeat(auto-fill,minmax(66px,1fr));gap:6px;margin-top:6px}.monbook .mb{background:#fff8ea;border:1.5px solid #e2cfa8;border-radius:10px;padding:4px 2px 5px;text-align:center;font-size:10px;line-height:1.25}.monbook i{display:block;width:60px;height:60px;margin:0 auto;background:url(monbook.png?v=1) no-repeat;background-size:540px 360px}.monbook .un i{filter:brightness(0);opacity:.22}.monbook b{display:block;font-weight:700}.monbook small{color:#9a7a50}
+.monbook{display:grid;grid-template-columns:repeat(auto-fill,minmax(66px,1fr));gap:6px;margin-top:6px}.monbook .mb{background:#fff8ea;border:1.5px solid #e2cfa8;border-radius:10px;padding:4px 2px 5px;text-align:center;font-size:10px;line-height:1.25}.monbook i{image-rendering:pixelated;display:block;width:60px;height:60px;margin:0 auto;background:url(monbook.png?v=2) no-repeat;background-size:540px 360px}.monbook .un i{filter:brightness(0);opacity:.22}.monbook b{display:block;font-weight:700}.monbook small{color:#9a7a50}
 .sheet h2{margin:0 0 4px;font-size:22px;font-weight:900;padding-right:80px}
 .sheet h3{margin:16px 0 6px;font-size:17px}
 .sheet .sub{margin:0 0 12px;font-size:14px;color:#7a6248}
@@ -1328,11 +1328,11 @@ function rainExp(){if(P.smT>0)return'smile';if(P.emT>0&&P.emote){if(P.emote.incl
 // ================= レインのドット絵スプライト =================
 const RSP={img:new Image(),ok:false,CW:112,CH:124,FX:56,FY:118,AW:146,AH:150,AY:620,AFX:73,AFY:140,
  act:{dash:0,atk:1,tool:2,pick:3,cook:4,done:5,sur:6,think:7,joy:8,sleep:9},oct:[2,1,0,7,6,5,4,3]};
-RSP.img.onload=()=>{RSP.ok=true};RSP.img.src='rain_sprites.png?v=1';
+RSP.img.onload=()=>{RSP.ok=true};RSP.img.src='rain_sprites.png?v=2';
 function setFace(x,y){P.face=Math.abs(y)>Math.abs(x)*1.15?(y>0?'d':'u'):'s';const k=((Math.round(Math.atan2(y,x)/(Math.PI/4))%8)+8)%8;P.d8=RSP.oct[k];P._pd=P.dir}
 // 8方向コマ: col(0前 1右前 2右 3右後 4後 5左後 6左 7左前), row(0立ち 1-4歩き)
-function rainSpr(g,col,row,x,y,s){const{CW,CH,FX,FY}=RSP;g.drawImage(RSP.img,col*CW,row*CH,CW,CH,x-FX*s,y-FY*s,CW*s,CH*s)}
-function rainAct(g,name,x,y,s,flip){const i=RSP.act[name],c=i%6,r=(i/6)|0,{AW,AH,AY,AFX,AFY}=RSP;g.save();g.translate(x,y);if(flip)g.scale(-1,1);g.drawImage(RSP.img,c*AW,AY+r*AH,AW,AH,-AFX*s,-AFY*s,AW*s,AH*s);g.restore()}
+function rainSpr(g,col,row,x,y,s){const{CW,CH,FX,FY}=RSP;g.imageSmoothingEnabled=false;g.drawImage(RSP.img,col*CW,row*CH,CW,CH,x-FX*s,y-FY*s,CW*s,CH*s)}
+function rainAct(g,name,x,y,s,flip){const i=RSP.act[name],c=i%6,r=(i/6)|0,{AW,AH,AY,AFX,AFY}=RSP;g.save();g.translate(x,y);if(flip)g.scale(-1,1);g.imageSmoothingEnabled=false;g.drawImage(RSP.img,c*AW,AY+r*AH,AW,AH,-AFX*s,-AFY*s,AW*s,AH*s);g.restore();g.imageSmoothingEnabled=true}
 function rainPose(){
  if(P.ride)return null;
  if(P.actT>0&&P.act)return P.act;
@@ -1351,14 +1351,14 @@ const CSPR={
  hadof:{k:.56,idle:'shop',act:{dash:0,shop:1,think:2,sur:3,laugh:4,joy:5,repair:6,sleep:7}},
  kuzu:{k:.56,idle:'sell',act:{dash:0,sell:1,think:2,sur:3,laugh:4,joy:5,odoroku:6,sleep:7}},
  granny:{k:.58,idle:'pray',act:{dash:0,talk:1,think:2,sur:3,laugh:4,joy:5,pray:6,sleep:7}}};
-for(const k in CSPR){const c=CSPR[k];c.img=new Image();c.img.onload=()=>{c.ok=true};c.img.src='spr_'+k+'.png?v=1'}
+for(const k in CSPR){const c=CSPR[k];c.img=new Image();c.img.onload=()=>{c.ok=true};c.img.src='spr_'+k+'.png?v=2'}
 function d8To(dx,dy){const k=((Math.round(Math.atan2(dy,dx)/(Math.PI/4))%8)+8)%8;return RSP.oct[k]}
 function drawCSpr(type,x,y,o){
- const c=CSPR[type],s=c.k*(o.s||1),{CW,CH,FX,FY,AW,AH,AY,AFX,AFY}=RSP;
+ const c=CSPR[type],s=c.k*(o.s||1),{CW,CH,FX,FY,AW,AH,AY,AFX,AFY}=RSP;cx.imageSmoothingEnabled=false;
  if(o.fl>0&&Math.floor(time*24)%2)cx.globalAlpha=.4;
  if(o.act!=null&&c.act[o.act]!=null){const i=c.act[o.act],cc=i%6,r=(i/6)|0;cx.save();cx.translate(x,y);if(o.dir<0)cx.scale(-1,1);cx.drawImage(c.img,cc*AW,AY+r*AH,AW,AH,-AFX*s,-AFY*s,AW*s,AH*s);cx.restore()}
  else{const col=o.d8!=null?o.d8:(o.dir>0?2:o.dir<0?6:0),row=o.mv?1+(Math.floor((o.st||0)*4/(Math.PI*2))%4+4)%4:0;cx.drawImage(c.img,col*CW,row*CH,CW,CH,x-FX*s,y-FY*s,CW*s,CH*s)}
- cx.globalAlpha=1}
+ cx.globalAlpha=1;cx.imageSmoothingEnabled=true}
 // 村人の位置（家の中の人は roomId が一致するときだけ）
 const npcHere=n=>(n.room||null)===(roomId||null);
 const npcX=n=>n.room?n.rx:n.x,npcY=n=>n.room?n.ry:n.y;
@@ -1379,7 +1379,7 @@ function drawNPC(n,i){
  if(pd<120){cx.font='700 12px "Zen Maru Gothic",sans-serif';cx.textAlign='center';cx.fillStyle='#000a';cx.fillText(n.n,x+1,y+17);cx.fillStyle='#fff';cx.fillText(n.n,x,y+16)}}
 // ================= モンスター =================
 const BOOK=['スライム','イノシシ','キノコ','ドラゴンコウモリ','ウサギン','トゲリス','プヨゼリー','ハナムシ','ツノービー','ミミカル','ロックン','モグラドン','フラワン','リーファ','ヒツジール','カニッコ','タコポン','サンシェル','アイスライム','ファイアスライム','サンダースライム','ゴースライム','メタルスライム','ウッドゴーレム','ストーンゴーレム','アイアンゴーレム','マグマゴーレム','ミズドラゴン','フレイムドラゴン','グリーンドラゴン','アイスドラゴン','エレキドラゴン','スカルナイト','ゴブリン','オーク','オニゴブリン','ムーンウルフ','サンドワーム','バジリスク','ミミック','トレント','ウィスプ','カボチャナイト','ノーム','フェアリー','クラーケン','ワイバーン','グリフォン','ユキオロチ','フェニックス','ダークドラゴン','キングスライム','リッチ','古のドラゴン'];
-const MONIMG=new Image(),BOOKIMG=new Image();let MON_OK=false,BOOK_OK=false;MONIMG.onload=()=>MON_OK=true;BOOKIMG.onload=()=>BOOK_OK=true;MONIMG.src='monsters.png?v=1';BOOKIMG.src='monbook.png?v=1';
+const MONIMG=new Image(),BOOKIMG=new Image();let MON_OK=false,BOOK_OK=false;MONIMG.onload=()=>MON_OK=true;BOOKIMG.onload=()=>BOOK_OK=true;MONIMG.src='monsters.png?v=2';BOOKIMG.src='monbook.png?v=2';
 {const T={1:{hp:3,spd:80,dmg:1,exp:3,s:.9,coin:[3,4]},2:{hp:6,spd:90,dmg:1,exp:6,s:1,coin:[6,6]},3:{hp:12,spd:85,dmg:2,exp:12,s:1.15,coin:[10,10]},4:{hp:30,spd:75,dmg:3,exp:40,s:1.55,coin:[30,20]}};
  const tier=i=>[45,46,47,48,49,50,51,52,53].includes(i)?4:[23,24,25,26,27,28,29,30,31,32,34,35,38,39,40,42].includes(i)?3:[10,18,19,20,21,33,36,37,41,43,44].includes(i)?2:1;
  Object.assign(EK,{slime:{n:'スライム',hp:2,spd:70,dmg:1,exp:2,s:1,coin:[3,4],mon:0,book:0,tier:1},boar:{n:'イノシシ',hp:5,spd:115,dmg:2,exp:5,s:1,coin:[5,5],mon:1,book:1,tier:2},kinoko:{n:'キノコ',hp:3,spd:60,dmg:1,exp:3,s:1,coin:[3,4],mon:2,book:2,tier:1},dbat:{n:'ドラゴンコウモリ',hp:6,spd:120,dmg:2,exp:7,s:1,coin:[6,6],mon:3,book:3,tier:2}});
@@ -1390,13 +1390,13 @@ const MSPAWN={field:['slime','slime','kinoko','m4','buta','buta','boar','m22','m
  snow:['m18','m30','m21','m48','m53'],hot:['m19','m26','m28','m31','m49'],island:['m44','m39','m27'],river:['slime'],meadow2:[]};
 function pickKind(r){const L=MSPAWN[r]||MSPAWN.field;for(let t=0;t<6;t++){const k=L[Math.floor(Math.random()*L.length)],K=EK[k];if(K.tier===4&&(Math.random()>.18||S.stage<2||S.lv<6))continue;if(K.tier===3&&S.stage<2&&S.lv<5)continue;if(k==='m22'&&Math.random()>.25)continue;return k}return L[0]}
 function drawMon(e,K){
- const s=K.s,mv=e._mv,b=mv?Math.abs(Math.sin(time*9+e.a))*3:Math.sin(time*2+e.a)*.6;
+ cx.imageSmoothingEnabled=false;const s=K.s,mv=e._mv,b=mv?Math.abs(Math.sin(time*9+e.a))*3:Math.sin(time*2+e.a)*.6;
  if(e.fl>0&&Math.floor(time*24)%2)cx.globalAlpha=.45;
  if(K.mon!=null&&MON_OK){const d=Math.hypot(P.x-e.x,P.y-e.y);let col=e._d8!=null?e._d8:0;
   if(e.fl>0)col=8;else if(d<26*s+20&&!room)col=9;else if(e._sur>0)col=10;
   const k=.5*s,sq=K.mon===0?1+Math.sin(time*10+e.a)*.07:1;cx.drawImage(MONIMG,col*112,K.mon*112,112,112,e.x-56*k*sq,e.y-104*k/sq-(K.mon===3?6+Math.sin(time*12+e.a)*3:b*(K.mon===0?.3:1)),112*k*sq,112*k/sq)}
  else if(K.icon!=null&&BOOK_OK){const i=K.icon,k=.46*s,c=i%9,r=(i/9)|0;cx.save();cx.translate(e.x,e.y-b);if(e._vx>2)cx.scale(-1,1);cx.drawImage(BOOKIMG,c*100,r*100,100,100,-50*k,-96*k,100*k,100*k);cx.restore()}
- cx.globalAlpha=1}
+ cx.globalAlpha=1;cx.imageSmoothingEnabled=true}
 function drawMonBook(){
  const box=$('monBook');if(!box)return;S.mk=S.mk||{};let n=0,h='';
  BOOK.forEach((nm,i)=>{const c=S.mk[i]||0;if(c)n++;const x=(i%9)*60,y=((i/9)|0)*60;h+=`<div class="mb${c?'':' un'}"><i style="background-position:-${x}px -${y}px"></i><b>${c?nm:'？？？'}</b>${c?`<small>×${c}</small>`:''}</div>`});
@@ -1411,7 +1411,7 @@ CSPR.akarun={k:.56,act:{dash:0,atk:1,tool:2,pick:3,cook:4,done:5,sur:6,think:7,j
 CSPR.sakana={k:.56,idle:'fish',act:{idle:0,sur:1,laugh:2,think:3,hold:4,fish:5,net:6,cut:7,carry:8,joy:9,tired:10,sleep:11}};
 CSPR.riku={k:.55,act:{idle:0,sur:1,laugh:2,think:3,joy:4,run:5,jump:6,sleep:7,wave:8,hold:9,cheer:10,sit:11}};
 CSPR.ruka={k:.55,act:{idle:0,sur:1,laugh:2,think:3,joy:4,run:5,jump:6,sleep:7,wave:8,hold:9,cheer:10,sit:11}};
-for(const k of['akarun','sakana','riku','ruka']){const c=CSPR[k];c.img=new Image();c.img.onload=()=>{c.ok=true};c.img.src='spr_'+k+'.png?v=1'}
+for(const k of['akarun','sakana','riku','ruka']){const c=CSPR[k];c.img=new Image();c.img.onload=()=>{c.ok=true};c.img.src='spr_'+k+'.png?v=2'}
 function updFolk(dt){for(const f of XF){if(!f.wander||(f.room||null)!==(roomId||null))continue;const w=f._w||(f._w={hx:f.x,hy:f.y,tx:f.x,ty:f.y,wait:Math.random()*3,st:0,mv:0,d8:0});
  if(Math.hypot(P.x-f.x,P.y-f.y)<90||storyEventActive){w.mv=0;continue}if(w.wait>0){w.wait-=dt;w.mv=0;continue}
  const dx=w.tx-f.x,dy=w.ty-f.y,d=Math.hypot(dx,dy);if(d<3){w.wait=1+Math.random()*3;const a=Math.random()*6.28,r=Math.random()*f.wander;w.tx=w.hx+Math.cos(a)*r;w.ty=w.hy+Math.sin(a)*r*.6;w.mv=0;continue}
