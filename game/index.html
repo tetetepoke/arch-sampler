@@ -406,13 +406,13 @@ const NPCS=[
   {t:'t',id:'book',s:'ブクオフのどこかに「古い地図の本」があるはずじゃ。見つけてきてくれんか'},
   {t:'t',id:'ruby',s:'ふるい洞くつにはルビーが眠っておるらしい。ひとつ見せておくれ'},
   {t:'t',id:'crown',s:'アーチ城の奥に、むかしの王かんがあるという……かぎは海のむこうじゃ'}],th:'おお！これはすばらしい発見じゃ！',done:'お宝はハドフで売れるぞ。建物の中をよくしらべるのじゃ'},
- {id:'kamome',n:'カモメ船長',x:2850,y:2020,draw:'captain',sell:'boat',qs:[
+ {id:'kamome',n:'カモメ船長',x:3450,y:2020,draw:'captain',sell:'boat',qs:[
   {t:'r',id:'herbfish',s:'うまい香草焼き魚を食わせてくれたら、船のことを教えてやろう'},
   {t:'fx',fx:'warm',s:'海の上は冷える。ぽかぽか料理をたのむ'}],th:'うまい！おまえ、いい船乗りになれるぞ',done:'東の海に、ひみつの島があるらしいぞ'},
- {id:'pikari',n:'ピカリさん',host:'kamome',x:2860,y:1178,draw:'keeper',qs:[
+ {id:'pikari',n:'ピカリさん',host:'kamome',x:3460,y:1178,draw:'keeper',qs:[
   {t:'r',id:'stew',s:'夜の見張りは冷えるんです。キノコのクリームシチューがほしいな'},
   {t:'heal',n:16,s:'ハート8つ分くらいの、元気が出るごはんを！'}],th:'あったまる……ありがとう',done:'灯台の中も見ていっていいですよ'},
- {id:'uwasa',n:'うわさラーメンのおかみ',x:520,y:1370,draw:'mamanun',qs:[],done:'うちのラーメン、今日もうわさ通りの味だよ〜'}
+ {id:'uwasa',n:'うわさラーメンのおかみ',x:545,y:1410,draw:'mamanun',qs:[],done:'うちのラーメン、今日もうわさ通りの味だよ〜'}
 ];
 const TOTAL=NPCS.reduce((s,n)=>s+n.qs.length,0)+1;
 const STORY_DEF=()=>({chapter:0,introSeen:0,firstMemorySeen:0,fourFiresExplained:0,bridgeReady:0,bridgeStorySeen:0,photoSeen:0,stars:0,snowFireRecovered:0,seaFireRecovered:0,mountainFireRecovered:0,papaOniTruthSeen:0,blackFireDefeated:0,endingSeen:0,fireForest:0,fireSea:0,fireFlame:0,fireMemory:0,memFrag:{}});
@@ -487,10 +487,11 @@ const sfx={
 };
 
 // ================= 世界（手描きマップ準拠） =================
-const W=3400,H=3200,CASTLE={x:1150,y:1080},CAMP={x:1150,y:1240},HUT={x:1180,y:2150},CHEST={x:560,y:1000},CHEST2={x:1700,y:545},SIGN={x:880,y:1090},FORT={x:2170,y:1780};
+const W=4100,H=4000,CASTLE={x:1150,y:1080},CAMP={x:1150,y:1240},HUT={x:1180,y:2150},CHEST={x:560,y:1000},CHEST2={x:1700,y:545},SIGN={x:880,y:1090},FORT={x:2170,y:1780};
 const BPOS={house:{x:900,y:1175},farm:{x:870,y:1305},coop:{x:1010,y:1320},flower:{x:1000,y:1190}};
 const HOT={x:1950,y:1450,w:430,h:640};
-const LIGHT={x:2860,y:1150},CAVE={x:1700,y:2950},RANCH={x:650,y:2780},PORT={x:2900,y:1950},ISLAND={x:3200,y:1350,r:140},ICHEST={x:3220,y:1330},SEA_X=2950;
+// マップ拡張（2026-11改修）：陸地・海岸を東へ+600ぶん拡張し、新規施設の配置スペースを確保
+const LIGHT={x:3460,y:1150},CAVE={x:1700,y:2950},RANCH={x:650,y:2780},PORT={x:3500,y:1950},ISLAND={x:3800,y:1350,r:140},ICHEST={x:3820,y:1330},SEA_X=3550;
 const PLACES=[
  {n:'オオジセー',x:350,y:330,w:240,h:130,c:'#b86a4a'},
  {n:'ワルドカプ',x:1000,y:320,w:230,h:120,c:'#4a8a5a',stadium:1},
@@ -500,30 +501,31 @@ const PLACES=[
  {n:'クズモショ',x:340,y:2060,w:170,h:86,c:'#7a8a4a'},
  {n:'ハドフ',x:1300,y:1820,w:140,h:76,c:'#2a4a7a',sub:'武器屋'},
  // 手描き地図マップ大改修：新規登場の施設（役割はユーザー確認済み、見た目のみの背景建物が基本）
- {n:'ローソン',x:650,y:280,w:130,h:78,c:'#2a6a3a',sub:'コンビニ'},
- {n:'コストコ',x:520,y:1040,w:190,h:116,c:'#1a5a8a',sub:'大型スーパー'},
- {n:'ピエロ',x:800,y:1040,w:140,h:80,c:'#c87a9a',sub:'衣料品店'},
- {n:'うわさラーメン',x:520,y:1300,w:130,h:78,c:'#b83a2a',sub:'ラーメン屋'},
- {n:'コインランドリー',x:800,y:1300,w:120,h:70,c:'#8aa0b0',sub:'コインランドリー'},
- {n:'カネダ',x:460,y:1620,w:130,h:76,c:'#7a6a4a',sub:'空き店舗'},
- {n:'スイドーキョウ',x:800,y:1620,w:130,h:76,c:'#6a7a8a',sub:'空き店舗'},
- {n:'キフネ',x:460,y:2280,w:130,h:76,c:'#9a8a6a',sub:'空き店舗'},
- {n:'デカマイ',x:2520,y:1560,w:150,h:88,c:'#c8a030',sub:'米店？'},
- {n:'セブン',x:2750,y:1560,w:130,h:78,c:'#2a6a4a',sub:'コンビニ'},
- {n:'エディオン',x:2520,y:1820,w:170,h:96,c:'#3a5a9a',sub:'家電量販店'},
- {n:'オーショ',x:2750,y:1820,w:130,h:76,c:'#8a7a5a',sub:'空き店舗'},
- {n:'モス',x:950,y:2600,w:130,h:78,c:'#a83a2a',sub:'ファストフード'},
- {n:'タカンチ',x:1150,y:2600,w:130,h:76,c:'#7a8a9a',sub:'空き店舗'},
- {n:'100キン',x:1350,y:2600,w:140,h:80,c:'#c84a6a',sub:'100円ショップ'},
- {n:'トヨタ',x:1550,y:2600,w:160,h:94,c:'#c8322a',sub:'自動車販売店'},
- {n:'ローソン②',x:1750,y:2600,w:130,h:78,c:'#2a6a3a',sub:'コンビニ'},
- {n:'ポスト',x:1020,y:1000,w:60,h:60,c:'#b8342a',sub:'郵便ポスト'}
+ // マップ拡張にあわせ、座標は意図的に不規則（じぐざぐ）に散らして自然な街並みにしている
+ {n:'ローソン',x:680,y:250,w:130,h:78,c:'#2a6a3a',sub:'コンビニ'},
+ {n:'コストコ',x:495,y:1005,w:190,h:116,c:'#1a5a8a',sub:'大型スーパー'},
+ {n:'ピエロ',x:825,y:1075,w:140,h:80,c:'#c87a9a',sub:'衣料品店'},
+ {n:'うわさラーメン',x:545,y:1335,w:130,h:78,c:'#b83a2a',sub:'ラーメン屋'},
+ {n:'コインランドリー',x:785,y:1355,w:120,h:70,c:'#8aa0b0',sub:'コインランドリー'},
+ {n:'カネダ',x:455,y:1695,w:130,h:76,c:'#7a6a4a',sub:'空き店舗'},
+ {n:'スイドーキョウ',x:835,y:1645,w:130,h:76,c:'#6a7a8a',sub:'空き店舗'},
+ {n:'キフネ',x:505,y:2270,w:130,h:76,c:'#9a8a6a',sub:'空き店舗'},
+ {n:'デカマイ',x:2470,y:1520,w:150,h:88,c:'#c8a030',sub:'米店？'},
+ {n:'セブン',x:2820,y:1580,w:130,h:78,c:'#2a6a4a',sub:'コンビニ'},
+ {n:'エディオン',x:2600,y:1880,w:170,h:96,c:'#3a5a9a',sub:'家電量販店'},
+ {n:'オーショ',x:3050,y:1800,w:130,h:76,c:'#8a7a5a',sub:'空き店舗'},
+ {n:'モス',x:900,y:2560,w:130,h:78,c:'#a83a2a',sub:'ファストフード'},
+ {n:'タカンチ',x:1160,y:2660,w:130,h:76,c:'#7a8a9a',sub:'空き店舗'},
+ {n:'100キン',x:1420,y:2590,w:140,h:80,c:'#c84a6a',sub:'100円ショップ'},
+ {n:'トヨタ',x:1680,y:2680,w:160,h:94,c:'#c8322a',sub:'自動車販売店'},
+ {n:'ローソン②',x:1940,y:2600,w:130,h:78,c:'#2a6a3a',sub:'コンビニ'},
+ {n:'ポスト',x:1035,y:985,w:60,h:60,c:'#b8342a',sub:'郵便ポスト'}
 ];
-const RA=[[0,760],[400,740],[800,775],[1200,790],[1600,805],[2000,790],[2400,800],[2700,810],[2960,820]];
+const RA=[[0,760],[400,740],[800,775],[1200,790],[1600,805],[2000,790],[2400,800],[2700,810],[2960,820],[3560,826]];
 const RB=[[0,1380],[300,1395],[600,1460],[850,1500],[1000,1480]];
 const RC=[[1000,1480],[985,1800],[945,2100],[925,2400],[900,2800],[880,3200]];
-const RD=[[1250,1450],[1400,1650],[1600,1950],[1800,2200],[1950,2400],[2250,2700],[2600,2900],[2960,3000]];
-const PATHS=[[[1150,1300],[1150,1500],[1250,1650],[1300,1780]],[[1150,1300],[900,1400],[650,1465],[650,1640]],[[650,1470],[420,1520],[300,1540]],[[650,1720],[500,1900],[360,2010]],[[1060,1110],[700,1070],[380,1080]],[[900,700],[960,900],[1080,1010]],[[900,700],[600,500],[380,400]],[[900,700],[1000,380]],[[1000,600],[1400,560],[1700,450]],[[1240,1120],[1700,1250],[2160,1450]],[[985,1900],[1240,1840]],[[1300,1860],[1200,2300],[1150,2600],[700,2760]],[[1150,2600],[1700,2900]],[[1700,1250],[2450,1200],[2830,1190]],[[2600,1210],[2700,1600],[2860,1930]]];
+const RD=[[1250,1450],[1400,1650],[1600,1950],[1800,2200],[1950,2400],[2250,2700],[2600,2900],[2960,3000],[3560,3100]];
+const PATHS=[[[1150,1300],[1150,1500],[1250,1650],[1300,1780]],[[1150,1300],[900,1400],[650,1465],[650,1640]],[[650,1470],[420,1520],[300,1540]],[[650,1720],[500,1900],[360,2010]],[[1060,1110],[700,1070],[380,1080]],[[900,700],[960,900],[1080,1010]],[[900,700],[600,500],[380,400]],[[900,700],[1000,380]],[[1000,600],[1400,560],[1700,450]],[[1240,1120],[1700,1250],[2160,1450]],[[985,1900],[1240,1840]],[[1300,1860],[1200,2300],[1150,2600],[700,2760]],[[1150,2600],[1700,2900]],[[1700,1250],[2450,1200],[2830,1190],[3430,1180]],[[2600,1210],[2700,1600],[2860,1930],[3460,1940]]];
 function segD(px,py,ax,ay,bx,by){const dx=bx-ax,dy=by-ay,l=dx*dx+dy*dy;let t=l?((px-ax)*dx+(py-ay)*dy)/l:0;t=Math.max(0,Math.min(1,t));return Math.hypot(px-ax-t*dx,py-ay-t*dy)}
 function polyD(L,x,y){let m=1e9;for(let i=0;i<L.length-1;i++)m=Math.min(m,segD(x,y,L[i][0],L[i][1],L[i+1][0],L[i+1][1]));return m}
 function raY(x){for(let i=0;i<RA.length-1;i++){const[ax,ay]=RA[i],[bx,by]=RA[i+1];if(x>=ax&&x<=bx)return ay+(by-ay)*(x-ax)/(bx-ax)}return 790}
@@ -534,7 +536,7 @@ const region=(x,y)=>{
  if(y<raY(x))return x>1550&&y<620?'snow':'north';
  if(inHot(x,y))return'hot';
  if(polyD(RB,x,y)<40||polyD(RC,x,y)<40||polyD(RD,x,y)<40)return'river';
- if(x>2800)return'beach';
+ if(x>SEA_X-150)return'beach';
  if(y>2400)return'plains';
  if(x<800&&y<1400)return'forest';
  if(x>1450&&y<1450)return'forest';
@@ -675,8 +677,8 @@ function drawHorse(g,x,y,dir,st,moving){g.save();g.translate(x,y);g.fillStyle='#
 function drawBoat(g,x,y,dir){g.save();g.translate(x,y);g.scale(dir,1);ink(g);g.fillStyle='#ffffff55';g.beginPath();g.ellipse(0,6,34,8,0,0,7);g.fill();
  g.beginPath();g.moveTo(-30,-6);g.lineTo(30,-6);g.lineTo(22,8);g.lineTo(-24,8);g.closePath();fs(g,'#a8703c');g.beginPath();g.moveTo(-26,-6);g.lineTo(26,-6);g.lineTo(24,-2);g.lineTo(-24,-2);g.closePath();fs(g,'#c8945a');g.restore()}
 function drawNewLands(){
- cx.fillStyle='#8cc060';cx.fillRect(0,2400,2810,H-2400);
- cx.fillStyle='#e8d8a8';cx.beginPath();cx.moveTo(2800,0);for(let y=0;y<=H;y+=60)cx.lineTo(2800+Math.sin(y/70)*12,y);cx.lineTo(SEA_X,H);cx.lineTo(SEA_X,0);cx.fill();
+ cx.fillStyle='#8cc060';cx.fillRect(0,2400,SEA_X-140,H-2400);
+ cx.fillStyle='#e8d8a8';cx.beginPath();cx.moveTo(SEA_X-150,0);for(let y=0;y<=H;y+=60)cx.lineTo(SEA_X-150+Math.sin(y/70)*12,y);cx.lineTo(SEA_X,H);cx.lineTo(SEA_X,0);cx.fill();
  {const g=cx.createLinearGradient(SEA_X,0,W,0);g.addColorStop(0,'#5aa6d4');g.addColorStop(.18,'#3a86c0');g.addColorStop(1,'#2a64a0');cx.fillStyle=g;cx.fillRect(SEA_X,0,W-SEA_X,H);
   if(!RM){cx.fillStyle='rgba(255,255,255,.07)';for(let k=0;k<9;k++){const y0=((k*380+time*9)%(H+380))-190;if(y0<cam.y-200||y0>cam.y+VH+200)continue;cx.beginPath();cx.moveTo(SEA_X,y0);for(let x=SEA_X;x<=W;x+=40)cx.lineTo(x,y0+Math.sin(x/120+time*.5+k)*22);cx.lineTo(W,y0+70);for(let x=W;x>=SEA_X;x-=40)cx.lineTo(x,y0+60+Math.sin(x/120+time*.5+k+1)*22);cx.closePath();cx.fill()}}}
  {const f=RM?0:Math.sin(time*1.5)*6;cx.strokeStyle='rgba(255,255,255,.55)';cx.lineWidth=4;cx.beginPath();for(let y=Math.max(0,cam.y-40);y<=Math.min(H,cam.y+VH+40);y+=20)cx.lineTo(SEA_X+6+f+Math.sin(y/30+time*2)*4,y);cx.stroke()}
@@ -955,7 +957,7 @@ function drawShadows(){
 const T={GROUND:0,ROAD:1,SHALLOW_WATER:2,DEEP_WATER:3,SEA:4,BRIDGE:5,TREE:6,BUILDING:7,ROCK:8,CLIFF:9};
 const BRIDGES=[{x1:868,x2:932,y1:raY(900)-80,y2:raY(900)+80,hibashi:1},{x1:618,x2:682,y1:1402,y2:1528},{x1:918,x2:1046,y1:1868,y2:1932},{x1:1488,x2:1632,y1:1858,y2:1922}];
 const PIERS=[{n:'みなと',x1:PORT.x-60,x2:PORT.x+220,y1:PORT.y-18,y2:PORT.y+18,tip:{x:PORT.x+252,y:PORT.y},land:{x:PORT.x+186,y:PORT.y-6}},
- {n:'ひみつの島',x1:2998,x2:3082,y1:1336,y2:1364,tip:{x:2970,y:1350},land:{x:3032,y:1344}},
+ {n:'ひみつの島',x1:3598,x2:3682,y1:1336,y2:1364,tip:{x:3570,y:1350},land:{x:3632,y:1344}},
  {n:'ヒバシ東の桟橋',x1:1288,x2:1312,y1:786,y2:880,tip:{x:1300,y:768},land:{x:1300,y:864}},
  {n:'大草原の桟橋',x1:2408,x2:2432,y1:2793,y2:2880,tip:{x:2420,y:2778},land:{x:2420,y:2866}}];
 function riverDepth(x,y){const a=polyD(RA,x,y);if(a<32)return 2;let d=a<55?1:0;const b=Math.min(polyD(RB,x,y),polyD(RC,x,y),polyD(RD,x,y));if(b<22)return 2;if(b<40)d=1;return d}
@@ -1039,7 +1041,7 @@ function drawWater(){
   else{cx.fillStyle='rgba(255,255,255,.75)';cx.fillRect(bx-1.5,by-1.5,3,3)}}});
 }
 // 海の岩（ボートは通れない・波しぶき）
-const SROCKS=[[3010,640,16],[3050,1010,20],[3330,1560,15],[3080,2320,18],[3020,2680,14],[3300,2860,22],[3240,420,17]];
+const SROCKS=[[3610,640,16],[3650,1010,20],[3930,1560,15],[3680,2320,18],[3620,2680,14],[3900,2860,22],[3840,420,17]];
 let srockT=0;
 function drawSeaRocks(dt){for(const[x,y,r]of SROCKS){if(!inView(x,y,40))continue;cx.fillStyle='rgba(10,40,70,.3)';cx.beginPath();cx.ellipse(x+r*.4,y+r*.4,r*1.1,r*.5,0,0,7);cx.fill();cx.fillStyle='#6d665a';cx.beginPath();cx.ellipse(x,y,r,r*.75,0,0,7);cx.fill();cx.fillStyle='#8e877a';cx.beginPath();cx.ellipse(x-r*.25,y-r*.25,r*.55,r*.38,0,0,7);cx.fill();
  if(!RM){const k=(Math.sin(time*1.4+x)+1)/2;cx.strokeStyle=`rgba(255,255,255,${.25+k*.45})`;cx.lineWidth=2.5;cx.beginPath();cx.ellipse(x,y+r*.2,r+4+k*5,(r+4+k*5)*.55,0,0,7);cx.stroke()}}}
@@ -1478,7 +1480,7 @@ function drawMapSheet(){
  else if(S.stage<3)g.fillRect(HOT.x*s,HOT.y*s,HOT.w*s,HOT.h*s);
  const lab=(t,x,y,sz,col)=>{const[a,b]=M(x,y);g.font=`900 ${sz}px "Zen Maru Gothic",sans-serif`;g.textAlign='center';g.lineWidth=3;g.strokeStyle='rgba(40,28,18,.85)';g.strokeText(t,a,b);g.fillStyle=col||'#fff';g.fillText(t,a,b)};
  const big=Math.max(11,Math.round(cw/30)),sm=Math.max(9,Math.round(cw/42));
- if(S.stage<2){lab('まだ行けない',1700,420,big,'#e8d8c0');lab('まだ行けない',2900,1700,big,'#e8d8c0')}else if(S.stage<3)lab('まだ行けない',HOT.x+HOT.w/2,HOT.y+HOT.h/2,sm,'#e8d8c0');
+ if(S.stage<2){lab('まだ行けない',1700,420,big,'#e8d8c0');lab('まだ行けない',3500,1700,big,'#e8d8c0')}else if(S.stage<3)lab('まだ行けない',HOT.x+HOT.w/2,HOT.y+HOT.h/2,sm,'#e8d8c0');
  lab('ダイセン',2040,520,big,'#eef4ff');lab('ヒガシヤマ',HOT.x+HOT.w/2,HOT.y+HOT.h-60,sm,'#ffd0a8');lab('ヒガシの海',3180,640,big,'#e0f4ff');lab('みなみの大草原',1500,2560,big);lab('ひみつの島',ISLAND.x,ISLAND.y-ISLAND.r-20,sm,'#fffaf0');
  lab('アーチ城',CASTLE.x,CASTLE.y-100,sm,'#ffe8a0');lab('ヒバシ',990,raY(900)+10,sm);lab('ぼくじょう',RANCH.x,RANCH.y-120,sm);lab('どうくつ',CAVE.x,CAVE.y-100,sm);lab('とうだい',LIGHT.x,LIGHT.y-130,sm);lab('みなと',PORT.x,PORT.y-40,sm);lab('とりで',FORT.x,FORT.y-90,sm);
  PLACES.forEach(p=>lab(p.n,p.x,p.y-p.h/2-14,sm,'#fffaf0'));
@@ -2206,7 +2208,7 @@ const DISC=[
  {id:'m_house',t:'mem',at:'walk',x:620,y:1260,deco:'ruinHouse',solid:34,n:'だれもいない家',lines:['あたたかい灯り。かまどの火。','小さな男の子と、その家族が 夕ごはんを食べている。','「レイン、火は こわいものじゃないのよ」'],past:'house'},
  {id:'m_cave',t:'mem',at:'walk',x:330,y:2180,deco:'rockWall',solid:30,n:'ただの岩壁',lines:['ここは洞窟の入口だった。','火を持った人たちが 一列になって 中へ入っていく。','「四つの火を まもるんだ」'],past:'cave'},
  {id:'m_tree',t:'mem',at:'walk',x:1700,y:1150,deco:'deadTree',solid:26,n:'枯れた大木',lines:['光る大木。森の火は ここで燃えていた。','葉っぱの一枚一枚が 小さな灯りのよう。','いつから 光らなくなったんだろう……'],past:'tree'},
- {id:'m_light',t:'mem',at:'walk',x:2860,y:1260,n:'灯台の下',lines:['灯台のてっぺんに、火を守る人がいた。','その人は、海の向こうに 手をふっている。','……五つ目の灯り？　いや、気のせいだ。'],past:'light'},
+ {id:'m_light',t:'mem',at:'walk',x:3460,y:1260,n:'灯台の下',lines:['灯台のてっぺんに、火を守る人がいた。','その人は、海の向こうに 手をふっている。','……五つ目の灯り？　いや、気のせいだ。'],past:'light'},
  {id:'m_castle',t:'mem',at:'walk',x:1300,y:950,deco:'oldDoor',solid:20,n:'かたく閉じた扉',lines:['扉の奥で、おとなたちが輪になっている。','「つぎに灯火を継ぐのは、だれだ」','小さな子が、まっすぐ手をあげた。'],past:'door'},
  {id:'m_fort',t:'mem',at:'walk',x:2170,y:1900,deco:'tornFlag',solid:18,n:'かけた旗',lines:['風にちぎれた旗が、砦の前でゆれている。','大きな鬼が、ひとりで灯火を守っていた。','「黒い影が来たら、ぜったいに通さない」'],past:'flag'},
  // 今は取れない宝
@@ -2236,7 +2238,7 @@ const DISC=[
  {id:'s_bridgeLight',t:'sec',at:'walk',x:960,y:0,ay:'hibashi',deco:'glimmer',tr:'look',lb:'しらべる',c:{time:'yoru'},n:'橋の下の光',lines:['橋の下で キラリと光るもの。古いコインだ！'],rw:{tre:'coin',g:50}},
  {id:'s_seashadow',t:'sec',at:'raw',x:3060,y:1520,deco:'seaShadow',tr:'auto',c:{ride:'boat'},n:'海の底の影',lines:['ボートの下を、とても大きな影が ゆっくり通りすぎた……。']},
  {id:'s_rock',t:'sec',at:'walk',x:600,y:2280,deco:'moveRock',solid:18,tr:'hit3',n:'動く岩',lines:['岩がずれて、下から 古い袋が出てきた！'],rw:{g:120,mat:'tetsu'}},
- {id:'s_merchant',t:'sec',at:'walk',x:2860,y:2010,deco:'merchant',tr:'look',lb:'話す',c:{time:'yoru'},n:'夜だけの商人',lines:['フードの商人「……ひひ。めずらしい物、あるよ」'],shop:1},
+ {id:'s_merchant',t:'sec',at:'walk',x:3460,y:2010,deco:'merchant',tr:'look',lb:'話す',c:{time:'yoru'},n:'夜だけの商人',lines:['フードの商人「……ひひ。めずらしい物、あるよ」'],shop:1},
  {id:'s_dish',t:'sec',at:'walk',x:1260,y:1380,deco:'stumpDish',tr:'look',lb:'しらべる',n:'切り株の上の料理',lines:['だれかが置いていった、あたたかいシチュー。','「森の火の かわりに」と書いてある。'],rw:{dish:'stew'}},
  {id:'s_floor',t:'sec',at:'walk',x:1150,y:1170,tr:'hit',n:'音のちがう地面',lines:['コーン……。ここだけ 音がちがう。','掘ってみると、古い鍵の形の石が出てきた。'],rw:{g:80,mat:'kiseki'}},
  {id:'s_scare',t:'sec',at:'walk',x:900,y:1320,deco:'scarecrow',solid:10,tr:'hit',n:'かかし',lines:['かかし「いたた！　……え、しゃべった？」','かかし「ずっと前から ここで火を見張ってたんだ」'],rw:{ing:'mugi'}},
