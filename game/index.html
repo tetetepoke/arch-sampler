@@ -414,16 +414,21 @@ const NPCS=[
   {t:'heal',n:16,s:'ハート8つ分くらいの、元気が出るごはんを！'}],th:'あったまる……ありがとう',done:'灯台の中も見ていっていいですよ'}
 ];
 const TOTAL=NPCS.reduce((s,n)=>s+n.qs.length,0)+1;
-const STORY_DEF=()=>({chapter:0,introSeen:0,firstMemorySeen:0,fourFiresExplained:0,bridgeReady:0,bridgeStorySeen:0,photoSeen:0,stars:0,snowFireRecovered:0,seaFireRecovered:0,mountainFireRecovered:0,papaOniTruthSeen:0,blackFireDefeated:0,endingSeen:0,fireForest:0,fireSea:0,fireFlame:0,fireMemory:0});
+const STORY_DEF=()=>({chapter:0,introSeen:0,firstMemorySeen:0,fourFiresExplained:0,bridgeReady:0,bridgeStorySeen:0,photoSeen:0,stars:0,snowFireRecovered:0,seaFireRecovered:0,mountainFireRecovered:0,papaOniTruthSeen:0,blackFireDefeated:0,endingSeen:0,fireForest:0,fireSea:0,fireFlame:0,fireMemory:0,memFrag:{}});
 const FIRE_KEYS=['fireForest','fireSea','fireFlame','fireMemory'];
 const fireCount=()=>FIRE_KEYS.filter(k=>S.story&&S.story[k]).length;
-function fixStory(){S.story=Object.assign(STORY_DEF(),S.story||{});if(S.stage>=2&&!S.story.bridgeStorySeen){S.story.bridgeStorySeen=1;S.story.bridgeReady=1}
+const MEMFRAG_TOTAL=7;
+const memFragCount=()=>Object.keys((S.story&&S.story.memFrag)||{}).length;
+function fixStory(){S.story=Object.assign(STORY_DEF(),S.story||{});S.story.memFrag=S.story.memFrag||{};if(S.stage>=2&&!S.story.bridgeStorySeen){S.story.bridgeStorySeen=1;S.story.bridgeReady=1}
  // 旧セーブからの移行：すでにパパオニを3回たおしている（旧GAME CLEAR）のに、灯火が一つも無い場合は、
  // 最初の3つの灯火はすでに得たものとして扱う（第四章・記憶の灯火だけは新規コンテンツなので0のまま）
- if(S.oniDown&&fireCount()===0){S.story.fireForest=1;S.story.fireSea=1;S.story.fireFlame=1}}
+ if(S.oniDown&&fireCount()===0){S.story.fireForest=1;S.story.fireSea=1;S.story.fireFlame=1}
+ // 旧セーブ移行：記憶（S.memories）をすでに見ていた既存5つの記憶は、かけらとしてそのまま数える
+ ['m_bridge','m_house','m_cave','m_tree','m_light'].forEach(id=>{if(S.memories&&S.memories[id])S.story.memFrag[id]=1})}
 function fireObjective(){
- if(S.story.fireMemory)return'失われた世界へ向かおう';
- if(S.story.fireFlame)return'7つの記憶の欠片を集めよう';
+ if(S.story.blackFireDefeated)return'世界に、また色がもどってきた';
+ if(S.story.fireMemory)return'ヒガシヤマで、黒い火の本体と向きあおう';
+ if(S.story.fireFlame)return`記憶のかけらを集めよう（${memFragCount()}/${MEMFRAG_TOTAL}）`;
  if(S.story.fireSea)return'パパオニの砦（ヒガシヤマ）を目指そう';
  if(S.story.fireForest)return'灯台に火をともし、海の灯火を探そう';
  if(S.story.introSeen)return'森の奥の灯火を探そう';
@@ -562,7 +567,8 @@ items.push({k:'milk',x:HUT.x+60,y:HUT.y+20,ph:0,sp:{k:'milk',fixed:1}});
 const E=[];let butaT=3;
 function spawnButa(x,y,summoned,kind){kind=({buta:'slime',kuro:'boar',oyabun:'m51'})[kind||'buta']||kind;const k=EK[kind];E.push({type:'buta',kind,x,y,hp:k.hp,max:k.hp,t:Math.random()*2,a:Math.random()*6,cd:0,fl:0,kx:0,ky:0,summoned});try{scaleEnemy(E[E.length-1])}catch(er){}}
 function spawnOni(){if(!E.some(e=>e.type==='oni')){const lv=Math.min(2,S.oniLv||0),hp=[40,60,85][lv];E.push({type:'oni',lv,x:FORT.x,y:FORT.y+40,hp,max:hp,cd:2,fl:0,wind:0,sx:0,sy:0,summ:0,kx:0,ky:0,atk:0,dash:0,tc:2});if(lv)toast(`パパオニがもどってきた！（${lv+1}回目）`)}}
-let oniT=0;const EB=[];
+let oniT=0,bfT=6;const EB=[];
+function spawnBlackFire(){if(!E.some(e=>e.type==='oni')){E.push({type:'oni',lv:3,black:1,x:FORT.x,y:FORT.y+40,hp:120,max:120,cd:2,fl:0,wind:0,sx:0,sy:0,summ:0,kx:0,ky:0,atk:0,dash:0,tc:2});toast('黒い火の本体が、目を覚ました……')}}
 function butaOK(e,x,y){if(x<20||y<20||x>W-20||y>H-20)return false;const r=region(x,y);if(e.summoned)return r==='hot'||r==='plains'||ROAM2.includes(r);return (S.stage>=2?ROAM2:ROAM1).includes(r)&&!safeZone(x,y)&&!footBlocked(x,y)}
 function randButaSpot(){for(let i=0;i<40;i++){const a=Math.random()*6.28,d=420+Math.random()*420,x=P.x+Math.cos(a)*d,y=P.y+Math.sin(a)*d;if(butaOK({},x,y)){const r=region(x,y);return{x,y,kind:pickKind(r)}}}return null}
 
@@ -1064,7 +1070,7 @@ function damageEnemy(e,dmg,kx,ky){
  const i=E.indexOf(e);if(i<0)return;e.angry=1;
  {const M=MSPEC[e.kind],K0=EK[e.kind];if(e.type!=='oni'&&M&&M.tame&&K0&&!K0.boss&&e.hp>e.max*.5&&e.hp-dmg<=0&&!e.dz){e.dz=1;e.dizzy=5;e.hp=1;e.fl=.3;e.kx=kx*.5;e.ky=ky*.5;pop(e.x,e.y-40,'ふらふら…','#ffd84a');sfx.hit();return}}
  e.hp-=dmg;e.fl=.3;for(let k=0;k<6;k++)emit(e.x,e.y-16,(Math.random()-.5)*140,-Math.random()*120,.35,k%2?'#ffd84a':'#ffffff',3,200);const oni=e.type==='oni';e.kx=kx*(oni?.25:1);e.ky=ky*(oni?.25:1);pop(e.x,e.y-40,'-'+dmg,'#fff');
- if(e.hp<=0){E.splice(i,1);S.kills=(S.kills||0)+1;talkKey='';if(oni){gainExp(60*((e.lv||0)+1));compExp(60*((e.lv||0)+1));oniDefeated(e)}else{const K=EK[e.kind||'buta'];if(K.boss){giveMat('enk',1,e.x-20,e.y);giveMat('hyok',1,e.x,e.y-16);giveMat('fuk',1,e.x+20,e.y-32);giveMat('kiseki',1,e.x,e.y-48)}else if(K.tier>=3&&Math.random()<.08){const r=region(e.x,e.y),c=r==='hot'||arId==='sabaku'?'enk':r==='snow'||r==='north'?'hyok':'fuk';giveMat(c,1,e.x,e.y)}if(K.book!=null&&Math.random()<.35){const mk=['gyu','buta2','tori','hiki','bacon'];const mi=mk[Math.floor(Math.random()*mk.length)];items.push({k:mi,x:e.x,y:e.y,bx:e.x,by:e.y,ph:0,sp:{k:mi,fixed:1,drop:1}})}if(K.book!=null){S.mk=S.mk||{};const f=!S.mk[K.book];S.mk[K.book]=(S.mk[K.book]||0)+1;if(f)toast(`モンスター図鑑に「${K.n}」が登録された！`)}const n=1+Math.floor(Math.random()*2)+(K.crown?3:0);for(let j=0;j<n;j++)coins.push({x:e.x+(Math.random()-.5)*30*K.s,y:e.y+(Math.random()-.5)*20,v:K.coin[0]+Math.floor(Math.random()*K.coin[1])});const XP=e.exp||K.exp;pop(e.x,e.y-30,`+${XP}EXP`,'#ffd84a');gainExp(XP);compExp(XP);if(e.strong){const c=['enk','hyok','fuk'][Math.floor(Math.random()*3)];giveMat(c,1,e.x,e.y-40)}}}
+ if(e.hp<=0){E.splice(i,1);S.kills=(S.kills||0)+1;talkKey='';if(oni){gainExp(60*((e.lv||0)+1));compExp(60*((e.lv||0)+1));e.black?blackFireDefeated(e):oniDefeated(e)}else{const K=EK[e.kind||'buta'];if(K.boss){giveMat('enk',1,e.x-20,e.y);giveMat('hyok',1,e.x,e.y-16);giveMat('fuk',1,e.x+20,e.y-32);giveMat('kiseki',1,e.x,e.y-48)}else if(K.tier>=3&&Math.random()<.08){const r=region(e.x,e.y),c=r==='hot'||arId==='sabaku'?'enk':r==='snow'||r==='north'?'hyok':'fuk';giveMat(c,1,e.x,e.y)}if(K.book!=null&&Math.random()<.35){const mk=['gyu','buta2','tori','hiki','bacon'];const mi=mk[Math.floor(Math.random()*mk.length)];items.push({k:mi,x:e.x,y:e.y,bx:e.x,by:e.y,ph:0,sp:{k:mi,fixed:1,drop:1}})}if(K.book!=null){S.mk=S.mk||{};const f=!S.mk[K.book];S.mk[K.book]=(S.mk[K.book]||0)+1;if(f)toast(`モンスター図鑑に「${K.n}」が登録された！`)}const n=1+Math.floor(Math.random()*2)+(K.crown?3:0);for(let j=0;j<n;j++)coins.push({x:e.x+(Math.random()-.5)*30*K.s,y:e.y+(Math.random()-.5)*20,v:K.coin[0]+Math.floor(Math.random()*K.coin[1])});const XP=e.exp||K.exp;pop(e.x,e.y-30,`+${XP}EXP`,'#ffd84a');gainExp(XP);compExp(XP);if(e.strong){const c=['enk','hyok','fuk'][Math.floor(Math.random()*3)];giveMat(c,1,e.x,e.y-40)}}}
 }
 function hitArea(hx,hy,r,atk,fx,fy,kb){
  let hit=false;
@@ -2181,6 +2187,8 @@ const DISC=[
  {id:'m_cave',t:'mem',at:'walk',x:330,y:2180,deco:'rockWall',solid:30,n:'ただの岩壁',lines:['ここは洞窟の入口だった。','火を持った人たちが 一列になって 中へ入っていく。','「四つの火を まもるんだ」'],past:'cave'},
  {id:'m_tree',t:'mem',at:'walk',x:1700,y:1150,deco:'deadTree',solid:26,n:'枯れた大木',lines:['光る大木。森の火は ここで燃えていた。','葉っぱの一枚一枚が 小さな灯りのよう。','いつから 光らなくなったんだろう……'],past:'tree'},
  {id:'m_light',t:'mem',at:'walk',x:2860,y:1260,n:'灯台の下',lines:['灯台のてっぺんに、火を守る人がいた。','その人は、海の向こうに 手をふっている。','……五つ目の灯り？　いや、気のせいだ。'],past:'light'},
+ {id:'m_castle',t:'mem',at:'walk',x:1300,y:950,deco:'oldDoor',solid:20,n:'かたく閉じた扉',lines:['扉の奥で、おとなたちが輪になっている。','「つぎに灯火を継ぐのは、だれだ」','小さな子が、まっすぐ手をあげた。'],past:'door'},
+ {id:'m_fort',t:'mem',at:'walk',x:2170,y:1900,deco:'tornFlag',solid:18,n:'かけた旗',lines:['風にちぎれた旗が、砦の前でゆれている。','大きな鬼が、ひとりで灯火を守っていた。','「黒い影が来たら、ぜったいに通さない」'],past:'flag'},
  // 今は取れない宝
  {id:'l_river1',t:'lock',at:'deep',x:1020,y:1500,need:'swim',deco:'islet',n:'川の中の宝箱',rw:{tre:'sapphire',g:80}},
  {id:'l_river2',t:'lock',at:'deep',x:1480,y:1740,need:'swim',deco:'islet',n:'川の中の宝箱',rw:{mat:'hyok',g:60}},
@@ -2236,8 +2244,15 @@ function findSecret(d){S.secrets=S.secrets||{};if(S.secrets[d.id])return;S.secre
 function openLock(d){S.chestsOpened=S.chestsOpened||{};if(S.chestsOpened[d.id])return;S.chestsOpened[d.id]=1;const rw=giveRw(d.rw,d.x,d.y);save();sfx.great();fState.cp.act=1.5;
  showCard(`<span class="great">宝箱をあけた！</span><h3>${d.n}</h3><p>${ABN[d.need]}のおかげで 取ることができた！</p><p><b>手に入れた：</b>${rw.join('、')}</p>`)}
 let memV=null;
-function viewMemory(d){S.memories=S.memories||{};const first=!S.memories[d.id];S.memories[d.id]=1;save();memV={d,t:0,line:0};paused=true;stick.id=null;$('memOv').classList.add('on');$('memTxt').textContent=d.lines[0];$('memTitle').textContent='記憶：'+d.n;sfx.win();if(first)toast('手帳の「ひみつ・記憶」に記録された')}
-function memNext(){if(!memV)return;memV.line++;if(memV.line>=memV.d.lines.length){$('memOv').classList.remove('on');memV=null;paused=false;last=performance.now();say('……。');return}$('memTxt').textContent=memV.d.lines[memV.line]}
+function viewMemory(d){S.memories=S.memories||{};const first=!S.memories[d.id];S.memories[d.id]=1;
+ S.story.memFrag=S.story.memFrag||{};const fragNew=d.id&&d.id.indexOf('m_')===0&&!S.story.memFrag[d.id];if(fragNew)S.story.memFrag[d.id]=1;
+ save();memV={d,t:0,line:0,fragNew,first};paused=true;stick.id=null;$('memOv').classList.add('on');$('memTxt').textContent=d.lines[0];$('memTitle').textContent='記憶：'+d.n;sfx.win();if(first&&!fragNew)toast('手帳の「ひみつ・記憶」に記録された')}
+function memNext(){if(!memV)return;memV.line++;if(memV.line>=memV.d.lines.length){const fragNew=memV.fragNew,first=memV.first;$('memOv').classList.remove('on');memV=null;paused=false;last=performance.now();say('……。');
+ if(fragNew){const c=memFragCount();save();
+  if(S.story.fireFlame&&!S.story.fireMemory&&c>=MEMFRAG_TOTAL){S.story.fireMemory=1;save();setTimeout(()=>showCard('<h3>すべての記憶のかけらが そろった</h3><p>レインの中で、ばらばらだった記憶が ひとつにつながっていく。</p><p class="says">レイン「……わたし、思い出した。」</p><p class="hint2">ヒガシヤマへ向かおう</p>',checkStage),300)}
+  else toast(`記憶のかけらを見つけた（${Math.min(c,MEMFRAG_TOTAL)}/${MEMFRAG_TOTAL}）`)}
+ else if(first)toast('手帳の「ひみつ・記憶」に記録された');
+ return}$('memTxt').textContent=memV.d.lines[memV.line]}
 function discUpdate(dt){if(room||AR)return;discInit();DSTATE.scan-=dt;if(DSTATE.scan>0)return;DSTATE.scan=.3;DSTATE.near=DISC.filter(d=>Math.hypot(d.x-P.x,d.y-P.y)<420);
  for(const d of DSTATE.near){if(d.t==='sec'&&d.tr==='auto'&&!(S.secrets||{})[d.id]&&cond(d.c)&&(!d.stage||S.stage>=d.stage)&&Math.hypot(d.x-P.x,d.y-P.y)<(d.ride?90:70))findSecret(d)}}
 function discContext(){if(room||AR||!DSTATE.ready)return null;for(const d of DSTATE.near){const dist=Math.hypot(d.x-P.x,d.y-P.y);if(d.stage&&S.stage<d.stage)continue;
@@ -2541,7 +2556,7 @@ function draw(){
  drawScreenFX();drawStoryScreen();
  if(P.danger){const col=P.danger==='snow'?'120,190,255':'255,90,30';const g=cx.createRadialGradient(VW/2,VH/2,Math.min(VW,VH)*.3,VW/2,VH/2,Math.max(VW,VH)*.7);g.addColorStop(0,`rgba(${col},0)`);g.addColorStop(1,`rgba(${col},${.45+Math.sin(time*5)*.1})`);cx.fillStyle=g;cx.fillRect(0,0,VW,VH)}
  const oni=E.find(e=>e.type==='oni');
- if(oni&&Math.hypot(oni.x-P.x,oni.y-P.y)<500){const bw=Math.min(300,VW-40),bx=(VW-bw)/2,by=VH-40;cx.fillStyle='#000a';cx.fillRect(bx-4,by-20,bw+8,30);cx.fillStyle='#fff';cx.font='900 12px "Zen Maru Gothic",sans-serif';cx.textAlign='left';cx.fillText(`パパオニ（${(oni.lv||0)+1}回目 / 3）`,bx,by-6);cx.fillStyle='#444';cx.fillRect(bx,by,bw,6);cx.fillStyle='#ff4a3a';cx.fillRect(bx,by,bw*oni.hp/oni.max,6)}
+ if(oni&&Math.hypot(oni.x-P.x,oni.y-P.y)<500){const bw=Math.min(300,VW-40),bx=(VW-bw)/2,by=VH-40;cx.fillStyle='#000a';cx.fillRect(bx-4,by-20,bw+8,30);cx.fillStyle='#fff';cx.font='900 12px "Zen Maru Gothic",sans-serif';cx.textAlign='left';cx.fillText(oni.black?'黒い火の本体':`パパオニ（${(oni.lv||0)+1}回目 / 3）`,bx,by-6);cx.fillStyle='#444';cx.fillRect(bx,by,bw,6);cx.fillStyle='#ff4a3a';cx.fillRect(bx,by,bw*oni.hp/oni.max,6)}
  drawStick();
 }
 function drawStick(){
@@ -2609,6 +2624,7 @@ function updateEnemies(dt){
  {butaT-=dt;if(butaT<=0){const tgt=[0,12,20,24][S.stage]||12,cnt=E.filter(e=>e.type==='buta'&&!e.summoned).length;butaT=cnt<tgt/2?.5:2.5;if(cnt<tgt){const s=randButaSpot();if(s)spawnButa(s.x,s.y,0,s.kind)}}}
  for(let i=E.length-1;i>=0;i--){const e=E[i];if(e.type==='buta'&&!e.summoned&&Math.hypot(e.x-P.x,e.y-P.y)>1400)E.splice(i,1)}
  if(S.stage>=3&&!S.oniDown&&!E.some(e=>e.type==='oni')){oniT-=dt;if(oniT<=0)spawnOni()}
+ if(S.story.fireMemory&&!S.story.blackFireDefeated&&!E.some(e=>e.type==='oni')){bfT-=dt;if(bfT<=0)spawnBlackFire()}
  for(let i=E.length-1;i>=0;i--){const e=E[i];if(e.fl>0)e.fl-=dt;if(e.taming>0){e.taming-=dt;continue}if(e.dizzy>0){e.dizzy-=dt;continue}
   const dx=P.x-e.x,dy=P.y-e.y,d=Math.hypot(dx,dy)||1;
   e.x+=e.kx*dt;e.y+=e.ky*dt;e.kx*=.86;e.ky*=.86;
@@ -2670,6 +2686,14 @@ function oniDefeated(e){
  oniT=25;save();sfx.win();
  const lines=['「ぐぬぬ……お、おぼえてろ〜！」','「まだまだ……本気はこれからだ〜！」'];
  setTimeout(()=>showCard(`<span class="great">${n} / 3</span><h3>パパオニをやっつけた！</h3><p>${lines[n-1]}</p><p>パパオニは砦の奥へにげていった。<b>もっと強くなって、また出てくる……</b></p><p>${n===1?'次はトゲトゲの玉を投げてくるらしい。':'次はつっこんでくるらしい。最後の戦いだ。'}</p><p class="says">レイン「……準備しよう。」</p>`),400);
+}
+function blackFireDefeated(e){
+ for(let j=0;j<40;j++)coins.push({x:e.x+(Math.random()-.5)*140,y:e.y+(Math.random()-.5)*80,v:20});
+ for(let i=E.length-1;i>=0;i--)if(E[i].summoned)E.splice(i,1);
+ EB.length=0;S.story.blackFireDefeated=1;S.story.endingSeen=1;S.gameCleared=1;save();sfx.great();
+ const card2=`<h3>Archくんの正体</h3><p>小さなArchくんが、灯火のかけらのようにきらめきながら ふわりと浮かびあがった。</p><p class="says">Archくん「ぼくは、灯火をずっと見まもってきた、小さな精霊なんだ」</p><p>「本当は、灯火は四つじゃなかった。もうひとつ、五つ目の灯火があったんだよ」</p><p class="says">レイン「……五つ目？」</p><p>Archくんは、レインのむねのあたりを 指さした。</p><p class="says">Archくん「きみだよ、レイン。きみ自身が、五つ目の灯火だったんだ」</p><p class="hint2">つづく</p>`;
+ const card3=`<span class="great">GAME CLEAR</span><h3>世界に、色がもどった</h3><p>森にも、海にも、ヒガシヤマにも、あたたかい光がもどってくる。</p><p>わすれられていた思い出が、村のみんなの中に すこしずつ もどっていく。</p><p class="says">レイン「わたしがいなくなっても、灯火は きっと だれかが継いでくれる。……でも、いまは。」</p><p class="says">レイン「みんなと、もう少し いっしょにいたいな」</p><p>アーチ城の鍋に、今日もあたたかい湯気がのぼる。</p><p class="hint2">クリアおめでとう！このまま遊び続けられます</p>`;
+ setTimeout(()=>showCard(`<h3>黒い火の本体</h3><p>黒い火は、しずかに くずれていった。</p><p>「……わたしは、わすれられた火。だれにも思い出されなくなった、ぜんぶの記憶の成れの果て」</p><p>「消えてほしくなかった。だから、思い出ごと食べて、守ろうとしたんだ」</p><p>黒い火が消えると、あたりの色が すこしずつ もどってくる。</p><p class="says">レイン「……もう、だいじょうぶ。ひとりじゃないよ」</p><p class="hint2">つづく</p>`,()=>showCard(card2,()=>showCard(card3,checkStage))),400);
 }
 function pop(x,y,s,c){fxs.push({x,y,s,c,t:.9,T:.9})}
 function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;if(!paused&&!anyOpen())update(dt);draw();requestAnimationFrame(loop)}
@@ -2808,7 +2832,7 @@ function render(){
  // 手帳
  saveInfo();
  {const names=['森の灯火','海の灯火','炎の灯火','記憶の灯火'];
-  $('fireBox').innerHTML=FIRE_KEYS.map((k,i)=>`<span style="margin-right:10px">${S.story[k]?'🔥':'　'}${names[i]}${S.story[k]?'':'（まだ）'}</span>`).join('')+`<br><b>いま：${fireObjective()}</b>`;}
+  $('fireBox').innerHTML=FIRE_KEYS.map((k,i)=>`<span style="margin-right:10px">${S.story[k]?'🔥':'　'}${names[i]}${S.story[k]?'':k==='fireMemory'&&S.story.fireFlame?`（${memFragCount()}/${MEMFRAG_TOTAL}）`:'（まだ）'}</span>`).join('')+`<br><b>いま：${fireObjective()}</b>`;}
  $('stageLine').textContent=`ステージ${S.stage}：${STAGES[S.stage]}　${S.stage<2?'（★5でステージ2）':S.stage<3?'（★12でステージ3）':S.oniDown?'（クリア！パパオニに3回勝った）':`（パパオニの砦へ ${S.oniLv||0}/3）`}`;
  $('qualRow').innerHTML=Object.keys(QUAL).map(q=>`<button class="btn ${q===quality?'fire':''}" data-q="${q}">${QN[q]}</button>`).join('');document.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>setQuality(b.dataset.q));$('qualInfo').textContent=`いまの内部解像度：画面の${DPR.toFixed(2).replace(/\.?0+$/,'')}倍（この端末の最大は${(devicePixelRatio||1)}倍）。重いと感じたら「標準」に。`;
  $('storyList').innerHTML=drawStoryJournal();
