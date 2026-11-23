@@ -2665,8 +2665,8 @@ function oniDefeated(e){
  for(let j=0;j<8+n*4;j++)coins.push({x:e.x+(Math.random()-.5)*110,y:e.y+(Math.random()-.5)*60,v:15+n*5});
  for(let i=E.length-1;i>=0;i--)if(E[i].summoned)E.splice(i,1);
  EB.length=0;
- if(n>=3){S.oniDown=1;save();sfx.great();
-  setTimeout(()=>showCard(`<span class="great">GAME CLEAR</span><h3>パパオニに勝った！</h3><p>パパオニはひざをついた。</p><p>「……まいった。それより、ずっといいにおいがしてたんだ。おまえのごはん、食べさせてくれんか」</p><p>アーチ城の鍋に、今日もあたたかい湯気がのぼる。</p><p class="says">レイン「……いいよ。いっしょに食べよう。」</p><p class="hint2">クリアおめでとう！このまま遊び続けられます</p>`),400);return}
+ if(n>=3){S.oniDown=1;const newTruth=!S.story.papaOniTruthSeen;if(newTruth){S.story.papaOniTruthSeen=1;S.story.fireFlame=1}save();sfx.great();
+  setTimeout(()=>showCard(newTruth?`<span class="great">GAME CLEAR</span><h3>パパオニに勝った！</h3><p>パパオニはひざをついた。砦の奥で、黒い煙が炎の灯火にまとわりついているのが見えた。</p><p>「……まいった。俺が守っていたのは、火じゃない。こいつが消えたら、この世界から“思い出”まで消える。ずっと、それがこわかった」</p><p>灯火にふれたしゅんかん、みんなの思い出が すこしだけ戻ったような気がした。</p><p>「それより、ずっといいにおいがしてたんだ。おまえのごはん、食べさせてくれんか」</p><p>アーチ城の鍋に、今日もあたたかい湯気がのぼる。</p><p class="says">レイン「……いいよ。いっしょに食べよう。」</p><p class="hint2">手帳の「四つの灯火」で、いまの目的を確認できる</p>`:`<span class="great">GAME CLEAR</span><h3>パパオニに勝った！</h3><p>パパオニはひざをついた。</p><p>「……まいった。それより、ずっといいにおいがしてたんだ。おまえのごはん、食べさせてくれんか」</p><p>アーチ城の鍋に、今日もあたたかい湯気がのぼる。</p><p class="says">レイン「……いいよ。いっしょに食べよう。」</p><p class="hint2">クリアおめでとう！このまま遊び続けられます</p>`,newTruth?checkStage:undefined),400);return}
  oniT=25;save();sfx.win();
  const lines=['「ぐぬぬ……お、おぼえてろ〜！」','「まだまだ……本気はこれからだ〜！」'];
  setTimeout(()=>showCard(`<span class="great">${n} / 3</span><h3>パパオニをやっつけた！</h3><p>${lines[n-1]}</p><p>パパオニは砦の奥へにげていった。<b>もっと強くなって、また出てくる……</b></p><p>${n===1?'次はトゲトゲの玉を投げてくるらしい。':'次はつっこんでくるらしい。最後の戦いだ。'}</p><p class="says">レイン「……準備しよう。」</p>`),400);
