@@ -2588,7 +2588,9 @@ function update(dt){
  // 宝箱
  if(!S.chest&&Math.hypot(CHEST.x-P.x,CHEST.y-P.y)<30){S.chest=1;chestLight(CHEST.x,CHEST.y);S.weapons.push('stick');S.eq='stick';save();sfx.win();showCard(`${wimg('stick')}<h3>木の棒を手に入れた！</h3><p>右下の「こうげき」で攻撃できる。</p><p>木をたたくと木材が取れる。</p><p class="says">レイン「……これで、戦える。」</p>`)}
  if(!S.chest2&&Math.hypot(CHEST2.x-P.x,CHEST2.y-P.y)<30){S.chest2=1;chestLight(CHEST2.x,CHEST2.y);if(!S.weapons.includes('tsuki'))S.weapons.push('tsuki');S.eq='tsuki';save();sfx.win();showCard(`${wimg('tsuki')}<h3>ツキノケンを手に入れた！</h3><p>ぐるっと一回転して、まわりの敵を全部切る。</p><p>こうげきボタンの左で武器を切りかえられる。</p><p class="says">レイン「……月みたいだ。」</p>`)}
- if(!S.islandChest&&Math.hypot(ICHEST.x-P.x,ICHEST.y-P.y)<34){S.islandChest=1;chestLight(ICHEST.x,ICHEST.y);S.tre.key=1;S.tre.pearl=(S.tre.pearl||0)+1;save();sfx.great();showCard(`${timg('key')}<h3>城のかぎとしんじゅを見つけた！</h3><p>アーチ城の奥の宝箱が開けられそうだ。</p><p class="says">レイン「……城に、もどろう。」</p>`)}
+ if(!S.islandChest&&Math.hypot(ICHEST.x-P.x,ICHEST.y-P.y)<34){S.islandChest=1;chestLight(ICHEST.x,ICHEST.y);S.tre.key=1;S.tre.pearl=(S.tre.pearl||0)+1;
+  const gotFire=!S.story.fireSea;if(gotFire)S.story.fireSea=1;save();sfx.great();
+  showCard(gotFire?`${timg('key')}<h3>城のかぎとしんじゅ、そして灯火を見つけた！</h3><p>宝箱のおくに、小さな灯火がゆれていた。海の灯火だ。</p><p>ふれたしゅんかん、一瞬だけ 灯台から海を見ている幼いだれかが見えた気がした。</p><p>アーチ城の奥の宝箱も、開けられそうだ。</p><p class="says">レイン「……城に、もどろう。」</p><p class="hint2">手帳の「四つの灯火」で、いまの目的を確認できる</p>`:`${timg('key')}<h3>城のかぎとしんじゅを見つけた！</h3><p>アーチ城の奥の宝箱が開けられそうだ。</p><p class="says">レイン「……城に、もどろう。」</p>`,gotFire?checkStage:undefined)}
  // 畑・小屋
  if(S.build.farm){S.farmT=Math.min(45,S.farmT+dt);if(S.farmT>=45&&Math.hypot(BPOS.farm.x-P.x,BPOS.farm.y-P.y)<55){S.farmT=0;['herb','mugi','berry'].sort(()=>Math.random()-.5).slice(0,2).forEach(gain)}}
  if(S.build.coop){S.coopT=Math.min(60,S.coopT+dt);if(S.coopT>=60&&Math.hypot(BPOS.coop.x-P.x,BPOS.coop.y-P.y)<55){S.coopT=0;gain('tamago')}}
@@ -2762,7 +2764,7 @@ function renderTalk(ni){
 function checkStage(){
  const st=stars();
  if(S.stage<2&&(st>=5||S.story.fireForest)&&!S.story.bridgeReady){S.story.bridgeReady=1;save();sfx.win();showCard(`<h3>……？</h3><p>ヒバシのほうで、なにかが光った気がする。</p><p class="hint2">手帳：《ヒバシへ行ってみよう》</p>`);return}
- if(S.stage===2&&st>=12){S.stage=3;save();sfx.great();showCard(`<span class="new">ステージ3 解放</span><h3>もえるヒガシヤマ</h3><p>ヒガシヤマの炎の壁が消えた。奥にはパパオニの砦がある……</p><p>ひんやり料理と、強い武器を準備しよう。</p><p class="says">レイン「……負けない。」</p>`);return}
+ if(S.stage===2&&(st>=12||(S.story.fireForest&&S.story.fireSea))){S.stage=3;save();sfx.great();showCard(`<span class="new">ステージ3 解放</span><h3>もえるヒガシヤマ</h3><p>ヒガシヤマの炎の壁が消えた。奥にはパパオニの砦がある……</p><p>ひんやり料理と、強い武器を準備しよう。</p><p class="says">レイン「……負けない。」</p>`);return}
  if(st>=TOTAL&&!S.allDone){S.allDone=1;save();sfx.great();showCard(`<h3>村のごはん番</h3><p>村のみんなの頼みを、ぜんぶ叶えた。</p><p class="says">レイン「……つぎは、なにを作ろう。」</p>`)}
 }
 function resetZoom(){const m=document.querySelector('meta[name=viewport]');if(!m)return;const c=m.content;m.content=c+',maximum-scale=1.0001';setTimeout(()=>{m.content=c},60);if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();window.scrollTo(0,0)}
