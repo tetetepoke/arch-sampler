@@ -834,6 +834,9 @@ function solvePuzzle(id){const s=pz(id),d=pzDef(id);if(s.solved)return;s.solved=
  toast(`ふしぎ「${d.name}」をといた！`);save()}
 function giveReward(d){const r=d.reward;if(r.g)S.g+=r.g;if(r.tre)S.tre[r.tre]=(S.tre[r.tre]||0)+1;gainExp(15)}
 function openCache(id){const s=pz(id),d=pzDef(id);if(!s.solved||s.state.opened)return;s.state.opened=1;giveReward(d);chestLight(d.cache.x,d.cache.y);save();sfx.win();
+ if(id==='trees'&&!S.story.fireForest){S.story.fireForest=1;save();
+  showCard(`${timg(d.reward.tre)}<h3>${TRE[d.reward.tre].n}と ${d.reward.g}G、そして灯火を見つけた！</h3><p>ふしぎ「${d.name}」の奥に、小さな灯火が ゆれていた。</p><p>灯火にふれたしゅんかん、一瞬だけ 何かが見えた気がした。……幼いだれかと、小さな影。</p><p class="says">レイン「……？」</p><p class="hint2">手帳の「四つの灯火」で、いまの目的を確認できる</p>`,checkStage);
+  return}
  showCard(`${timg(d.reward.tre)}<h3>${TRE[d.reward.tre].n}と ${d.reward.g}G を見つけた！</h3><p>ふしぎ「${d.name}」のごほうび。</p><p class="says">レイン「……。」</p>`)}
 function chestLight(x,y){RG.push({x,y,r:70,t:1,T:1,c:'255,240,160',rays:1})}
 function treeHit(t){const s=pz('trees');if(s.solved)return;s.found=1;
@@ -2758,7 +2761,7 @@ function renderTalk(ni){
 }
 function checkStage(){
  const st=stars();
- if(S.stage<2&&st>=5&&!S.story.bridgeReady){S.story.bridgeReady=1;save();sfx.win();showCard(`<h3>……？</h3><p>ヒバシのほうで、なにかが光った気がする。</p><p class="hint2">手帳：《ヒバシへ行ってみよう》</p>`);return}
+ if(S.stage<2&&(st>=5||S.story.fireForest)&&!S.story.bridgeReady){S.story.bridgeReady=1;save();sfx.win();showCard(`<h3>……？</h3><p>ヒバシのほうで、なにかが光った気がする。</p><p class="hint2">手帳：《ヒバシへ行ってみよう》</p>`);return}
  if(S.stage===2&&st>=12){S.stage=3;save();sfx.great();showCard(`<span class="new">ステージ3 解放</span><h3>もえるヒガシヤマ</h3><p>ヒガシヤマの炎の壁が消えた。奥にはパパオニの砦がある……</p><p>ひんやり料理と、強い武器を準備しよう。</p><p class="says">レイン「……負けない。」</p>`);return}
  if(st>=TOTAL&&!S.allDone){S.allDone=1;save();sfx.great();showCard(`<h3>村のごはん番</h3><p>村のみんなの頼みを、ぜんぶ叶えた。</p><p class="says">レイン「……つぎは、なにを作ろう。」</p>`)}
 }
