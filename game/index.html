@@ -3098,7 +3098,7 @@ buildSolids();
 Object.keys(TRE).forEach(id=>{try{const c=document.createElement('canvas');c.width=c.height=120;const g=c.getContext('2d');g.translate(60,60);g.scale(3,3);drawTre(g,id);TIMG[id]=c.toDataURL()}catch(e){}});
 WEAPONS.forEach(w=>{try{const c=document.createElement('canvas');c.width=c.height=144;const g=c.getContext('2d');g.translate(72,75);g.scale(2.32,2.32);if(w.type==='melee')g.rotate(.5);drawWeapon(g,w.id);WIMG[w.id]=c.toDataURL()}catch(e){WIMG[w.id]=''}});
 requestAnimationFrame(loop);
-const summary=o=>{const st=(o.q||[]).reduce((a,b)=>a+b,0),w=WEAPONS.find(x=>x.id===o.eq);return `Lv${o.lv||1}・★${st}/${TOTAL}・${o.g||0}G・${w?w.n:'武器なし'}・ステージ${o.stage||1}${o.oniDown?'・クリア済み':''}`};
+const summary=o=>{const st=(o.q||[]).reduce((a,b)=>a+b,0),w=WEAPONS.find(x=>x.id===o.eq);return `Lv${o.lv||1}・★${st}/${TOTAL}・${o.g||0}G・${w?w.n:'武器なし'}・ステージ${o.stage||1}${o.gameCleared?'・クリア済み':''}`};
 const when=t=>t?new Date(t).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'';
 function startGame(){gameStarted=true;$('title').classList.remove('on');paused=false;last=performance.now();E.length=0;PR.length=0;TR.length=0;EB.length=0;P.x=CAMP.x;P.y=CAMP.y+70;statKey='';talkKey='';save();checkStage();say('……。')}
 function titleCodeHook(){const b=$('tCodeBtn');if(!b)return;b.onclick=()=>{au();const keep=$('titleBody').innerHTML;$('titleBody').innerHTML=`<p><b>ふっかつのじゅもん</b><br><small>メモしておいた じゅもんを まるごと はりつけてね</small></p><textarea id="tCode" rows="5" style="width:100%;font-size:13px;word-break:break-all" placeholder="ここに はりつけ"></textarea><p class="hint2" id="tCodeMsg"></p><div class="row"><button class="btn fire" id="tCodeGo">このじゅもんで はじめる</button><button class="btn" id="tCodeBack">もどる</button></div>`;
