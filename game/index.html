@@ -493,34 +493,36 @@ const HOT={x:1950,y:1450,w:430,h:640};
 // マップ拡張（2026-11改修）：陸地・海岸を東へ+600ぶん拡張し、新規施設の配置スペースを確保
 const LIGHT={x:3460,y:1150},CAVE={x:1700,y:2950},RANCH={x:650,y:2780},PORT={x:3500,y:1950},ISLAND={x:3800,y:1350,r:140},ICHEST={x:3820,y:1330},SEA_X=3550;
 const PLACES=[
- {n:'オオジセー',x:350,y:330,w:240,h:130,c:'#b86a4a'},
- {n:'ワルドカプ',x:1000,y:320,w:230,h:120,c:'#4a8a5a',stadium:1},
- {n:'ブクオフ',x:300,y:1080,w:150,h:80,c:'#3a6ab8'},
- {n:'オーノ',x:300,y:1570,w:120,h:76,c:'#8a6aa8'},
- {n:'ココヌ',x:650,y:1680,w:150,h:80,c:'#d86a4a',sub:'食堂'},
- {n:'クズモショ',x:340,y:2060,w:170,h:86,c:'#7a8a4a'},
- {n:'ハドフ',x:1300,y:1820,w:140,h:76,c:'#2a4a7a',sub:'武器屋'},
+ {n:'オオジセー',type:'SHOP_01',x:350,y:330,w:240,h:130,c:'#b86a4a'},
+ {n:'ワルドカプ',type:'STADIUM_01',x:1000,y:320,w:230,h:120,c:'#4a8a5a',stadium:1},
+ {n:'ブクオフ',type:'SHOP_BOOK_01',x:300,y:1080,w:150,h:80,c:'#3a6ab8'},
+ {n:'オーノ',type:'SHOP_02',x:300,y:1570,w:120,h:76,c:'#8a6aa8'},
+ {n:'ココヌ',type:'RESTAURANT_01',x:650,y:1680,w:150,h:80,c:'#d86a4a',sub:'食堂'},
+ {n:'クズモショ',type:'SHOP_03',x:340,y:2060,w:170,h:86,c:'#7a8a4a'},
+ {n:'ハドフ',type:'SHOP_WEAPON_01',x:1300,y:1820,w:140,h:76,c:'#2a4a7a',sub:'武器屋'},
  // 手描き地図マップ大改修：新規登場の施設（役割はユーザー確認済み、見た目のみの背景建物が基本）
  // マップ拡張にあわせ、座標は意図的に不規則（じぐざぐ）に散らして自然な街並みにしている
- {n:'ローソン',x:680,y:250,w:130,h:78,c:'#2a6a3a',sub:'コンビニ'},
- {n:'コストコ',x:495,y:1005,w:190,h:116,c:'#1a5a8a',sub:'大型スーパー'},
- {n:'ピエロ',x:825,y:1075,w:140,h:80,c:'#c87a9a',sub:'衣料品店'},
- {n:'うわさラーメン',x:545,y:1335,w:130,h:78,c:'#b83a2a',sub:'ラーメン屋'},
- {n:'コインランドリー',x:785,y:1355,w:120,h:70,c:'#8aa0b0',sub:'コインランドリー'},
- {n:'カネダ',x:455,y:1695,w:130,h:76,c:'#7a6a4a',sub:'空き店舗'},
- {n:'スイドーキョウ',x:835,y:1645,w:130,h:76,c:'#6a7a8a',sub:'空き店舗'},
- {n:'キフネ',x:505,y:2270,w:130,h:76,c:'#9a8a6a',sub:'空き店舗'},
- {n:'デカマイ',x:2470,y:1520,w:150,h:88,c:'#c8a030',sub:'米店？'},
- {n:'セブン',x:2820,y:1580,w:130,h:78,c:'#2a6a4a',sub:'コンビニ'},
- {n:'エディオン',x:2600,y:1880,w:170,h:96,c:'#3a5a9a',sub:'家電量販店'},
- {n:'オーショ',x:3050,y:1800,w:130,h:76,c:'#8a7a5a',sub:'空き店舗'},
- {n:'モス',x:740,y:2520,w:130,h:78,c:'#a83a2a',sub:'ファストフード'},
- {n:'タカンチ',x:1160,y:2660,w:130,h:76,c:'#7a8a9a',sub:'空き店舗'},
- {n:'100キン',x:1420,y:2590,w:140,h:80,c:'#c84a6a',sub:'100円ショップ'},
- {n:'トヨタ',x:1680,y:2680,w:160,h:94,c:'#c8322a',sub:'自動車販売店'},
- {n:'ローソン②',x:1940,y:2600,w:130,h:78,c:'#2a6a3a',sub:'コンビニ'},
- {n:'ポスト',x:1035,y:985,w:60,h:60,c:'#b8342a',sub:'郵便ポスト'}
+ {n:'ローソン',type:'CONBINI_01',x:680,y:250,w:130,h:78,c:'#2a6a3a',sub:'コンビニ'},
+ {n:'コストコ',type:'SUPERMARKET_01',x:495,y:1005,w:190,h:116,c:'#1a5a8a',sub:'大型スーパー'},
+ {n:'ピエロ',type:'SHOP_CLOTHES_01',x:825,y:1075,w:140,h:80,c:'#c87a9a',sub:'衣料品店'},
+ {n:'うわさラーメン',type:'RESTAURANT_RAMEN_01',x:545,y:1335,w:130,h:78,c:'#b83a2a',sub:'ラーメン屋'},
+ {n:'コインランドリー',type:'LAUNDRY_01',x:785,y:1355,w:120,h:70,c:'#8aa0b0',sub:'コインランドリー'},
+ {n:'カネダ',type:'SHOP_VACANT_01',x:455,y:1695,w:130,h:76,c:'#7a6a4a',sub:'空き店舗'},
+ {n:'スイドーキョウ',type:'SHOP_VACANT_02',x:835,y:1645,w:130,h:76,c:'#6a7a8a',sub:'空き店舗'},
+ {n:'キフネ',type:'SHOP_VACANT_03',x:505,y:2270,w:130,h:76,c:'#9a8a6a',sub:'空き店舗'},
+ {n:'デカマイ',type:'SHOP_RICE_01',x:2470,y:1520,w:150,h:88,c:'#c8a030',sub:'米店？'},
+ {n:'セブン',type:'CONBINI_02',x:2820,y:1580,w:130,h:78,c:'#2a6a4a',sub:'コンビニ'},
+ {n:'エディオン',type:'ELECTRONICS_01',x:2600,y:1880,w:170,h:96,c:'#3a5a9a',sub:'家電量販店'},
+ {n:'オーショ',type:'SHOP_VACANT_04',x:3050,y:1800,w:130,h:76,c:'#8a7a5a',sub:'空き店舗'},
+ {n:'モス',type:'FASTFOOD_01',x:740,y:2520,w:130,h:78,c:'#a83a2a',sub:'ファストフード'},
+ {n:'タカンチ',type:'SHOP_VACANT_05',x:1160,y:2660,w:130,h:76,c:'#7a8a9a',sub:'空き店舗'},
+ {n:'100キン',type:'SHOP_100YEN_01',x:1420,y:2590,w:140,h:80,c:'#c84a6a',sub:'100円ショップ'},
+ {n:'トヨタ',type:'CAR_DEALER_01',x:1680,y:2680,w:160,h:94,c:'#c8322a',sub:'自動車販売店'},
+ {n:'ローソン②',type:'CONBINI_03',x:1940,y:2600,w:130,h:78,c:'#2a6a3a',sub:'コンビニ'},
+ {n:'ポスト',type:'POSTBOX_01',x:1035,y:985,w:60,h:60,c:'#b8342a',sub:'郵便ポスト'}
 ];
+// ================= Visual Spec（調査報告セクション13：レイン実測値から逆算した統一定数） =================
+const VSPEC={CHARACTER_BASE:{walkW:112,walkH:124,actW:146,actH:150},TILE_SIZE:32,DOOR_H:30,DOOR_W:22,PROP_SCALE:1.2};
 const RA=[[0,760],[400,740],[800,775],[1200,790],[1600,805],[2000,790],[2400,800],[2700,810],[2960,820],[3560,826]];
 const RB=[[0,1380],[300,1395],[600,1460],[850,1500],[1000,1480]];
 const RC=[[1000,1480],[985,1800],[945,2100],[925,2400],[900,2800],[880,3200]];
@@ -918,22 +920,24 @@ function drawPuzzleJournal(){return PUZZLES.map(d=>{const s=pz(d.id);if(!s.found
 // ================= 立体感：影・木・岩（光源は左上、影は右下へ） =================
 const SH1='rgba(20,30,16,.09)',SH2='rgba(20,30,16,.17)';
 function softShadow(x,y,rx,ry){cx.fillStyle=SH1;cx.beginPath();cx.ellipse(x+1.5,y+.5,rx*1.3,ry*1.35,0,0,7);cx.fill();cx.fillStyle=SH2;cx.beginPath();cx.ellipse(x,y,rx,ry,0,0,7);cx.fill()}
-const TPAL=[['#2e5a2a','#3e7236','#4c8440'],['#335f2c','#447a3a','#548c46'],['#2a5426','#3a6c32','#4a7e3e'],['#30602e','#42783a','#5a9048']];
-function treeVar(t){if(t.v)return;const h=Math.abs(Math.sin(t.x*12.9898+t.y*78.233)*43758.5453)%1;t.v=1;t.lean=(h-.5)*.18;t.pi=Math.floor(h*97)%4;t.pal=TPAL[t.pi];t.blob=h>.45;t.sq=.92+((h*7)%1)*.16}
+const TPAL=[['#2e5a2a','#3e7236','#4c8440'],['#335f2c','#447a3a','#548c46'],['#2a5426','#3a6c32','#4a7e3e'],['#30602e','#42783a','#5a9048'],['#c25a86','#e07aa6','#f6a8c8'],['#b8522a','#d8742a','#f0a04a'],['#dce8ea','#c4d8dc','#9ac0c8'],['#2e7a4a','#3e9a5e','#5ab87a']];
+function treeVar(t){if(t.v)return;const h=Math.abs(Math.sin(t.x*12.9898+t.y*78.233)*43758.5453)%1;t.v=1;t.lean=(h-.5)*.18;t.pi=Math.floor(h*97)%TPAL.length;t.pal=TPAL[t.pi];t.blob=h>.45;t.sq=.92+((h*7)%1)*.16}
 function drawTree(t){treeVar(t);const s=(t.sh>0?Math.sin(time*60)*3*t.sh/.3:0)+(RM?0:Math.sin(time*1.3+t.x*.05)*1.4),r=t.r,lx=t.lean*r*1.6;
  cx.fillStyle='#5a3a1c';cx.beginPath();cx.moveTo(t.x-4,t.y+10);cx.lineTo(t.x+4,t.y+10);cx.lineTo(t.x+3+lx,t.y-r*.6);cx.lineTo(t.x-3+lx,t.y-r*.6);cx.closePath();cx.fill();
  cx.fillStyle='#3e2814';cx.fillRect(t.x+1,t.y-r*.4,3,r*.4+10);
+ cx.strokeStyle='#3e2814';cx.lineWidth=3;cx.lineCap='round';cx.beginPath();cx.moveTo(t.x+1+lx*.3,t.y-r*.4);cx.lineTo(t.x+1+lx*.3+r*.2,t.y-r*.62);cx.stroke();
  const cxp=t.x+lx+s,cyp=t.y-r*.8,c=canopySprite(t),ry=r*t.sq;cx.drawImage(c,cxp-c.ox*r,cyp-c.oy*ry,c.w*r,c.h*ry)}
 const SPR=new Map();
 function canopySprite(t){const key='c'+t.pi+(t.blob?1:0);let c=SPR.get(key);if(c)return c;const r=32,sq=1;
  const d=DPR||1,w=Math.ceil(r*3.2),h=Math.ceil(r*2.4);c=document.createElement('canvas');c.width=w*d;c.height=h*d;const g=c.getContext('2d');g.scale(d,d);const ox=r*1.3,oy=r*1.2,P2=TPAL[t.pi];
  g.fillStyle=P2[0];g.beginPath();g.ellipse(ox,oy,r,r*sq,0,0,7);g.fill();if(t.blob){g.beginPath();g.ellipse(ox+r*.55,oy+r*.15,r*.55,r*.5,0,0,7);g.fill()}
+ g.fillStyle='rgba(0,0,0,.14)';g.beginPath();g.ellipse(ox+r*.2,oy+r*.24,r*.7,r*.55*sq,0,0,7);g.fill();
  g.fillStyle=P2[1];g.beginPath();g.ellipse(ox-r*.28,oy-r*.22,r*.62,r*.55*sq,0,0,7);g.fill();g.fillStyle=P2[2];g.beginPath();g.ellipse(ox-r*.42,oy-r*.42,r*.28,r*.22,0,0,7);g.fill();
  c.ox=ox/r;c.oy=oy/r;c.w=w/r;c.h=h/r;SPR.set(key,c);return c}
 let SHADOW_SPR=null;
 function fastShadow(x,y,rx,ry){if(!SHADOW_SPR){const d=Math.max(2,DPR*1.5),w=140,h=60;const c=document.createElement('canvas');c.width=w*d;c.height=h*d;const g=c.getContext('2d');g.scale(d,d);g.fillStyle=SH1;g.beginPath();g.ellipse(w/2+3,h/2+1,65,28,0,0,7);g.fill();g.fillStyle=SH2;g.beginPath();g.ellipse(w/2,h/2,50,20.7,0,0,7);g.fill();SHADOW_SPR=c}
  const sx=rx/50,sy=ry/20.7;cx.drawImage(SHADOW_SPR,x-70*sx,y-30*sy,140*sx,60*sy)}
-function drawRock(r){cx.fillStyle='#6d665a';cx.beginPath();cx.ellipse(r.x,r.y+3,r.r,r.r*.7,0,0,7);cx.fill();cx.fillStyle='#8e877a';cx.beginPath();cx.ellipse(r.x-1,r.y,r.r*.9,r.r*.6,0,0,7);cx.fill();cx.fillStyle='#aaa396';cx.beginPath();cx.ellipse(r.x-r.r*.3,r.y-r.r*.25,r.r*.4,r.r*.22,0,0,7);cx.fill()}
+function drawRock(r){cx.fillStyle='#6d665a';cx.beginPath();cx.ellipse(r.x,r.y+3,r.r,r.r*.7,0,0,7);cx.fill();cx.fillStyle='#55504a';cx.beginPath();cx.ellipse(r.x+r.r*.25,r.y+r.r*.18,r.r*.55,r.r*.32,0,0,7);cx.fill();cx.fillStyle='#8e877a';cx.beginPath();cx.ellipse(r.x-1,r.y,r.r*.9,r.r*.6,0,0,7);cx.fill();cx.fillStyle='#aaa396';cx.beginPath();cx.ellipse(r.x-r.r*.3,r.y-r.r*.25,r.r*.4,r.r*.22,0,0,7);cx.fill();cx.fillStyle='#c8c0b0';cx.beginPath();cx.ellipse(r.x-r.r*.4,r.y-r.r*.35,r.r*.16,r.r*.1,0,0,7);cx.fill()}
 function drawShadows(){
  for(const t of trees)if(inView(t.x,t.y,t.r+30))fastShadow(t.x+t.r*.55,t.y+7,t.r*1.02,t.r*.38);
  for(const t of pines)if(inView(t.x,t.y,40))fastShadow(t.x+t.r*.6,t.y+5,t.r*1.05,t.r*.36);
@@ -954,7 +958,7 @@ function drawShadows(){
  if(!P.ride&&!(P.flash>0&&Math.floor(time*20)%2))softShadow(P.x+4,P.y+16,11,4);
 }
 // ================= 地形・衝突判定 =================
-const T={GROUND:0,ROAD:1,SHALLOW_WATER:2,DEEP_WATER:3,SEA:4,BRIDGE:5,TREE:6,BUILDING:7,ROCK:8,CLIFF:9};
+const T={GROUND:0,ROAD:1,SHALLOW_WATER:2,DEEP_WATER:3,SEA:4,BRIDGE:5,TREE:6,BUILDING:7,ROCK:8,CLIFF:9,FENCE:10};
 const BRIDGES=[{x1:868,x2:932,y1:raY(900)-80,y2:raY(900)+80,hibashi:1},{x1:618,x2:682,y1:1402,y2:1528},{x1:918,x2:1046,y1:1868,y2:1932},{x1:1488,x2:1632,y1:1858,y2:1922}];
 const PIERS=[{n:'みなと',x1:PORT.x-60,x2:PORT.x+220,y1:PORT.y-18,y2:PORT.y+18,tip:{x:PORT.x+252,y:PORT.y},land:{x:PORT.x+186,y:PORT.y-6}},
  {n:'ひみつの島',x1:3598,x2:3682,y1:1336,y2:1364,tip:{x:3570,y:1350},land:{x:3632,y:1344}},
@@ -2487,12 +2491,42 @@ function bang(x,y){const by=Math.sin(time*4)*3;cx.fillStyle='#ffd84a';circ(cx,x,
 // ================= 描画: 世界 =================
 function poly(L,w,col,dash){cx.strokeStyle=col;cx.lineWidth=w;cx.lineCap=dash?'butt':'round';cx.lineJoin='round';if(dash){cx.setLineDash(dash);cx.lineDashOffset=-time*30}cx.beginPath();L.forEach(([x,y],i)=>i?cx.lineTo(x,y):cx.moveTo(x,y));cx.stroke();cx.setLineDash([])}
 function label(t,x,y,size,col){cx.font=`900 ${size}px "Zen Maru Gothic",sans-serif`;cx.textAlign='center';cx.fillStyle='#0005';cx.fillText(t,x+2,y+2);cx.fillStyle=col||'#fff';cx.fillText(t,x,y)}
-function bridge(x,y,len,vert,broken){cx.fillStyle='rgba(14,38,62,.3)';if(vert)cx.fillRect(x-24,y-len/2+8,58,len-6);else cx.fillRect(x-len/2+8,y-22,len-6,58);cx.save();cx.translate(x,y);if(!vert)cx.rotate(Math.PI/2);ink(cx);for(let i=-len/2;i<len/2;i+=12){if(broken&&Math.abs(i)<len*.28*broken)continue;rr(cx,-26,i,52,10,2);fs(cx,'#b0804a')}cx.fillStyle='#6a4a2a';if(!broken||1){cx.fillRect(-30,-len/2,5,len);cx.fillRect(25,-len/2,5,len)}cx.restore()}
+function bridge(x,y,len,vert,broken,mat){mat=mat||'wood';cx.fillStyle='rgba(14,38,62,.3)';if(vert)cx.fillRect(x-24,y-len/2+8,58,len-6);else cx.fillRect(x-len/2+8,y-22,len-6,58);cx.save();cx.translate(x,y);if(!vert)cx.rotate(Math.PI/2);ink(cx);
+ if(mat==='stone'){for(let i=-len/2;i<len/2;i+=16){if(broken&&Math.abs(i)<len*.28*broken)continue;rr(cx,-27,i,54,14,3);fs(cx,'#9a948a');cx.strokeStyle='rgba(0,0,0,.15)';cx.lineWidth=1;cx.beginPath();cx.moveTo(-27,i+7);cx.lineTo(27,i+7);cx.stroke();ink(cx)}cx.fillStyle='#6a665c';if(!broken||1){cx.fillRect(-31,-len/2,6,len);cx.fillRect(25,-len/2,6,len)}}
+ else{for(let i=-len/2;i<len/2;i+=12){if(broken&&Math.abs(i)<len*.28*broken)continue;rr(cx,-26,i,52,10,2);fs(cx,'#b0804a')}cx.fillStyle='#6a4a2a';if(!broken||1){cx.fillRect(-30,-len/2,5,len);cx.fillRect(25,-len/2,5,len)}}
+ cx.restore()}
 function building(p){
  const x=p.x,y=p.y,w=p.w,h=p.h;if(!inView(x,y,w))return;ink(cx);cx.lineWidth=2;
  if(p.stadium){cx.beginPath();cx.ellipse(x,y,w/2,h/2,0,0,7);fs(cx,'#d8d0c0');cx.beginPath();cx.ellipse(x,y,w/2-22,h/2-18,0,0,7);fs(cx,'#5aa04a');cx.strokeStyle='#fff';cx.beginPath();cx.moveTo(x,y-h/2+18);cx.lineTo(x,y+h/2-18);cx.stroke();circ(cx,x,y,14);cx.stroke();ink(cx)}
- else{rr(cx,x-w/2,y-h/2+14,w,h-14,3);fs(cx,'#e8dcc4');cx.beginPath();cx.moveTo(x-w/2-8,y-h/2+16);cx.lineTo(x-w/2+12,y-h/2-14);cx.lineTo(x+w/2-12,y-h/2-14);cx.lineTo(x+w/2+8,y-h/2+16);cx.closePath();fs(cx,p.c);
-  rr(cx,x-9,y+h/2-22,18,22,2);fs(cx,'#6a4a2a');for(const s of[-1,1]){rr(cx,x+s*w*.3-8,y-4,16,12,2);fs(cx,'#ffe08a')}}
+ else{
+  const vacant=p.sub==='空き店舗',tiny=w<90||h<70;
+  // --- 壁（素材テクスチャ＋裾の汚れ） ---
+  rr(cx,x-w/2,y-h/2+14,w,h-14,3);fs(cx,vacant?'#cfc6b4':'#e8dcc4');
+  if(!tiny){cx.save();cx.beginPath();cx.roundRect(x-w/2,y-h/2+14,w,h-14,3);cx.clip();
+   cx.strokeStyle='rgba(0,0,0,.07)';cx.lineWidth=1;for(let ly=y-h/2+28;ly<y+h/2-6;ly+=9){cx.beginPath();cx.moveTo(x-w/2,ly);cx.lineTo(x+w/2,ly);cx.stroke()}
+   cx.fillStyle='rgba(0,0,0,.05)';cx.fillRect(x-w/2,y+h/2-16,w,16);cx.restore();ink(cx);cx.lineWidth=2}
+  // --- 屋根（瓦ライン＋稜線ハイライト） ---
+  cx.beginPath();cx.moveTo(x-w/2-8,y-h/2+16);cx.lineTo(x-w/2+12,y-h/2-14);cx.lineTo(x+w/2-12,y-h/2-14);cx.lineTo(x+w/2+8,y-h/2+16);cx.closePath();fs(cx,p.c);
+  if(!tiny){cx.strokeStyle='rgba(255,255,255,.3)';cx.lineWidth=1.5;cx.beginPath();cx.moveTo(x-w/2+8,y-h/2-4);cx.lineTo(x+w/2-8,y-h/2-4);cx.stroke();
+   cx.strokeStyle='rgba(0,0,0,.15)';cx.lineWidth=1;for(let t=-1;t<=1;t+=.33){const tx=x+t*(w/2-14);cx.beginPath();cx.moveTo(tx,y-h/2-13);cx.lineTo(tx,y-h/2+15);cx.stroke()}
+   ink(cx);cx.lineWidth=2;
+   // --- 煙突（食堂系のみ） ---
+   if(p.sub==='食堂'||p.sub==='ラーメン屋'||p.sub==='ファストフード'){rr(cx,x+w*.22,y-h/2-34,13,26,2);fs(cx,'#8a7a6a');for(let i=0;i<3;i++){const sy=y-h/2-38-i*9-Math.sin(time*2+i)*3;cx.fillStyle=`rgba(255,255,255,${.3-i*.08})`;circ(cx,x+w*.22+6,sy,3+i);cx.fill()}ink(cx);cx.lineWidth=2}
+   // --- ドア（レインの体格から逆算した通行可能な幅・高さ） ---
+   rr(cx,x-VSPEC.DOOR_W/2,y+h/2-VSPEC.DOOR_H,VSPEC.DOOR_W,VSPEC.DOOR_H,2);fs(cx,'#6a4a2a');
+   cx.strokeStyle='rgba(0,0,0,.3)';cx.lineWidth=1;cx.beginPath();cx.moveTo(x,y+h/2-VSPEC.DOOR_H);cx.lineTo(x,y+h/2);cx.stroke();
+   cx.fillStyle='#e8c05a';circ(cx,x+6,y+h/2-14,1.4);cx.fill();ink(cx);cx.lineWidth=2}
+  else{rr(cx,x-9,y+h/2-22,18,22,2);fs(cx,'#6a4a2a')}
+  // --- 窓（格子／シャッター＋花箱） ---
+  for(const s of[-1,1]){
+   rr(cx,x+s*w*.3-8,y-4,16,12,2);fs(cx,vacant?'#5a6a74':'#ffe08a');
+   if(!tiny){ink(cx);cx.lineWidth=2;
+    if(vacant){cx.strokeStyle='rgba(0,0,0,.35)';cx.lineWidth=1.2;cx.beginPath();cx.moveTo(x+s*w*.3-8,y-4);cx.lineTo(x+s*w*.3+8,y+8);cx.moveTo(x+s*w*.3+8,y-4);cx.lineTo(x+s*w*.3-8,y+8);cx.stroke()}
+    else{cx.strokeStyle='rgba(255,255,255,.6)';cx.lineWidth=1;cx.beginPath();cx.moveTo(x+s*w*.3,y-4);cx.lineTo(x+s*w*.3,y+8);cx.moveTo(x+s*w*.3-8,y+2);cx.lineTo(x+s*w*.3+8,y+2);cx.stroke();
+     cx.fillStyle='#8a5a30';rr(cx,x+s*w*.3-8,y+10,16,5,1);fs(cx,'#8a5a30');cx.fillStyle='#e85a7a';for(let fi=0;fi<3;fi++){circ(cx,x+s*w*.3-5+fi*5,y+10,1.6);cx.fill()}}
+    ink(cx);cx.lineWidth=2}
+  }
+ }
  cx.font='900 13px "Zen Maru Gothic",sans-serif';const tw=cx.measureText(p.n).width+16;rr(cx,x-tw/2,y-h/2-36,tw,20,5);fs(cx,'#fffaf0');cx.fillStyle=INK;cx.textAlign='center';cx.fillText(p.n,x,y-h/2-21);
  if(p.sub){cx.font='700 11px "Zen Maru Gothic",sans-serif';cx.fillStyle='#fff';cx.fillText(p.sub,x,y+h/2+14)}
 }
