@@ -227,6 +227,7 @@ body.story #talk,body.story #actBtn,body.story #atkBtn,body.story #wpnBtn,body.s
   <button class="btn close" data-close>とじる</button>
   <h2>旅の手帳</h2>
   <div class="rbook" id="rbook"></div>
+  <h3>四つの灯火</h3><div id="fireBox" class="sub"></div>
   <p class="sub" id="stageLine"></p>
   <h3>思い出</h3><div id="storyList"></div>
   <h3>ふしぎ</h3><div id="pzList"></div>
@@ -413,11 +414,24 @@ const NPCS=[
   {t:'heal',n:16,s:'ハート8つ分くらいの、元気が出るごはんを！'}],th:'あったまる……ありがとう',done:'灯台の中も見ていっていいですよ'}
 ];
 const TOTAL=NPCS.reduce((s,n)=>s+n.qs.length,0)+1;
-const STORY_DEF=()=>({chapter:0,introSeen:0,firstMemorySeen:0,fourFiresExplained:0,bridgeReady:0,bridgeStorySeen:0,photoSeen:0,stars:0,snowFireRecovered:0,seaFireRecovered:0,mountainFireRecovered:0,papaOniTruthSeen:0,blackFireDefeated:0,endingSeen:0});
-function fixStory(){S.story=Object.assign(STORY_DEF(),S.story||{});if(S.stage>=2&&!S.story.bridgeStorySeen){S.story.bridgeStorySeen=1;S.story.bridgeReady=1}}
+const STORY_DEF=()=>({chapter:0,introSeen:0,firstMemorySeen:0,fourFiresExplained:0,bridgeReady:0,bridgeStorySeen:0,photoSeen:0,stars:0,snowFireRecovered:0,seaFireRecovered:0,mountainFireRecovered:0,papaOniTruthSeen:0,blackFireDefeated:0,endingSeen:0,fireForest:0,fireSea:0,fireFlame:0,fireMemory:0});
+const FIRE_KEYS=['fireForest','fireSea','fireFlame','fireMemory'];
+const fireCount=()=>FIRE_KEYS.filter(k=>S.story&&S.story[k]).length;
+function fixStory(){S.story=Object.assign(STORY_DEF(),S.story||{});if(S.stage>=2&&!S.story.bridgeStorySeen){S.story.bridgeStorySeen=1;S.story.bridgeReady=1}
+ // 旧セーブからの移行：すでにパパオニを3回たおしている（旧GAME CLEAR）のに、灯火が一つも無い場合は、
+ // 最初の3つの灯火はすでに得たものとして扱う（第四章・記憶の灯火だけは新規コンテンツなので0のまま）
+ if(S.oniDown&&fireCount()===0){S.story.fireForest=1;S.story.fireSea=1;S.story.fireFlame=1}}
+function fireObjective(){
+ if(S.story.fireMemory)return'失われた世界へ向かおう';
+ if(S.story.fireFlame)return'7つの記憶の欠片を集めよう';
+ if(S.story.fireSea)return'パパオニの砦（ヒガシヤマ）を目指そう';
+ if(S.story.fireForest)return'灯台に火をともし、海の灯火を探そう';
+ if(S.story.introSeen)return'森の奥の灯火を探そう';
+ return'村のみんなと話してみよう';
+}
 
 // ================= セーブ =================
-const DEF=()=>({world:{t:.3,day:1},secrets:{},memories:{},chestsOpened:{},flags:{},quick:[],gear:{owned:['bouken'],eq:{head:null,body:'bouken',feet:null,mask:null,acc:null},sets:[null,null,null]},story:STORY_DEF(),pz:{},mk:{},ig:{},mat:{},mini:{},wq:{},mfarm:{plots:[]},archkun:akDef(),ownedMonsters:[],activeCompanion:null,monsterDex:{},monsterSettings:{tactic:'gangan'},monsterFarm:{},fusionRecipes:{},discoveredFusions:{},lv:1,exp:0,kills:0,tre:{},srch:{},got:{},veh:{horse:0,boat:0},islandChest:0,bag:{},dishes:[],found:{},q:NPCS.map(()=>0),hp:6,max:6,fx:null,fxT:0,g:0,wood:0,weapons:[],stage:1,build:{house:0,farm:0,coop:0,flower:0},chest:0,oniDown:0,farmT:0,coopT:0,allDone:0});
+const DEF=()=>({world:{t:.3,day:1},secrets:{},memories:{},chestsOpened:{},flags:{},quick:[],gear:{owned:['bouken'],eq:{head:null,body:'bouken',feet:null,mask:null,acc:null},sets:[null,null,null]},story:STORY_DEF(),pz:{},mk:{},ig:{},mat:{},mini:{},wq:{},mfarm:{plots:[]},archkun:akDef(),ownedMonsters:[],activeCompanion:null,monsterDex:{},monsterSettings:{tactic:'gangan'},monsterFarm:{},fusionRecipes:{},discoveredFusions:{},lv:1,exp:0,kills:0,tre:{},srch:{},got:{},veh:{horse:0,boat:0},islandChest:0,bag:{},dishes:[],found:{},q:NPCS.map(()=>0),hp:6,max:6,fx:null,fxT:0,g:0,wood:0,weapons:[],stage:1,build:{house:0,farm:0,coop:0,flower:0},chest:0,oniDown:0,farmT:0,coopT:0,allDone:0,gameCleared:0});
 let S=DEF();
 try{
  const s3=JSON.parse(localStorage.getItem('ren-cook3')||'null');
@@ -2707,10 +2721,11 @@ function rest(){paused=true;$('fade').style.opacity=1;setTimeout(()=>{S.hp=S.max
 let pot=[],statKey='';
 function renderStat(){
  const full=Math.floor(S.hp/2),half=S.hp%2,empty=Math.floor((S.max-S.hp)/2),w=weapon();
- const k=[S.hp,S.max,S.fx,Math.ceil(S.fxT),stars(),S.g,S.wood,w&&w.id,S.stage,S.lv,S.exp,tPhase()].join('|');if(k===statKey)return;statKey=k;
+ const k=[S.hp,S.max,S.fx,Math.ceil(S.fxT),stars(),S.g,S.wood,w&&w.id,S.stage,S.lv,S.exp,tPhase(),fireCount()].join('|');if(k===statKey)return;statKey=k;
  $('wpnBtn').style.display=w?'grid':'none';if(w)$('wpnBtn').innerHTML=wimg(w.id);
  const hpHtml=S.max>20?`<span class="hp">♥ ${(S.hp/2).toFixed(1).replace('.0','')} / ${S.max/2}</span>`:`<span class="hp">${'♥'.repeat(full)}${half?'♡':''}<span style="opacity:.35">${'♥'.repeat(empty)}</span></span>`;
- $('stat').innerHTML=`${hpHtml}${S.fx?`<span class="fx ${S.fx}">${FX[S.fx]} ${Math.ceil(S.fxT)}秒</span>`:''}<span class="sub">Lv${S.lv}<span class="lvbar"><i style="width:${Math.min(100,S.exp/needExp(S.lv)*100)}%"></i></span> ${S.g}G</span><span class="sub">${PHI[tPhase()]}${PHN[tPhase()]}・★${stars()}/${TOTAL}・ステージ${S.stage}</span>`;
+ const fc=fireCount();
+ $('stat').innerHTML=`${hpHtml}${S.fx?`<span class="fx ${S.fx}">${FX[S.fx]} ${Math.ceil(S.fxT)}秒</span>`:''}<span class="sub">Lv${S.lv}<span class="lvbar"><i style="width:${Math.min(100,S.exp/needExp(S.lv)*100)}%"></i></span> ${S.g}G</span><span class="sub" title="${fireObjective()}">🔥${'●'.repeat(fc)}${'○'.repeat(4-fc)}</span><span class="sub">${PHI[tPhase()]}${PHN[tPhase()]}・★${stars()}/${TOTAL}・ステージ${S.stage}</span>`;
 }
 const VEH={horse:{n:'うま',p:300},boat:{n:'ボート',p:500}};
 const matches=(d,q)=>q.t==='r'?d.rid===q.id:q.t==='fx'?d.fx===q.fx:q.t==='heal'?d.heal>=q.n:!!d.gold;
@@ -2787,6 +2802,8 @@ function render(){
  document.querySelectorAll('[data-build]').forEach(bt=>bt.onclick=()=>{const b=BUILDS.find(x=>x.id===bt.dataset.build),nx=b.lv[S.build[b.id]];if(!nx||S.g<nx.g||S.wood<nx.w)return;S.g-=nx.g;S.wood-=nx.w;S.build[b.id]++;sfx.build();save();closeAll();say('……できた。');toast(`${nx.n} が完成した！`)});
  // 手帳
  saveInfo();
+ {const names=['森の灯火','海の灯火','炎の灯火','記憶の灯火'];
+  $('fireBox').innerHTML=FIRE_KEYS.map((k,i)=>`<span style="margin-right:10px">${S.story[k]?'🔥':'　'}${names[i]}${S.story[k]?'':'（まだ）'}</span>`).join('')+`<br><b>いま：${fireObjective()}</b>`;}
  $('stageLine').textContent=`ステージ${S.stage}：${STAGES[S.stage]}　${S.stage<2?'（★5でステージ2）':S.stage<3?'（★12でステージ3）':S.oniDown?'（クリア！パパオニに3回勝った）':`（パパオニの砦へ ${S.oniLv||0}/3）`}`;
  $('qualRow').innerHTML=Object.keys(QUAL).map(q=>`<button class="btn ${q===quality?'fire':''}" data-q="${q}">${QN[q]}</button>`).join('');document.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>setQuality(b.dataset.q));$('qualInfo').textContent=`いまの内部解像度：画面の${DPR.toFixed(2).replace(/\.?0+$/,'')}倍（この端末の最大は${(devicePixelRatio||1)}倍）。重いと感じたら「標準」に。`;
  $('storyList').innerHTML=drawStoryJournal();
