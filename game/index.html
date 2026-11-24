@@ -420,6 +420,12 @@ const FIRE_KEYS=['fireForest','fireSea','fireFlame','fireMemory'];
 const fireCount=()=>FIRE_KEYS.filter(k=>S.story&&S.story[k]).length;
 const MEMFRAG_TOTAL=7;
 const memFragCount=()=>Object.keys((S.story&&S.story.memFrag)||{}).length;
+function nearestMemTarget(){
+ if(room||AR||!S.story||!S.story.fireFlame||S.story.fireMemory)return null;
+ let best=null,bd=1e9;
+ for(const d of DISC){if(!d.id||d.id.indexOf('m_')!==0||S.story.memFrag[d.id])continue;const dist=Math.hypot(d.x-P.x,d.y-P.y);if(dist<bd){bd=dist;best=d}}
+ return best;
+}
 function fixStory(){S.story=Object.assign(STORY_DEF(),S.story||{});S.story.memFrag=S.story.memFrag||{};if(S.stage>=2&&!S.story.bridgeStorySeen){S.story.bridgeStorySeen=1;S.story.bridgeReady=1}
  // 旧セーブからの移行：すでにパパオニを3回たおしている（旧GAME CLEAR）のに、灯火が一つも無い場合は、
  // 最初の3つの灯火はすでに得たものとして扱う（第四章・記憶の灯火だけは新規コンテンツなので0のまま）
@@ -2399,6 +2405,21 @@ let lastReg='',regT=0;
 function autoSaveTick(dt){if((regT-=dt)>0)return;regT=1;const r=AR?'area:'+arId:room?'room:'+roomId:region(P.x,P.y);if(r!==lastReg){if(lastReg)save();lastReg=r}}
 // --- 対象マーカー
 function drawActMarker(){const t=actTarget;if(!t||t.x==null||t.r>=999)return;const b=Math.sin(time*5)*2;cx.save();cx.globalAlpha=.85;cx.strokeStyle='rgba(255,240,180,.7)';cx.lineWidth=1.5;cx.beginPath();cx.ellipse(t.x,t.y+4,16,6,0,0,7);cx.stroke();cx.fillStyle='#ffe8a0';cx.beginPath();cx.moveTo(t.x-5,t.y-52+b);cx.lineTo(t.x+5,t.y-52+b);cx.lineTo(t.x,t.y-46+b);cx.closePath();cx.fill();cx.restore()}
+// 記憶のかけら探しのコンパス（画面固定・スクリーン座標、cx.setTransform(DPR,...)でカメラ変換を解除した後に呼ぶこと）
+function drawMemCompass(){
+ const t=nearestMemTarget();if(!t)return;
+ const dx=t.x-P.x,dy=t.y-P.y,dist=Math.hypot(dx,dy)||1;
+ if(dist<260)return; // 十分近ければ、現地のフレーバーテキスト発見に任せて矢印は消す
+ const ang=Math.atan2(dy,dx),ox=VW/2,oy=78,r=20,b=Math.sin(time*4)*2;
+ cx.save();cx.globalAlpha=.9;cx.translate(ox,oy);
+ cx.fillStyle='rgba(20,14,10,.4)';cx.beginPath();cx.arc(0,0,r+6+b*.3,0,7);cx.fill();
+ cx.rotate(ang);
+ cx.fillStyle='#ffe29a';cx.strokeStyle='rgba(90,60,20,.8)';cx.lineWidth=1.5;
+ cx.beginPath();cx.moveTo(r,0);cx.lineTo(-r*.45,r*.62);cx.lineTo(-r*.18,0);cx.lineTo(-r*.45,-r*.62);cx.closePath();cx.fill();cx.stroke();
+ cx.restore();
+ cx.fillStyle='#fff';cx.font='700 11px "Zen Maru Gothic",sans-serif';cx.textAlign='center';
+ cx.fillText(`記憶のかけら（${Math.round(dist)}m）`,ox,oy+r+20);
+}
 function setActBtn(a){actTarget=a;const ak=a?a.label:'';if(ak===actKey)return;actKey=ak;const b=$('actBtn');b.classList.toggle('off',!a);b.innerHTML=a?`<i>${actIcon(ak)}</i><span>${ak}</span>`:'<i>・</i><span>アクション</span>'}
 // ================= 装備（そうび） =================
 const GEAR={
@@ -2671,6 +2692,7 @@ function draw(){
  if(P.temp>0){const w=70,x=12,y=Math.max(8,0)+92;cx.fillStyle='#000a';cx.fillRect(x-2,y-2,w+4,10);cx.fillStyle=P.tempK==='snow'?'#8ad8ff':'#ff8a3a';cx.fillRect(x,y,w*P.temp/100,6);cx.fillStyle='#fff';cx.font='700 10px sans-serif';cx.textAlign='left';cx.fillText(P.tempK==='snow'?'❄ さむさ':'🔥 あつさ',x+w+6,y+6)}
  if(inView(CAMP.x,CAMP.y,260)){const gx=CAMP.x-cam.x,gy=CAMP.y-cam.y,fl=RM?0:Math.sin(time*9)*6;const g=cx.createRadialGradient(gx,gy,8,gx,gy,190+fl);g.addColorStop(0,`rgba(255,170,80,${.16+dusk*.28})`);g.addColorStop(1,'rgba(255,170,80,0)');cx.fillStyle=g;cx.fillRect(gx-200,gy-200,400,400)}
  drawScreenFX();drawStoryScreen();
+ drawMemCompass();
  if(P.danger){const col=P.danger==='snow'?'120,190,255':'255,90,30';const g=cx.createRadialGradient(VW/2,VH/2,Math.min(VW,VH)*.3,VW/2,VH/2,Math.max(VW,VH)*.7);g.addColorStop(0,`rgba(${col},0)`);g.addColorStop(1,`rgba(${col},${.45+Math.sin(time*5)*.1})`);cx.fillStyle=g;cx.fillRect(0,0,VW,VH)}
  const oni=E.find(e=>e.type==='oni');
  if(oni&&Math.hypot(oni.x-P.x,oni.y-P.y)<500){const bw=Math.min(300,VW-40),bx=(VW-bw)/2,by=VH-40;cx.fillStyle='#000a';cx.fillRect(bx-4,by-20,bw+8,30);cx.fillStyle='#fff';cx.font='900 12px "Zen Maru Gothic",sans-serif';cx.textAlign='left';cx.fillText(oni.black?'黒い火の本体':`パパオニ（${(oni.lv||0)+1}回目 / 3）`,bx,by-6);cx.fillStyle='#444';cx.fillRect(bx,by,bw,6);cx.fillStyle='#ff4a3a';cx.fillRect(bx,by,bw*oni.hp/oni.max,6)}
