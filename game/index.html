@@ -283,7 +283,17 @@ const ING={
  shimeji:{n:'しめじ',t:'mush',v:1,c:'#b89870',pic:42},ichigo:{n:'いちご',t:'fruit',v:2,c:'#e83040',pic:26},lemon:{n:'レモン',t:'fruit',v:1,c:'#f8e040',pic:28},
  koshou:{n:'こしょう',t:'spice',v:0,c:'#806048',pic:31},shoyu:{n:'しょうゆ',t:'soy',v:0,c:'#402018',pic:32},miso:{n:'みそ',t:'miso',v:1,c:'#b07030',pic:33},su:{n:'酢',t:'sauce',v:0,c:'#e8d070',pic:34},oil:{n:'オリーブオイル',t:'oil',v:0,c:'#c8c040',pic:35},
  sato:{n:'砂糖',t:'sugar',v:1,c:'#ffffff',pic:37},consomme:{n:'コンソメ',t:'salt',v:0,c:'#f0a030',pic:38},ketchup:{n:'ケチャップ',t:'tomato',v:0,c:'#d02020',pic:39},mayo:{n:'マヨネーズ',t:'sauce',v:1,c:'#f8f0c0',pic:40},sauce:{n:'ソース',t:'sauce',v:0,c:'#502010',pic:41},
- curry:{n:'カレー粉',t:'spice',v:0,c:'#c08020',pic:44},ninniku:{n:'にんにく',t:'oil',v:0,c:'#f0e8d8',pic:46}
+ curry:{n:'カレー粉',t:'spice',v:0,c:'#c08020',pic:44},ninniku:{n:'にんにく',t:'oil',v:0,c:'#f0e8d8',pic:46},
+ pmeat:{n:'高級肉',t:'pmeat',s:'meatchunk',v:5,c:'#c83030',master:1},
+ marble:{n:'霜降り肉',t:'marble',s:'meatchunk',v:6,c:'#e8a0a8',master:1},
+ giantfish:{n:'巨大魚',t:'giantfish',s:'fish',v:6,c:'#3a78b0',master:1},
+ goldfish:{n:'黄金魚',t:'goldfish',s:'fish',v:8,c:'#f2c230',gold:1,rare:1,master:1},
+ dragonmeat:{n:'ドラゴン肉',t:'dragonmeat',s:'meatchunk',v:7,c:'#7a2040',rare:1,master:1},
+ goldmush:{n:'黄金キノコ',t:'goldmush',s:'mush',v:7,c:'#f2c230',gold:1,rare:1,master:1},
+ kingmush:{n:'王様キノコ',t:'kingmush',s:'mush',v:6,c:'#8a4ab0',master:1},
+ phantomfruit:{n:'幻の果実',t:'phantomfruit',s:'fruit',v:6,c:'#d8e8f0',rare:1,master:1},
+ dragonfruit:{n:'ドラゴンフルーツ',t:'dragonfruit',s:'fruit',v:5,c:'#e84a8a',master:1},
+ corn:{n:'コーン',t:'corn',s:'corn',v:2,c:'#f4d44a',master:1}
 };
 Object.assign(ING.kinoko,{pic:24});Object.assign(ING.ringo,{pic:25});Object.assign(ING.berry,{pic:27});Object.assign(ING.mitsu,{pic:36});Object.assign(ING.herb,{pic:29});Object.assign(ING.chili,{pic:45});Object.assign(ING.tamago,{pic:10});Object.assign(ING.mugi,{pic:14});Object.assign(ING.sakana,{pic:7});Object.assign(ING.shio,{pic:30});Object.assign(ING.milk,{pic:11});
 const RECIPES=[
@@ -340,10 +350,29 @@ const RECIPES=[
  {id:'gyudon',n:'牛丼',req:['rice', 'meat', 'soy'],opt:['veg', 'sugar'],pic:35,cat:'main',h:'＠rice・＠meat・＠soy'},
  {id:'misoshiru',n:'味噌汁',req:['miso', 'veg'],opt:['mush', 'fish', 'sea'],pic:36,cat:'soup',h:'＠miso・＠veg'},
  {id:'berrytart',n:'ベリータルト',req:['fruit', 'grain', 'dairy'],opt:['sugar', 'egg', 'honey'],pic:37,cat:'sweet',h:'＠fruit・＠grain・＠dairy'},
+ {id:'kushidango',n:'肉串',req:['meat'],opt:['salt','spice'],cat:'meat',rarity:1,h:'肉だけで'},
+ {id:'chahan',n:'チャーハン',req:['rice','egg','soy'],opt:['veg','salt'],cat:'main',rarity:1,h:'米・たまご・しょうゆ'},
+ {id:'vegsoup',n:'野菜スープ',req:['veg','salt'],opt:['herb','mush'],cat:'soup',rarity:1,h:'やさいと塩'},
+ {id:'mushsoup',n:'キノコスープ',req:['mush','milk'],opt:['salt','herb'],cat:'soup',rarity:2,h:'キノコとミルク'},
+ {id:'pmeatsteak',n:'高級ステーキ',req:['pmeat'],opt:['salt','herb','spice'],cat:'meat',rarity:2,master:1,h:'高級肉だけで'},
+ {id:'marblesteak',n:'霜降りステーキ',req:['marble'],opt:['salt','herb','spice'],cat:'meat',rarity:3,master:1,h:'霜降り肉だけで'},
+ {id:'goldsteak',n:'黄金ステーキ',req:['dragonmeat','marble'],opt:['spice','herb'],cat:'meat',rarity:5,master:1,h:'ドラゴン肉と霜降り肉'},
+ {id:'herocurry',n:'勇者カレー',req:['pmeat','rice','spice'],opt:['veg','tomato','salt'],cat:'main',rarity:3,master:1,h:'高級肉・米・スパイス'},
+ {id:'seafoodsoup',n:'魚介スープ',req:['giantfish'],opt:['sea','salt','herb','milk'],cat:'fish',rarity:2,master:1,h:'巨大魚だけで'},
+ {id:'sushimori',n:'寿司盛り',req:['rice','giantfish'],opt:['sea','salt'],cat:'fish',rarity:3,master:1,h:'米と巨大魚'},
+ {id:'kaisendon',n:'海鮮丼',req:['rice','giantfish','sea'],opt:['herb','salt'],cat:'fish',rarity:4,master:1,h:'米・巨大魚・えびいか'},
+ {id:'densetsudon',n:'伝説の海鮮丼',req:['rice','giantfish','sea','goldfish'],opt:['herb','salt'],cat:'fish',rarity:5,master:1,h:'米・巨大魚・えびいか・黄金魚'},
+ {id:'dragonsoup',n:'ドラゴンスープ',req:['dragonmeat'],opt:['dragonfruit','herb','salt'],cat:'soup',rarity:4,master:1,h:'ドラゴン肉だけで'},
+ {id:'fairycake',n:'妖精のケーキ',req:['phantomfruit','dairy','sugar'],opt:['honey','milk'],cat:'sweet',rarity:4,master:1,h:'幻の果実・チーズ系・砂糖'},
+ {id:'kingcourse',n:'王様のフルコース',req:['dragonmeat','giantfish','kingmush','phantomfruit'],opt:['salt','herb','spice'],cat:'main',rarity:5,master:1,h:'伝説の4食材すべて'},
+ {id:'cornsoup',n:'コーンスープ',req:['corn','milk'],opt:['salt','dairy','herb'],cat:'soup',rarity:2,master:1,h:'コーンとミルク'},
+ {id:'phantomice',n:'幻のアイス',req:['phantomfruit','milk'],opt:['sugar','honey'],cat:'sweet',rarity:4,master:1,h:'幻の果実とミルク'},
+ {id:'dragonfruitmori',n:'ドラゴンフルーツ盛り',req:['dragonfruit'],opt:[],cat:'sweet',rarity:3,master:1,h:'ドラゴンフルーツだけで'},
+ {id:'hotsoup',n:'激辛スープ',req:['herb'],reqIng:['chili'],opt:['salt'],cat:'soup',rarity:3,master:1,h:'ほのおトウガラシを使ったスープ'},
  {id:'mystery',n:'ふしぎな料理',req:[],opt:[],h:'組み合わせが合わないとき'}
 ];
 const FX={warm:'ぽかぽか',cold:'ひんやり'};
-const tagName={mush:'キノコ',fruit:'果物',honey:'ハチミツ',herb:'草',egg:'たまご',grain:'ムギ・粉',fish:'魚',crab:'カニ',salt:'塩',milk:'ミルク',meat:'肉',sea:'えび・いか',dairy:'チーズ・バター',rice:'米',pasta:'パスタ',veg:'やさい',tomato:'トマト',spice:'スパイス',soy:'しょうゆ',miso:'みそ',sauce:'ソース類',oil:'オイル',sugar:'砂糖'};
+const tagName={mush:'キノコ',fruit:'果物',honey:'ハチミツ',herb:'草',egg:'たまご',grain:'ムギ・粉',fish:'魚',crab:'カニ',salt:'塩',milk:'ミルク',meat:'肉',sea:'えび・いか',dairy:'チーズ・バター',rice:'米',pasta:'パスタ',veg:'やさい',tomato:'トマト',spice:'スパイス',soy:'しょうゆ',miso:'みそ',sauce:'ソース類',oil:'オイル',sugar:'砂糖',pmeat:'高級肉',marble:'霜降り肉',giantfish:'巨大魚',goldfish:'黄金魚',dragonmeat:'ドラゴン肉',goldmush:'黄金キノコ',kingmush:'王様キノコ',phantomfruit:'幻の果実',dragonfruit:'ドラゴンフルーツ',corn:'コーン'};
 RECIPES.forEach(r=>{if(r.h&&r.h.includes('＠'))r.h=r.req.map(t=>tagName[t]).join('・')});
 {const PM={stew:[0,'soup'],shioyaki:[17,'fish'],tart:[29,'sweet'],takikomi:[null,'main'],omelet:[null,'veg'],pancake:[null,'sweet'],zosui:[null,'main'],herbfish:[null,'fish'],honeyapple:[null,'sweet'],hotmilk:[null,'drink'],bread:[null,'main'],soup:[null,'soup'],saute:[null,'veg'],yakifruit:[null,'sweet'],kushiyaki:[null,'fish'],yakigani:[null,'fish'],medama:[null,'veg'],itame:[null,'veg'],mystery:[null,'other']};RECIPES.forEach(r=>{const m=PM[r.id];if(m){if(m[0]!=null)r.pic=m[0];r.cat=m[1]}})}
 const WEAPONS=[
@@ -443,7 +472,7 @@ function fireObjective(){
 }
 
 // ================= セーブ =================
-const DEF=()=>({world:{t:.3,day:1},secrets:{},memories:{},chestsOpened:{},flags:{},quick:[],gear:{owned:['bouken'],eq:{head:null,body:'bouken',feet:null,mask:null,acc:null},sets:[null,null,null]},story:STORY_DEF(),pz:{},mk:{},ig:{},mat:{},mini:{},wq:{},mfarm:{plots:[]},archkun:akDef(),ownedMonsters:[],activeCompanion:null,monsterDex:{},monsterSettings:{tactic:'gangan'},monsterFarm:{},fusionRecipes:{},discoveredFusions:{},lv:1,exp:0,kills:0,tre:{},srch:{},got:{},veh:{horse:0,boat:0},islandChest:0,bag:{},dishes:[],found:{},q:NPCS.map(()=>0),hp:6,max:6,fx:null,fxT:0,g:0,wood:0,weapons:[],stage:1,build:{house:0,farm:0,coop:0,flower:0},chest:0,oniDown:0,farmT:0,coopT:0,allDone:0,gameCleared:0});
+const DEF=()=>({world:{t:.3,day:1},secrets:{},memories:{},chestsOpened:{},flags:{},quick:[],gear:{owned:['bouken'],eq:{head:null,body:'bouken',feet:null,mask:null,acc:null},sets:[null,null,null]},story:STORY_DEF(),pz:{},mk:{},ig:{},mat:{},mini:{},wq:{},mfarm:{plots:[]},archkun:akDef(),ownedMonsters:[],activeCompanion:null,monsterDex:{},monsterSettings:{tactic:'gangan'},monsterFarm:{},fusionRecipes:{},discoveredFusions:{},lv:1,exp:0,kills:0,tre:{},srch:{},got:{},veh:{horse:0,boat:0},islandChest:0,bag:{},dishes:[],found:{},q:NPCS.map(()=>0),hp:6,max:6,fx:null,fxT:0,g:0,wood:0,weapons:[],stage:1,build:{house:0,farm:0,coop:0,flower:0},chest:0,oniDown:0,farmT:0,coopT:0,allDone:0,gameCleared:0,master:0});
 let S=DEF();
 try{
  const s3=JSON.parse(localStorage.getItem('ren-cook3')||'null');
@@ -453,6 +482,7 @@ try{
 while(S.q.length<NPCS.length)S.q.push(0);
 S.build=Object.assign({house:0,farm:0,coop:0,flower:0},S.build);
 S.pz=S.pz||{};S.tre=S.tre||{};S.srch=S.srch||{};S.got=S.got||{};S.veh=Object.assign({horse:0,boat:0},S.veh);S.lv=S.lv||1;S.exp=S.exp||0;S.kills=S.kills||0;
+if(S.gameCleared&&!S.master)S.master=1;
 fixStory();
 if(S.oniLv==null){S.oniLv=S.oniDown?1:0;S.oniDown=0}
 S.weapons=[...new Set(S.weapons.map(id=>id==='isword'?'futsu':id==='fsword'?'hono':id))];if(!S.eq||!S.weapons.includes(S.eq))S.eq=S.weapons[S.weapons.length-1]||null;
@@ -581,6 +611,12 @@ const SPAWN=[
  {k:'jaga',r:'field',n:2},{k:'negi',r:'field',n:2},{k:'ninjin',r:'field',n:2},{k:'tomato',r:'meadow',n:2},{k:'cabbage',r:'meadow',n:1},{k:'lettuce',r:'meadow',n:1},{k:'kome',r:'field',n:2},{k:'ichigo',r:'meadow',n:1},
  {k:'ninniku',r:'forest',n:1},{k:'kani',r:'beach',n:2},{k:'gold',r:'island',n:1}
 ];
+const MASTER_SPAWN=[
+ {k:'pmeat',r:'plains',n:2},{k:'marble',r:'snow',n:1},{k:'giantfish',r:'coast',n:2},
+ {k:'goldfish',r:'island',n:1},{k:'dragonmeat',r:'hot',n:1},{k:'goldmush',r:'north',n:1},
+ {k:'kingmush',r:'hot',n:1},{k:'phantomfruit',r:'island',n:1},{k:'dragonfruit',r:'beach',n:2},
+ {k:'corn',r:'field',n:2}
+];
 const items=[],respawn=[],coins=[],fxs=[];
 function spawnOne(sp){
  for(let t=0;t<120;t++){
@@ -590,6 +626,7 @@ function spawnOne(sp){
  }
 }
 SPAWN.forEach(sp=>{for(let i=0;i<sp.n;i++)spawnOne(sp)});
+if(S.master)MASTER_SPAWN.forEach(sp=>{for(let i=0;i<sp.n;i++)spawnOne(sp)});
 items.push({k:'milk',x:HUT.x+60,y:HUT.y+20,ph:0,sp:{k:'milk',fixed:1}});
 [['cheese',-120,40],['butter',-80,60],['cream',120,50]].forEach(([k,dx,dy])=>items.push({k,x:RANCH.x+dx,y:RANCH.y+dy,ph:0,sp:{k,fixed:1}}));
 
@@ -646,7 +683,9 @@ function icon(k,dish){
   fish:`<ellipse cx="18" cy="20" rx="12" ry="7" fill="${c}"/><path d="M29 20l8-6v12z" fill="${c}"/><circle cx="12" cy="18" r="1.6" fill="#223"/>`,
   crab:`<ellipse cx="20" cy="23" rx="11" ry="7" fill="${c}"/><circle cx="8" cy="14" r="4" fill="${c}"/><circle cx="32" cy="14" r="4" fill="${c}"/><circle cx="16" cy="18" r="1.5" fill="#223"/><circle cx="24" cy="18" r="1.5" fill="#223"/>`,
   salt:`<path d="M10 30l5-16 8-4 8 10-3 10z" fill="${c}" stroke="#c49aa8"/>`,
-  milk:`<path d="M13 12h14v4l3 5v13H10V21l3-5z" fill="#fff" stroke="#9aa"/><rect x="10" y="22" width="20" height="6" fill="#7ab0d8"/>`
+  milk:`<path d="M13 12h14v4l3 5v13H10V21l3-5z" fill="#fff" stroke="#9aa"/><rect x="10" y="22" width="20" height="6" fill="#7ab0d8"/>`,
+  meatchunk:`<path d="M10 28q-4-10 4-18q8-6 16 0q6 6 0 14q-4 6-12 6q2-4-8-2z" fill="${c}" stroke="#0002"/><circle cx="16" cy="19" r="2" fill="#fff8"/>`,
+  corn:`<rect x="15" y="10" width="10" height="22" rx="5" fill="${c}"/>${[13,17,21,25,29].map(y=>`<circle cx="17" cy="${y}" r="1.6" fill="#e8b020"/><circle cx="23" cy="${y}" r="1.6" fill="#e8b020"/>`).join('')}<path d="M15 12q-5-2-7 2M25 12q5-2 7 2" stroke="#5aa04a" stroke-width="2" fill="none"/>`
  };
  return `<svg viewBox="0 0 40 40">${shapes[sh]}</svg>`;
 }
@@ -673,6 +712,8 @@ function drawIng(k,x,y,s=1,g=cx){
  else if(t==='crab'){g.beginPath();g.ellipse(0,0,8,5,0,0,7);g.arc(-8,-5,3,0,7);g.arc(8,-5,3,0,7);g.fill()}
  else if(t==='salt'){g.strokeStyle='#b88';g.beginPath();g.moveTo(-8,6);g.lineTo(-4,-7);g.lineTo(3,-9);g.lineTo(9,0);g.lineTo(6,6);g.closePath();g.fill();g.stroke()}
  else if(t==='milk'){g.fillStyle='#ddd';g.fillRect(-7,-8,14,16);g.fillStyle='#7ab0d8';g.fillRect(-7,-2,14,5)}
+ else if(t==='meatchunk'){g.beginPath();g.ellipse(0,0,10,8,0,0,7);g.fill();g.fillStyle='#fff8';g.beginPath();g.arc(-3,-3,2,0,7);g.fill()}
+ else if(t==='corn'){g.fillRect(-4,-10,8,18);g.fillStyle='#e8b020';for(let i=-8;i<10;i+=5)for(let j=-3;j<4;j+=4)g.fillRect(i,j,2,2)}
  g.restore();
 }
 
@@ -1730,16 +1771,16 @@ const tagIcon=t=>{const k=Object.keys(ING).find(k=>ING[k].t===t&&ING[k].pic!=nul
 const tagHave=t=>Object.keys(ING).filter(k=>ING[k].t===t).reduce((a,k)=>a+(S.bag[k]||0),0);
 function drawRecipeBook(){
  const el=$('rbook');if(!el)return;S.ig=S.ig||{};
- const list=RECIPES.filter(r=>r.id!=='mystery').sort((a,b)=>(a.pic==null)-(b.pic==null));const nf=list.filter(r=>S.found[r.id]).length;
- const ik=Object.keys(ING),ni=ik.filter(k=>S.ig[k]||S.bag[k]).length;
+ const list=RECIPES.filter(r=>r.id!=='mystery'&&(S.master||!r.master)).sort((a,b)=>(a.pic==null)-(b.pic==null));const nf=list.filter(r=>S.found[r.id]).length;
+ const ik=Object.keys(ING).filter(k=>S.master||!ING[k].master),ni=ik.filter(k=>S.ig[k]||S.bag[k]).length;
  let h=`<div class="rbHead"><img src="chef.png?v=1" alt=""><div><b>料理図鑑</b><small>作ったことのある料理と、集めた食材</small></div></div>
  <div class="rbTabs"><button data-rbt="recipe" class="${rbTab==='recipe'?'on':''}">レシピ</button><button data-rbt="ing" class="${rbTab==='ing'?'on':''}">食材図鑑</button><button data-rbt="mon" class="${rbTab==='mon'?'on':''}">モンスター</button><button data-rbt="mini" class="${rbTab==='mini'?'on':''}">ミニゲーム</button><button data-rbt="nakama" class="${rbTab==='nakama'?'on':''}">なかま</button></div><div id="rbBody">`;
  if(rbTab==='recipe'){
   h+=`<div class="rbCats">${RBCAT.map(([k,n])=>`<button data-rbc="${k}" class="${rbCat===k?'on':''}">${n}</button>`).join('')}</div><div class="rbCount">レシピ ${nf} / ${list.length}</div><div class="rbGrid">`;
-  list.filter(r=>rbCat==='all'||r.cat===rbCat).forEach(r=>{const k=!!S.found[r.id];h+=`<button class="rc${k?'':' un'}${rbSel===r.id?' sel':''}" data-rbs="${r.id}"><span class="st">${'★'.repeat(Math.min(5,Math.max(1,r.req.length)))}</span>${icon(0,{rid:r.id,c:S.found[r.id]||'#c8b898'})}<b>${k?r.n:'？？？'}</b></button>`});
+  list.filter(r=>rbCat==='all'||r.cat===rbCat).forEach(r=>{const k=!!S.found[r.id],st=r.rarity||Math.min(5,Math.max(1,r.req.length));h+=`<button class="rc${k?'':' un'}${rbSel===r.id?' sel':''}" data-rbs="${r.id}"><span class="st">${'★'.repeat(st)}</span>${icon(0,{rid:r.id,c:S.found[r.id]||'#c8b898'})}<b>${k?r.n:'？？？'}</b></button>`});
   h+='</div>';
   const R=RECIPES.find(r=>r.id===rbSel);
-  if(R){const k=!!S.found[R.id];h+=`<div class="rbDet">${icon(0,{rid:R.id,c:S.found[R.id]||'#c8b898'})}<div><h4>${k?R.n:'？？？'} <span style="color:#d08a00;font-size:12px">${'★'.repeat(Math.max(1,R.req.length))}</span></h4><p>${k?'必要な材料（持っている数）':'ヒント：この材料を組み合わせてみよう'}</p><div class="rbNeed">${R.req.map(t=>`<span>${tagIcon(t)}${tagName[t]} <b>${tagHave(t)}</b></span>`).join('')}</div>${R.opt.length?`<p style="color:#9a7a50">入れてもOK：${R.opt.map(t=>tagName[t]).join('・')}</p>`:''}</div></div>`}
+  if(R){const k=!!S.found[R.id],st=R.rarity||Math.min(5,Math.max(1,R.req.length));h+=`<div class="rbDet">${icon(0,{rid:R.id,c:S.found[R.id]||'#c8b898'})}<div><h4>${k?R.n:'？？？'} <span style="color:#d08a00;font-size:12px">${'★'.repeat(st)}</span></h4><p>${k?'必要な材料（持っている数）':'ヒント：この材料を組み合わせてみよう'}</p><div class="rbNeed">${R.req.map(t=>`<span>${tagIcon(t)}${tagName[t]} <b>${tagHave(t)}</b></span>`).join('')}${(R.reqIng||[]).map(ik2=>`<span>${icon(ik2)}${ING[ik2].n} <b>${S.bag[ik2]||0}</b></span>`).join('')}</div>${R.opt.length?`<p style="color:#9a7a50">入れてもOK：${R.opt.map(t=>tagName[t]).join('・')}</p>`:''}</div></div>`}
  }else if(rbTab==='ing'){
   h+=`<div class="rbCount">食材 ${ni} / ${ik.length}</div><div class="rbGrid">`;
   ik.forEach(k=>{const seen=S.ig[k]||S.bag[k];h+=`<div class="rc${seen?'':' un'}">${icon(k)}<b>${seen?ING[k].n:'？？？'}</b>${seen?`<small>×${S.bag[k]||0}・${tagName[ING[k].t]||''}</small>`:''}</div>`});
@@ -2839,7 +2880,7 @@ function oniDefeated(e){
 function blackFireDefeated(e){
  for(let j=0;j<40;j++)coins.push({x:e.x+(Math.random()-.5)*140,y:e.y+(Math.random()-.5)*80,v:20});
  for(let i=E.length-1;i>=0;i--)if(E[i].summoned)E.splice(i,1);
- EB.length=0;S.story.blackFireDefeated=1;S.story.endingSeen=1;S.gameCleared=1;save();sfx.great();
+ EB.length=0;S.story.blackFireDefeated=1;S.story.endingSeen=1;S.gameCleared=1;S.master=1;save();sfx.great();
  const card2=`<h3>Archくんの正体</h3><p>小さなArchくんが、灯火のかけらのようにきらめきながら ふわりと浮かびあがった。</p><p class="says">Archくん「ぼくは、灯火をずっと見まもってきた、小さな精霊なんだ」</p><p>「本当は、灯火は四つじゃなかった。もうひとつ、五つ目の灯火があったんだよ」</p><p class="says">レイン「……五つ目？」</p><p>Archくんは、レインのむねのあたりを 指さした。</p><p class="says">Archくん「きみだよ、レイン。きみ自身が、五つ目の灯火だったんだ」</p><p class="hint2">つづく</p>`;
  const card3=`<span class="great">GAME CLEAR</span><h3>世界に、色がもどった</h3><p>森にも、海にも、ヒガシヤマにも、あたたかい光がもどってくる。</p><p>わすれられていた思い出が、村のみんなの中に すこしずつ もどっていく。</p><p class="says">レイン「わたしがいなくなっても、灯火は きっと だれかが継いでくれる。……でも、いまは。」</p><p class="says">レイン「みんなと、もう少し いっしょにいたいな」</p><p>アーチ城の鍋に、今日もあたたかい湯気がのぼる。</p><p class="hint2">クリアおめでとう！このまま遊び続けられます</p>`;
  setTimeout(()=>showCard(`<h3>黒い火の本体</h3><p>黒い火は、しずかに くずれていった。</p><p>「……わたしは、わすれられた火。だれにも思い出されなくなった、ぜんぶの記憶の成れの果て」</p><p>「消えてほしくなかった。だから、思い出ごと食べて、守ろうとしたんだ」</p><p>黒い火が消えると、あたりの色が すこしずつ もどってくる。</p><p class="says">レイン「……もう、だいじょうぶ。ひとりじゃないよ」</p><p class="hint2">つづく</p>`,()=>showCard(card2,()=>showCard(card3,checkStage))),400);
@@ -2999,7 +3040,7 @@ addEventListener('pagehide',save);document.addEventListener('visibilitychange',(
 
 function judge(list){
  const tags=new Set(list.map(k=>ING[k].t));
- const r=RECIPES.filter(r=>r.req.length&&r.req.every(t=>tags.has(t))&&[...tags].every(t=>r.req.includes(t)||r.opt.includes(t))).sort((a,b)=>b.req.length-a.req.length)[0]||RECIPES[RECIPES.length-1];
+ const r=RECIPES.filter(r=>r.req.length&&r.req.every(t=>tags.has(t))&&[...tags].every(t=>r.req.includes(t)||r.opt.includes(t))&&(!r.reqIng||r.reqIng.every(k=>list.includes(k)))).sort((a,b)=>(b.req.length-a.req.length)||((b.reqIng?1:0)-(a.reqIng?1:0)))[0]||RECIPES[RECIPES.length-1];
  const fx={};list.forEach(k=>{const e=ING[k].e;if(e)fx[e]=(fx[e]||0)+1});
  const fxKey=fx.warm&&fx.cold?null:(Object.keys(fx)[0]||null);
  const gold=list.some(k=>ING[k].gold),great=r.id!=='mystery'&&Math.random()<.15;
