@@ -678,7 +678,7 @@ function drawIng(k,x,y,s=1,g=cx){
 
 // ================= 新エリアの描画 =================
 function drawHorse(g,x,y,dir,st,moving){
- const key=(dir<0?'horse_l':'horse_r')+(moving?(Math.floor(st*1.6)%2):0),im=ENV[key];
+ const key=(dir<0?'horse_l':'horse_r')+(moving?(Math.floor(st/Math.PI)%2):0),im=ENV[key];
  if(im&&im.ok){g.save();g.translate(x,y);g.fillStyle='#0004';g.beginPath();g.ellipse(0,20,20,6,0,0,7);g.fill();
   const ih=68,iw=im.width*(ih/im.height);g.imageSmoothingEnabled=false;g.drawImage(im,-iw/2,-ih+14,iw,ih);g.imageSmoothingEnabled=true;g.restore();return}
  g.save();g.translate(x,y);g.fillStyle='#0004';g.beginPath();g.ellipse(0,2,22,6,0,0,7);g.fill();g.scale(dir,1);ink(g);
