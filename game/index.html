@@ -921,8 +921,20 @@ function drawPuzzleJournal(){return PUZZLES.map(d=>{const s=pz(d.id);if(!s.found
 const SH1='rgba(20,30,16,.09)',SH2='rgba(20,30,16,.17)';
 function softShadow(x,y,rx,ry){cx.fillStyle=SH1;cx.beginPath();cx.ellipse(x+1.5,y+.5,rx*1.3,ry*1.35,0,0,7);cx.fill();cx.fillStyle=SH2;cx.beginPath();cx.ellipse(x,y,rx,ry,0,0,7);cx.fill()}
 const TPAL=[['#2e5a2a','#3e7236','#4c8440'],['#335f2c','#447a3a','#548c46'],['#2a5426','#3a6c32','#4a7e3e'],['#30602e','#42783a','#5a9048'],['#c25a86','#e07aa6','#f6a8c8'],['#b8522a','#d8742a','#f0a04a'],['#dce8ea','#c4d8dc','#9ac0c8'],['#2e7a4a','#3e9a5e','#5ab87a']];
+// ================= 参照スプライトシート由来の環境アセット（木・岩・建物） =================
+// ユーザー提供の「汎用スプライトシートセット v1.0」から切り出した透過PNG。画像が読み込まれるまでは
+// 従来のプロシージャル描画（ベクター）にフォールバックする。
+const ENV_SRC={tree_green:'env_tree_green.png',tree_sakura:'env_tree_sakura.png',tree_autumn:'env_tree_autumn.png',tree_snow:'env_tree_snow.png',tree_palm:'env_tree_palm.png',rock_s:'env_rock_s.png',rock_m:'env_rock_m.png',rock_l:'env_rock_l.png',rock_grass:'env_rock_grass.png',cliff1:'env_cliff1.png',cliff2:'env_cliff2.png',house:'env_house.png',bakery:'env_bakery.png',blacksmith:'env_blacksmith.png',itemshop:'env_itemshop.png',inn:'env_inn.png',castle:'env_castle.png'};
+const ENV={};for(const k in ENV_SRC){const im=new Image();im.onload=()=>{im.ok=true};im.src=ENV_SRC[k];ENV[k]=im}
+const TREE_IMG=['tree_green','tree_green','tree_green','tree_green','tree_sakura','tree_autumn','tree_snow','tree_palm'];
 function treeVar(t){if(t.v)return;const h=Math.abs(Math.sin(t.x*12.9898+t.y*78.233)*43758.5453)%1;t.v=1;t.lean=(h-.5)*.18;t.pi=Math.floor(h*97)%TPAL.length;t.pal=TPAL[t.pi];t.blob=h>.45;t.sq=.92+((h*7)%1)*.16}
 function drawTree(t){treeVar(t);const s=(t.sh>0?Math.sin(time*60)*3*t.sh/.3:0)+(RM?0:Math.sin(time*1.3+t.x*.05)*1.4),r=t.r,lx=t.lean*r*1.6;
+ const im=ENV[TREE_IMG[t.pi]];
+ if(im&&im.ok){
+  // レインの実測ピクセル密度から逆算：木の高さ ≒ r*2.6（従来のcanopy高さ比率を踏襲）
+  const ih=r*2.6,iw=im.width*(ih/im.height),bx=t.x+lx+s,by=t.y+8;
+  cx.imageSmoothingEnabled=false;cx.drawImage(im,bx-iw/2,by-ih,iw,ih);cx.imageSmoothingEnabled=true;return
+ }
  cx.fillStyle='#5a3a1c';cx.beginPath();cx.moveTo(t.x-4,t.y+10);cx.lineTo(t.x+4,t.y+10);cx.lineTo(t.x+3+lx,t.y-r*.6);cx.lineTo(t.x-3+lx,t.y-r*.6);cx.closePath();cx.fill();
  cx.fillStyle='#3e2814';cx.fillRect(t.x+1,t.y-r*.4,3,r*.4+10);
  cx.strokeStyle='#3e2814';cx.lineWidth=3;cx.lineCap='round';cx.beginPath();cx.moveTo(t.x+1+lx*.3,t.y-r*.4);cx.lineTo(t.x+1+lx*.3+r*.2,t.y-r*.62);cx.stroke();
@@ -937,7 +949,14 @@ function canopySprite(t){const key='c'+t.pi+(t.blob?1:0);let c=SPR.get(key);if(c
 let SHADOW_SPR=null;
 function fastShadow(x,y,rx,ry){if(!SHADOW_SPR){const d=Math.max(2,DPR*1.5),w=140,h=60;const c=document.createElement('canvas');c.width=w*d;c.height=h*d;const g=c.getContext('2d');g.scale(d,d);g.fillStyle=SH1;g.beginPath();g.ellipse(w/2+3,h/2+1,65,28,0,0,7);g.fill();g.fillStyle=SH2;g.beginPath();g.ellipse(w/2,h/2,50,20.7,0,0,7);g.fill();SHADOW_SPR=c}
  const sx=rx/50,sy=ry/20.7;cx.drawImage(SHADOW_SPR,x-70*sx,y-30*sy,140*sx,60*sy)}
-function drawRock(r){cx.fillStyle='#6d665a';cx.beginPath();cx.ellipse(r.x,r.y+3,r.r,r.r*.7,0,0,7);cx.fill();cx.fillStyle='#55504a';cx.beginPath();cx.ellipse(r.x+r.r*.25,r.y+r.r*.18,r.r*.55,r.r*.32,0,0,7);cx.fill();cx.fillStyle='#8e877a';cx.beginPath();cx.ellipse(r.x-1,r.y,r.r*.9,r.r*.6,0,0,7);cx.fill();cx.fillStyle='#aaa396';cx.beginPath();cx.ellipse(r.x-r.r*.3,r.y-r.r*.25,r.r*.4,r.r*.22,0,0,7);cx.fill();cx.fillStyle='#c8c0b0';cx.beginPath();cx.ellipse(r.x-r.r*.4,r.y-r.r*.35,r.r*.16,r.r*.1,0,0,7);cx.fill()}
+function rockVar(r){if(r.vi!=null)return;const h=Math.abs(Math.sin(r.x*17.31+r.y*51.73)*23421.63)%1;r.vi=h;r.grass=h>.72}
+function drawRock(r){rockVar(r);
+ const key=r.grass?'rock_grass':(r.r<16?'rock_s':r.r<24?'rock_m':'rock_l'),im=ENV[key];
+ if(im&&im.ok){
+  const iw=r.r*2.05,ih=im.height*(iw/im.width),bx=r.x,by=r.y+r.r*.8;
+  cx.imageSmoothingEnabled=false;cx.drawImage(im,bx-iw/2,by-ih,iw,ih);cx.imageSmoothingEnabled=true;return
+ }
+ cx.fillStyle='#6d665a';cx.beginPath();cx.ellipse(r.x,r.y+3,r.r,r.r*.7,0,0,7);cx.fill();cx.fillStyle='#55504a';cx.beginPath();cx.ellipse(r.x+r.r*.25,r.y+r.r*.18,r.r*.55,r.r*.32,0,0,7);cx.fill();cx.fillStyle='#8e877a';cx.beginPath();cx.ellipse(r.x-1,r.y,r.r*.9,r.r*.6,0,0,7);cx.fill();cx.fillStyle='#aaa396';cx.beginPath();cx.ellipse(r.x-r.r*.3,r.y-r.r*.25,r.r*.4,r.r*.22,0,0,7);cx.fill();cx.fillStyle='#c8c0b0';cx.beginPath();cx.ellipse(r.x-r.r*.4,r.y-r.r*.35,r.r*.16,r.r*.1,0,0,7);cx.fill()}
 function drawShadows(){
  for(const t of trees)if(inView(t.x,t.y,t.r+30))fastShadow(t.x+t.r*.55,t.y+7,t.r*1.02,t.r*.38);
  for(const t of pines)if(inView(t.x,t.y,40))fastShadow(t.x+t.r*.6,t.y+5,t.r*1.05,t.r*.36);
@@ -2495,11 +2514,28 @@ function bridge(x,y,len,vert,broken,mat){mat=mat||'wood';cx.fillStyle='rgba(14,3
  if(mat==='stone'){for(let i=-len/2;i<len/2;i+=16){if(broken&&Math.abs(i)<len*.28*broken)continue;rr(cx,-27,i,54,14,3);fs(cx,'#9a948a');cx.strokeStyle='rgba(0,0,0,.15)';cx.lineWidth=1;cx.beginPath();cx.moveTo(-27,i+7);cx.lineTo(27,i+7);cx.stroke();ink(cx)}cx.fillStyle='#6a665c';if(!broken||1){cx.fillRect(-31,-len/2,6,len);cx.fillRect(25,-len/2,6,len)}}
  else{for(let i=-len/2;i<len/2;i+=12){if(broken&&Math.abs(i)<len*.28*broken)continue;rr(cx,-26,i,52,10,2);fs(cx,'#b0804a')}cx.fillStyle='#6a4a2a';if(!broken||1){cx.fillRect(-30,-len/2,5,len);cx.fillRect(25,-len/2,5,len)}}
  cx.restore()}
+function buildingImgKey(p){
+ const t=p.type||'';
+ if(/SHOP_WEAPON/.test(t))return 'blacksmith';
+ if(/RESTAURANT|CONBINI|FASTFOOD/.test(t))return 'bakery';
+ if(/SHOP_VACANT/.test(t))return 'house';
+ return 'itemshop';
+}
 function building(p){
  const x=p.x,y=p.y,w=p.w,h=p.h;if(!inView(x,y,w))return;ink(cx);cx.lineWidth=2;
  if(p.stadium){cx.beginPath();cx.ellipse(x,y,w/2,h/2,0,0,7);fs(cx,'#d8d0c0');cx.beginPath();cx.ellipse(x,y,w/2-22,h/2-18,0,0,7);fs(cx,'#5aa04a');cx.strokeStyle='#fff';cx.beginPath();cx.moveTo(x,y-h/2+18);cx.lineTo(x,y+h/2-18);cx.stroke();circ(cx,x,y,14);cx.stroke();ink(cx)}
  else{
   const vacant=p.sub==='空き店舗',tiny=w<90||h<70;
+  const bim=!tiny&&ENV[buildingImgKey(p)];
+  if(bim&&bim.ok){
+   const iw=w*1.12,ih=bim.height*(iw/bim.width),bx=x,by=y+h/2+4;
+   cx.save();if(vacant)cx.filter='grayscale(.6) brightness(.82) saturate(.7)';
+   cx.imageSmoothingEnabled=false;cx.drawImage(bim,bx-iw/2,by-ih,iw,ih);cx.imageSmoothingEnabled=true;
+   cx.restore();
+   cx.font='900 13px "Zen Maru Gothic",sans-serif';const tw0=cx.measureText(p.n).width+16;rr(cx,x-tw0/2,y-h/2-36,tw0,20,5);fs(cx,'#fffaf0');cx.fillStyle=INK;cx.textAlign='center';cx.fillText(p.n,x,y-h/2-21);
+   if(p.sub){cx.font='700 11px "Zen Maru Gothic",sans-serif';cx.fillStyle='#fff';cx.fillText(p.sub,x,y+h/2+14)}
+   return;
+  }
   // --- 壁（素材テクスチャ＋裾の汚れ） ---
   rr(cx,x-w/2,y-h/2+14,w,h-14,3);fs(cx,vacant?'#cfc6b4':'#e8dcc4');
   if(!tiny){cx.save();cx.beginPath();cx.roundRect(x-w/2,y-h/2+14,w,h-14,3);cx.clip();
@@ -2532,6 +2568,13 @@ function building(p){
 }
 function drawCastle(){
  const x=CASTLE.x,y=CASTLE.y;ink(cx);cx.lineWidth=2;
+ const cim=ENV.castle;
+ if(cim&&cim.ok){
+  const iw=260,ih=cim.height*(iw/cim.width),by=y+55;
+  cx.imageSmoothingEnabled=false;cx.drawImage(cim,x-iw/2,by-ih,iw,ih);cx.imageSmoothingEnabled=true;
+  cx.font='900 15px "Zen Maru Gothic",sans-serif';const tw0=cx.measureText('アーチ城').width+20;rr(cx,x-tw0/2,y+58,tw0,24,6);fs(cx,'#fffaf0');cx.fillStyle=INK;cx.textAlign='center';cx.fillText('アーチ城',x,y+75);
+  return;
+ }
  rr(cx,x-120,y-20,240,70,4);fs(cx,'#cfc6b4');for(let i=0;i<8;i++){rr(cx,x-120+i*31,y-32,18,14,2);fs(cx,'#cfc6b4')}
  cx.beginPath();cx.moveTo(x-50,y+50);cx.lineTo(x-50,y-90);cx.lineTo(x+45,y-140);cx.lineTo(x+45,y+50);cx.closePath();fs(cx,'#f4efe4');
  rr(cx,x+12,y-100,20,110,6);fs(cx,'#5a7aa8');cx.beginPath();cx.moveTo(x-50,y+50);cx.lineTo(x+60,y+50);cx.stroke();
