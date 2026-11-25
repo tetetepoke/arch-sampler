@@ -13,6 +13,11 @@ StudyData.files = [
   "shakai/soc-geo-asia-west.js",
   "shakai/soc-geo-asia-central.js",
   // ---- 数学 ----
+  "sugaku/math-int-sign.js",
+  "sugaku/math-int-add.js",
+  "sugaku/math-int-mul.js",
+  "sugaku/math-int-mix.js",
+  "sugaku/math-int-prime.js",
   // ---- 英語 ----
   // ---- 理科 ----
   // ---- 国語 ----

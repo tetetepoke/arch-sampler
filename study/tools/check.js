@@ -47,26 +47,62 @@ for (const s of SD.catalog) for (const c of s.categories) for (const u of c.unit
   put(u.name, u.code); (u.children || []).forEach(ch => put(ch.name, ch.code));
 }
 
-const TYPES = ["choice", "tf", "fill", "written", "oneword"];
-const norm = s => String(s).normalize("NFKC").replace(/[\s　、。・,.?？!！「」『』（）()]/g, "");
+const TYPES = ["choice", "tf", "fill", "written", "oneword", "order"];
+// 数の答えを読む（−3、3/4、−0.5 など）
+const parseNum = a => { const m = String(a).replace(/[−–]/g, "-").replace(/\s/g, "").match(/^([+-]?\d+(?:\.\d+)?)(?:\/(\d+))?$/); return m ? (+m[1]) / (m[2] ? +m[2] : 1) : NaN; };
+// calc（JavaScriptの式）を計算して answer と一致するか調べる
+function checkCalc(q, at, list) {
+  if (q.calc == null) return;
+  let v; try { v = Function("return (" + q.calc + ")")(); } catch (e) { list.push(`calc の式がまちがっています（${q.calc}）: ${at}`); return; }
+  const a = parseNum(q.calcAnswer != null ? q.calcAnswer : q.answer);
+  if (isNaN(a) || Math.abs(a - v) > 1e-9) list.push(`計算結果が answer と一致しません（calc=${q.calc} → ${v}、answer=${q.answer}）: ${at}`);
+}
+// 選択肢・並べかえの形式チェック（自動生成問題の各回にも使う）
+function checkShape(q, at, list) {
+  if (q.type === "choice" || (q.type === "fill" && q.choices)) {
+    if (!q.choices || q.choices.length < 2) list.push(`選択肢が足りません: ${at}`);
+    else {
+      if (!q.choices.includes(q.answer)) list.push(`正解が選択肢にありません（${q.answer}）: ${at}`);
+      if (new Set(q.choices.map(String)).size !== q.choices.length) list.push(`選択肢が重複しています（${q.choices.join(" / ")}）: ${at}`);
+    }
+  }
+  if (q.type === "order") {
+    if (!Array.isArray(q.words) || q.words.length < 2) list.push(`並べかえの words がありません: ${at}`);
+    else if (norm(q.words.join(" ")) .length !== norm(q.answer).length) list.push(`並べかえの words と answer の文字が合いません: ${at}`);
+  }
+  if (q.answer === undefined || q.answer === "") list.push(`answer がありません: ${at}`);
+  if (!q.explanation) list.push(`explanation がありません: ${at}`);
+}
+// 比較用：空白や句読点のちがいは無視（数学で意味のある半角かっこ・記号は残す）
+const norm = s => String(s).normalize("NFKC").replace(/[\s　、。・,?？!！「」『』]/g, "");
 const grams = s => { const n = norm(s), g = new Set(); for (let i = 0; i < n.length - 1; i++) g.add(n.slice(i, i + 2)); return g; };
 const sim = (a, b) => { let x = 0; a.forEach(g => b.has(g) && x++); return x / (a.size + b.size - x || 1); };
 
 const QS = SD.questions;
+let genRuns = 0;
 for (const q of QS) {
   const at = `${q.id}（${fileOf[q.id]}）`;
+  if (typeof q.gen === "function") {
+    // 自動生成問題：300回つくって、毎回正しい形になっているか確認
+    const errs = new Set(), qs = new Set();
+    for (let k = 0; k < 300; k++) {
+      let inst; try { inst = Object.assign({}, q, q.gen(SD.R)); } catch (e) { errs.add("gen がエラーになります: " + e.message); break; }
+      const tmp = []; checkShape(inst, at, tmp); checkCalc(inst, at, tmp); tmp.forEach(t => errs.add(t)); qs.add(inst.question);
+    }
+    genRuns++;
+    errs.forEach(e => errors.push("【自動生成】" + e));
+    if (qs.size < 5) warns.push(`自動生成なのに問題のバリエーションが少なすぎます（${qs.size}種類）: ${at}`);
+    if (!TYPES.includes(q.type)) errors.push(`type が不正です（${q.type}）: ${at}`);
+    continue;
+  }
+  checkShape(q, at, errors); checkCalc(q, at, errors);
   if (!/^[A-Z]+(-[A-Z0-9]+)+-\d{3,}$/.test(q.id)) warns.push(`IDの形式が推奨と違います: ${at}  例: SOC-GEO-SEA-001`);
   const pre = codes[q.subject + "|" + q.unit];
   if (pre && !q.id.startsWith(pre + "-")) warns.push(`IDの頭が単元コード ${pre} と違います: ${at}`);
   if (!TYPES.includes(q.type)) errors.push(`type が不正です（${q.type}）: ${at}`);
-  if (q.type === "choice") {
-    if (q.choices.length !== 4) warns.push(`4択なのに選択肢が${q.choices.length}個です: ${at}`);
-    if (new Set(q.choices).size !== q.choices.length) errors.push(`選択肢が重複しています: ${at}`);
-  }
-  if (q.type === "fill" && q.choices && !q.choices.includes(q.answer)) errors.push(`穴埋めの正解が選択肢にありません: ${at}`);
+  if (q.type === "choice" && q.choices.length !== 4 && !q.fewChoices) warns.push(`4択なのに選択肢が${q.choices.length}個です（意図どおりなら fewChoices: true）: ${at}`);
   if (q.type === "tf" && typeof q.answer !== "boolean") errors.push(`○×問題の answer は true / false にしてください: ${at}`);
   if (q.type === "written" && !(q.keywords && q.keywords.length)) warns.push(`記述問題に keywords がありません（自己採点の目安になります）: ${at}`);
-  if (!q.explanation) errors.push(`解説がありません: ${at}`);
   if (!explicit[q.id] || !explicit[q.id].difficulty) errors.push(`difficulty（難易度）が書かれていません: ${at}`);
   if (!explicit[q.id] || !explicit[q.id].importance) errors.push(`importance（重要度）が書かれていません: ${at}`);
   if (q.type === "fill" && !q.choices && !String(q.answer).trim()) errors.push(`穴埋めの正解が空です: ${at}`);
@@ -78,7 +114,7 @@ for (const q of QS) {
 const G = QS.map(q => ({ q, g: grams(q.question), n: norm(q.question) }));
 for (let i = 0; i < G.length; i++) for (let j = i + 1; j < G.length; j++) {
   const a = G[i], b = G[j];
-  if (a.q.subject !== b.q.subject) continue;
+  if (a.q.subject !== b.q.subject || a.q.gen || b.q.gen) continue;
   const linked = a.q.variantOf === b.q.id || b.q.variantOf === a.q.id;
   if (a.n === b.n) { (linked ? warns : errors).push(`同じ問題文: ${a.q.id} と ${b.q.id}`); continue; }
   const s = sim(a.g, b.g);
