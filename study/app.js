@@ -268,6 +268,7 @@ function renderQ() {
     <div class="qcard">
       <div class="qmeta"><span class="tag type">${TYPE_LABEL[q.type] || "問題"}</span><span class="tag">${"★".repeat(q.difficulty)} ${DIFF_LABEL[q.difficulty]}</span>${q.importance === 3 ? `<span class="tag imp">テスト頻出</span>` : ""}${weakLv(q.id) ? `<span class="tag wk l${weakLv(q.id)}">${WEAK_LABEL[weakLv(q.id)]}</span>` : ""}${Z.combo >= 2 ? `<span class="tag combo">🔥 ${Z.combo}連続</span>` : ""}</div>
       <p class="qtext">${esc(q.question)}</p>
+      ${q.image ? `<img class="qimg" src="${esc(q.image)}" alt="${esc(q.imageAlt || "問題の図")}">` : ""}
       <p class="qunit">${esc(q.subject)} › ${esc(q.unit)}</p>
     </div>
     <div id="ans">${body}</div>`;

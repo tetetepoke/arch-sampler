@@ -16,6 +16,14 @@ run(path.join(ROOT, "catalog.js"));
 run(path.join(ROOT, "manifest.js"));
 const SD = ctx.StudyData;
 const errors = [], warns = [];
+// 省略時の初期値に頼らず、difficulty / importance が明示されているかを確認するため元データを記録
+const explicit = {};
+const origAdd = SD.add;
+SD.add = function (defaults, list) {
+  const d = Array.isArray(defaults) ? {} : defaults, l = Array.isArray(defaults) ? defaults : list;
+  l.forEach(q => { explicit[q.id] = { difficulty: "difficulty" in q || "difficulty" in d, importance: "importance" in q || "importance" in d }; });
+  return origAdd.call(this, defaults, list);
+};
 
 // manifest と実ファイルの対応
 const qdir = path.join(ROOT, "questions");
@@ -58,7 +66,11 @@ for (const q of QS) {
   if (q.type === "fill" && q.choices && !q.choices.includes(q.answer)) errors.push(`穴埋めの正解が選択肢にありません: ${at}`);
   if (q.type === "tf" && typeof q.answer !== "boolean") errors.push(`○×問題の answer は true / false にしてください: ${at}`);
   if (q.type === "written" && !(q.keywords && q.keywords.length)) warns.push(`記述問題に keywords がありません（自己採点の目安になります）: ${at}`);
-  if (!q.explanation) warns.push(`解説がありません: ${at}`);
+  if (!q.explanation) errors.push(`解説がありません: ${at}`);
+  if (!explicit[q.id] || !explicit[q.id].difficulty) errors.push(`difficulty（難易度）が書かれていません: ${at}`);
+  if (!explicit[q.id] || !explicit[q.id].importance) errors.push(`importance（重要度）が書かれていません: ${at}`);
+  if (q.type === "fill" && !q.choices && !String(q.answer).trim()) errors.push(`穴埋めの正解が空です: ${at}`);
+  if (q.image && !fs.existsSync(path.join(ROOT, "..", q.image))) errors.push(`画像ファイルが見つかりません（${q.image}）: ${at}`);
   if (!q.category) warns.push(`category（分野）がありません: ${at}`);
   if (q.variantOf && !QS.some(x => x.id === q.variantOf)) errors.push(`variantOf の問題IDが存在しません（${q.variantOf}）: ${at}`);
 }
@@ -70,14 +82,18 @@ for (let i = 0; i < G.length; i++) for (let j = i + 1; j < G.length; j++) {
   const linked = a.q.variantOf === b.q.id || b.q.variantOf === a.q.id;
   if (a.n === b.n) { (linked ? warns : errors).push(`同じ問題文: ${a.q.id} と ${b.q.id}`); continue; }
   const s = sim(a.g, b.g);
-  if (s >= 0.6 && !linked) warns.push(`似ている問題（${Math.round(s * 100)}%）: ${a.q.id} と ${b.q.id}\n    「${a.q.question}」\n    「${b.q.question}」`);
+  // 問題文が似ていて、しかも答えも同じものを「重複の疑い」とする（同じ聞き方で答えがちがう比較問題は対象外）
+  const sameAns = norm(a.q.answer) === norm(b.q.answer);
+  if (s >= 0.6 && sameAns && !linked) warns.push(`似ている問題（${Math.round(s * 100)}%）: ${a.q.id} と ${b.q.id}\n    「${a.q.question}」\n    「${b.q.question}」`);
 }
 
 // 結果
 const by = {};
-QS.forEach(q => { const k = `${q.subject} › ${q.category} › ${q.unit}`; by[k] = by[k] || { n: 0, types: {}, imp3: 0 }; by[k].n++; by[k].types[q.type] = (by[k].types[q.type] || 0) + 1; if (q.importance === 3) by[k].imp3++; });
-console.log(`\n問題数 合計 ${QS.length}問（ファイル ${SD.files.length}個）`);
-for (const k of Object.keys(by)) console.log(`  ${k}: ${by[k].n}問  [${Object.entries(by[k].types).map(([t, n]) => t + " " + n).join(", ")}]  頻出 ${by[k].imp3}`);
+const dAll = [0, 0, 0, 0];
+QS.forEach(q => { const k = `${q.subject} › ${q.category} › ${q.unit}`; by[k] = by[k] || { n: 0, types: {}, imp3: 0, d: [0, 0, 0, 0] }; by[k].n++; by[k].types[q.type] = (by[k].types[q.type] || 0) + 1; if (q.importance === 3) by[k].imp3++; by[k].d[q.difficulty]++; dAll[q.difficulty]++; });
+const pc = (a, n) => Math.round(a / n * 100) + "%";
+console.log(`\n問題数 合計 ${QS.length}問（ファイル ${SD.files.length}個）  難易度 ★${pc(dAll[1], QS.length)} ★★${pc(dAll[2], QS.length)} ★★★${pc(dAll[3], QS.length)}`);
+for (const k of Object.keys(by)) console.log(`  ${k}: ${by[k].n}問  [${Object.entries(by[k].types).map(([t, n]) => t + " " + n).join(", ")}]  ★${by[k].d[1]} ★★${by[k].d[2]} ★★★${by[k].d[3]}  頻出 ${by[k].imp3}`);
 if (process.argv.includes("--next")) {
   const max = {};
   QS.forEach(q => { const m = q.id.match(/^(.*)-(\d+)$/); if (m) max[m[1]] = Math.max(max[m[1]] || 0, +m[2]); });

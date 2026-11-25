@@ -204,3 +204,4 @@ body.inquiz{padding-bottom:env(safe-area-inset-bottom)}
 .toast[hidden]{display:none}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media(max-width:360px){.qtext{font-size:20px}.choice{font-size:17px}.sname{font-size:22px}.seg.diff button{font-size:12px}}
+.qimg{display:block;width:100%;max-height:42vh;object-fit:contain;border-radius:12px;background:var(--soft);margin:12px 0 0}
