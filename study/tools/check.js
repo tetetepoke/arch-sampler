@@ -49,7 +49,8 @@ for (const s of SD.catalog) for (const c of s.categories) for (const u of c.unit
 
 const TYPES = ["choice", "tf", "fill", "written", "oneword", "order"];
 // 数の答えを読む（−3、3/4、−0.5 など）
-const parseNum = a => { const m = String(a).replace(/[−–]/g, "-").replace(/\s/g, "").match(/^([+-]?\d+(?:\.\d+)?)(?:\/(\d+))?$/); return m ? (+m[1]) / (m[2] ? +m[2] : 1) : NaN; };
+// π をふくむ答え（6π など）は、calc に係数（6）を書く決まり
+const parseNum = a => { a = String(a).trim(); if (a === "π") a = "1"; else if (a.endsWith("π")) a = a.slice(0, -1); const m = String(a).replace(/[−–]/g, "-").replace(/\s/g, "").match(/^([+-]?\d+(?:\.\d+)?)(?:\/(\d+))?$/); return m ? (+m[1]) / (m[2] ? +m[2] : 1) : NaN; };
 // calc（JavaScriptの式）を計算して answer と一致するか調べる
 function checkCalc(q, at, list) {
   if (q.calc == null) return;
