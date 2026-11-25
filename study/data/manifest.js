@@ -51,5 +51,21 @@ StudyData.files = [
   "eigo/eng-grm-prog.js",
   "eigo/eng-grm-past.js",
   // ---- 理科 ----
+  "rika/sci-bio-obs.js",
+  "rika/sci-bio-flower.js",
+  "rika/sci-bio-root.js",
+  "rika/sci-bio-photo.js",
+  "rika/sci-bio-pcls.js",
+  "rika/sci-bio-acls.js",
+  "rika/sci-chem-mat.js",
+  "rika/sci-chem-gas.js",
+  "rika/sci-chem-sol.js",
+  "rika/sci-chem-state.js",
+  "rika/sci-phys-light.js",
+  "rika/sci-phys-sound.js",
+  "rika/sci-phys-force.js",
+  "rika/sci-earth-volc.js",
+  "rika/sci-earth-quake.js",
+  "rika/sci-earth-strat.js",
   // ---- 国語 ----
 ];
