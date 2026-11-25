@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="テスト対策">
+<meta name="theme-color" content="#ffffff">
+<title>テスト対策ドリル</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app" aria-live="polite"></div>
+<nav class="tabbar" id="tabbar">
+  <button data-tab="home" class="on"><svg viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v9h-5v-6H9v6H4z"/></svg>学習</button>
+  <button data-tab="stats"><svg viewBox="0 0 24 24"><path d="M5 20V11h3v9zm5.5 0V5h3v15zM16 20v-6h3v6z"/></svg>成績</button>
+</nav>
+<div id="modal" class="modal" hidden></div>
+<div id="toast" class="toast" hidden></div>
+
+<!-- ① 問題データ（ここにファイルを足していくだけで単元が増える） -->
+<script src="data/registry.js"></script>
+<script src="data/j1-social-geo-asia-southeast.js"></script>
+<script src="data/j1-social-geo-asia-regions.js"></script>
+<!-- ② アプリ本体 -->
+<script src="app.js"></script>
+</body>
+</html>

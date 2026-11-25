@@ -1,0 +1,156 @@
+/*
+VOICE: 落ち着いた学習ノート。中学生向けだが子どもっぽくしない
+IDEA: 赤ペンで採点される答案用紙
+PICTURE: 問題カードそのものが主役。大きな問題文と押しやすい選択肢
+COLOUR and TYPE: 紙の白・インクの黒・赤ペンの朱、補助に藍。システムの日本語ゴシック
+LAYOUT: iPhone縦1カラム、最大幅560px、下にタブバー
+*/
+:root{color-scheme:light dark;
+  --bg:light-dark(#f6f6f3,#121314);--card:light-dark(#ffffff,#1c1d1f);--ink:light-dark(#17191c,#eceae5);
+  --sub:light-dark(#62666d,#a2a5aa);--line:light-dark(#e3e2dc,#2e3033);--soft:light-dark(#efeee9,#25272a);
+  --red:light-dark(#e0412b,#ff6b55);--redsoft:light-dark(#fdebe7,#3a201b);
+  --ok:light-dark(#11865a,#3fcf8e);--oksoft:light-dark(#e3f5ec,#15302a);
+  --blue:light-dark(#2448a8,#8fa9ff);--bluesoft:light-dark(#e9eefb,#1f2640)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink)}
+body{font:17px/1.6 -apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",sans-serif;overflow-x:clip;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) calc(76px + env(safe-area-inset-bottom)) env(safe-area-inset-left)}
+#app{max-width:560px;margin:0 auto;padding:12px 16px 24px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+h1{font-size:28px;line-height:1.2;margin:8px 0 4px;letter-spacing:.01em}
+h2{font-size:15px;color:var(--sub);font-weight:600;margin:22px 0 8px}
+.muted{color:var(--sub);font-size:14px}
+
+/* 上部ステータス */
+.status{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px}
+.lv{width:52px;height:52px;border-radius:14px;background:var(--ink);color:var(--card);display:grid;place-items:center;line-height:1;text-align:center}
+.lv small{font-size:10px;display:block;opacity:.7}.lv b{font-size:22px}
+.xpbar,.goalbar{height:6px;border-radius:3px;background:var(--soft);overflow:hidden;margin-top:6px}
+.xpbar i,.goalbar i{display:block;height:100%;background:var(--blue);border-radius:3px;transition:width .4s}
+.goalbar i{background:var(--red)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{font-size:13px;padding:4px 10px;border-radius:99px;background:var(--soft);white-space:nowrap}
+.chip b{font-weight:700}
+button.chip{border:0}
+
+/* パンくず・リスト */
+.crumbs{display:flex;flex-wrap:wrap;gap:2px 6px;font-size:14px;color:var(--sub);margin:18px 0 2px}
+.crumbs button{background:none;border:0;padding:4px 0;color:var(--blue)}
+.crumbs span{padding:4px 0}
+.list{display:grid;gap:8px}
+.row{display:flex;align-items:center;gap:12px;width:100%;min-height:62px;padding:12px 16px;border-radius:14px;border:1px solid var(--line);background:var(--card);text-align:left;font-size:18px;font-weight:600}
+.row .meta{margin-left:auto;font-size:13px;font-weight:500;color:var(--sub);text-align:right;white-space:nowrap}
+.row .arrow{color:var(--sub);font-size:20px;font-weight:400}
+.row:disabled{opacity:.45;cursor:default}
+.row.all{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.row.all .meta,.row.all .arrow{color:inherit;opacity:.75}
+.row:active:not(:disabled){transform:scale(.99)}
+.resume{background:var(--bluesoft);border-color:transparent}
+
+/* モード選択 */
+.modes{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.mode{border:1px solid var(--line);background:var(--card);border-radius:16px;padding:14px;text-align:left;min-height:104px;display:flex;flex-direction:column;gap:4px}
+.mode b{font-size:18px}.mode span{font-size:13px;color:var(--sub);line-height:1.45}
+.mode .n{margin-top:auto;font-size:13px;font-weight:700;color:var(--blue)}
+.mode:disabled{opacity:.45}
+.mode.main{grid-column:1/-1;background:var(--ink);color:var(--card);border-color:var(--ink);min-height:88px}
+.mode.main span,.mode.main .n{color:inherit;opacity:.8}
+
+/* クイズ */
+.qtop{display:flex;align-items:center;gap:10px;margin:2px 0 10px}
+.qtop .bar{flex:1;height:6px;border-radius:3px;background:var(--soft);overflow:hidden}
+.qtop .bar i{display:block;height:100%;background:var(--ink);transition:width .3s}
+.iconbtn{border:0;background:var(--soft);border-radius:12px;min-width:44px;height:44px;padding:0 12px;font-size:14px;font-weight:600}
+.count{font-size:14px;color:var(--sub);white-space:nowrap;font-variant-numeric:tabular-nums}
+.combo{font-size:13px;font-weight:700;color:var(--red);white-space:nowrap}
+.qcard{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px 18px 22px;margin-bottom:14px}
+.qmeta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.tag{font-size:12px;padding:2px 8px;border-radius:6px;background:var(--soft);color:var(--sub)}
+.tag.type{background:var(--bluesoft);color:var(--blue);font-weight:700}
+.qtext{font-size:22px;line-height:1.55;font-weight:700;margin:0;text-wrap:pretty;word-break:normal;overflow-wrap:anywhere}
+.choices{display:grid;gap:10px}
+.choice{width:100%;min-height:60px;padding:14px 16px;border-radius:14px;border:2px solid var(--line);background:var(--card);text-align:left;font-size:18px;font-weight:600;line-height:1.45;display:flex;gap:12px;align-items:center}
+.choice .k{flex:none;width:28px;height:28px;border-radius:8px;background:var(--soft);display:grid;place-items:center;font-size:14px;color:var(--sub)}
+.choice.correct{border-color:var(--ok);background:var(--oksoft)}
+.choice.correct .k{background:var(--ok);color:#fff}
+.choice.wrong{border-color:var(--red);background:var(--redsoft)}
+.choice.wrong .k{background:var(--red);color:#fff}
+.choice:disabled{cursor:default}
+.choice.dim{opacity:.5}
+.tf{grid-template-columns:1fr 1fr}
+.tf .choice{justify-content:center;font-size:34px;min-height:96px}
+.fillin{display:flex;gap:8px}
+.fillin input{flex:1;font-size:18px;padding:14px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--ink)}
+.btn{display:block;width:100%;min-height:56px;border-radius:14px;border:0;background:var(--ink);color:var(--card);font-size:18px;font-weight:700;margin-top:10px}
+.btn.ghost{background:var(--soft);color:var(--ink)}
+.btn.red{background:var(--red);color:#fff}
+.btn.sm{min-height:48px;font-size:16px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pair .btn{margin-top:0}
+.reveal{font-size:24px;font-weight:800;text-align:center;padding:18px;border-radius:14px;background:var(--soft);margin-bottom:10px}
+
+/* 解説 */
+.fb{border-radius:18px;padding:16px 18px;margin-top:14px;animation:up .25s ease-out}
+.fb.ok{background:var(--oksoft)}.fb.ng{background:var(--redsoft)}
+.fb h3{margin:0 0 6px;font-size:22px}
+.fb.ok h3{color:var(--ok)}.fb.ng h3{color:var(--red)}
+.fb .ans{font-weight:700;margin:0 0 6px}
+.fb p{margin:0}
+.fb .exp{font-size:16px;line-height:1.7}
+.auto{height:3px;border-radius:2px;background:var(--line);margin-top:12px;overflow:hidden}
+.auto i{display:block;height:100%;width:0;background:var(--ok);animation:fill 1.8s linear forwards}
+@keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes fill{to{width:100%}}
+
+/* 結果 */
+.score{text-align:center;padding:26px 16px 22px;background:var(--card);border:1px solid var(--line);border-radius:22px}
+.score .pt{font-size:clamp(64px,22vw,96px);font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.score .pt small{font-size:24px;margin-left:4px}
+.score .msg{font-size:22px;font-weight:800;margin-top:10px}
+.score .sub{color:var(--sub);font-size:15px;margin-top:4px}
+.redcircle{color:var(--red)}
+.wrongs{display:grid;gap:8px}
+.wq{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--red);border-radius:12px;padding:12px 14px;font-size:15px}
+.wq b{display:block;margin-bottom:4px}
+.wq span{color:var(--ok);font-weight:700}
+
+/* 成績 */
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}
+.stat .v{font-size:30px;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums;white-space:nowrap}
+.stat .v small{font-size:15px;font-weight:600;margin-left:2px}
+.stat .l{font-size:13px;color:var(--sub);margin-top:4px}
+.stat.big{grid-column:1/-1;display:flex;align-items:center;gap:16px}
+.ring{--p:0;width:84px;height:84px;border-radius:50%;flex:none;background:conic-gradient(var(--red) calc(var(--p)*1%),var(--soft) 0);display:grid;place-items:center}
+.ring::after{content:attr(data-v);width:66px;height:66px;border-radius:50%;background:var(--card);display:grid;place-items:center;font-weight:800;font-size:20px}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.sec+.sec{margin-top:8px}
+.sec .top{display:flex;justify-content:space-between;gap:8px;font-weight:700}
+.sec .top span{font-variant-numeric:tabular-nums;white-space:nowrap}
+.sec .meter{height:8px;border-radius:4px;background:var(--soft);margin:8px 0 4px;overflow:hidden}
+.sec .meter i{display:block;height:100%;border-radius:4px}
+.sec .small{font-size:12px;color:var(--sub)}
+.tools{display:grid;gap:8px;margin-top:8px}
+
+/* タブバー・モーダル・トースト */
+.tabbar{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;gap:8px;background:color-mix(in srgb,var(--card) 92%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:6px 16px calc(6px + env(safe-area-inset-bottom));z-index:5}
+.tabbar button{flex:0 1 160px;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;color:var(--sub);min-height:52px;justify-content:center;border-radius:12px}
+.tabbar svg{width:24px;height:24px;fill:currentColor}
+.tabbar button.on{color:var(--ink);font-weight:700}
+body.inquiz .tabbar{display:none}
+body.inquiz{padding-bottom:env(safe-area-inset-bottom)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center;z-index:10;padding:16px}
+.modal[hidden]{display:none}
+.sheet{background:var(--card);width:100%;max-width:520px;border-radius:22px;padding:20px;margin-bottom:env(safe-area-inset-bottom);max-height:85vh;overflow:auto}
+.sheet h3{margin:0 0 8px;font-size:20px}
+.sheet textarea{width:100%;height:120px;font-size:13px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:10px}
+.goalpick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.goalpick button{min-height:52px;border-radius:12px;border:2px solid var(--line);background:var(--card);font-size:18px;font-weight:700}
+.goalpick button.on{border-color:var(--ink)}
+.toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top));transform:translateX(-50%);background:var(--ink);color:var(--card);padding:10px 18px;border-radius:99px;font-weight:700;font-size:15px;z-index:20;white-space:nowrap;animation:up .25s}
+.toast[hidden]{display:none}
+.empty{text-align:center;color:var(--sub);padding:28px 10px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(max-width:360px){.qtext{font-size:20px}.choice{font-size:17px}.modes{grid-template-columns:1fr}}
