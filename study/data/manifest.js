@@ -39,6 +39,17 @@ StudyData.files = [
   "sugaku/math-data-freq.js",
   "sugaku/math-data-avg.js",
   // ---- 英語 ----
+  "eigo/eng-bas-word.js",
+  "eigo/eng-bas-order.js",
+  "eigo/eng-grm-be.js",
+  "eigo/eng-grm-verb.js",
+  "eigo/eng-grm-pl.js",
+  "eigo/eng-grm-pron.js",
+  "eigo/eng-grm-wh.js",
+  "eigo/eng-grm-can.js",
+  "eigo/eng-grm-imp.js",
+  "eigo/eng-grm-prog.js",
+  "eigo/eng-grm-past.js",
   // ---- 理科 ----
   // ---- 国語 ----
 ];

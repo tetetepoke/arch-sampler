@@ -117,10 +117,10 @@ for (let i = 0; i < G.length; i++) for (let j = i + 1; j < G.length; j++) {
   const a = G[i], b = G[j];
   if (a.q.subject !== b.q.subject || a.q.gen || b.q.gen) continue;
   const linked = a.q.variantOf === b.q.id || b.q.variantOf === a.q.id;
-  if (a.n === b.n) { (linked ? warns : errors).push(`同じ問題文: ${a.q.id} と ${b.q.id}`); continue; }
-  const s = sim(a.g, b.g);
-  // 問題文が似ていて、しかも答えも同じものを「重複の疑い」とする（同じ聞き方で答えがちがう比較問題は対象外）
+  // 問題文も答えも同じ＝重複（「まちがいがある文はどれ？」のように聞き方だけ同じで中身がちがう問題は対象外）
   const sameAns = norm(a.q.answer) === norm(b.q.answer);
+  if (a.n === b.n) { if (sameAns) (linked ? warns : errors).push(`同じ問題（問題文と答えが同じ）: ${a.q.id} と ${b.q.id}`); continue; }
+  const s = sim(a.g, b.g);
   if (s >= 0.6 && sameAns && !linked) warns.push(`似ている問題（${Math.round(s * 100)}%）: ${a.q.id} と ${b.q.id}\n    「${a.q.question}」\n    「${b.q.question}」`);
 }
 
