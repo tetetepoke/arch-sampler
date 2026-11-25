@@ -96,6 +96,22 @@ StudyData.add(
       importance: 1,
       question: "はにわは、縄文時代につくられたまじないの道具である。",
       answer: false,
-      explanation: "×。はにわは古墳時代に古墳に並べられたもの。縄文時代のまじないの道具は土偶。" }
+      explanation: "×。はにわは古墳時代に古墳に並べられたもの。縄文時代のまじないの道具は土偶。" },
+    { id: "SOC-HIS-KOFUN-013",
+      type: "choice",
+      difficulty: 3,
+      importance: 2,
+      question: "渡来人が伝えた技術や文化が、その後の日本にあたえた影響は？",
+      choices: ["漢字や仏教などが広まり、政治や文化が大きく発展した","日本の文化がなくなった","稲作が始まった","武士が生まれた"],
+      answer: "漢字や仏教などが広まり、政治や文化が大きく発展した",
+      explanation: "漢字で記録を残せるようになり、政治のしくみも整っていった。" },
+    { id: "SOC-HIS-KOFUN-014",
+      type: "choice",
+      difficulty: 2,
+      importance: 2,
+      question: "大和政権の豪族たちが、それぞれの家がらによって政権内で役割をあたえられたしくみは？",
+      choices: ["氏姓制度","冠位十二階","律令制度","封建制度"],
+      answer: "氏姓制度",
+      explanation: "豪族の一族（氏）に、家がらを表す姓（かばね）があたえられた。" }
   ]
 );

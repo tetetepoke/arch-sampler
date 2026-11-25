@@ -99,6 +99,23 @@ StudyData.add(
       importance: 2,
       question: "日本の標準時子午線は、兵庫県明石市を通っている。",
       answer: true,
-      explanation: "○。東経135度の経線が明石市を通る。" }
+      explanation: "○。東経135度の経線が明石市を通る。" },
+    { id: "SOC-GEO-TIME-013",
+      type: "choice",
+      difficulty: 3,
+      importance: 2,
+      question: "東京（東経135度）を1月1日午前10時に出発した飛行機が、10時間かけてロンドンに着いた。ロンドンの現地時刻は？",
+      choices: ["1月1日 午前11時","1月1日 午後8時","1月1日 午前1時","1月2日 午前5時"],
+      answer: "1月1日 午前11時",
+      explanation: "東京で到着は午後8時。ロンドンは9時間おくれるので午前11時。" },
+    { id: "SOC-GEO-TIME-014",
+      type: "choice",
+      difficulty: 3,
+      importance: 1,
+      question: "東経15度の都市と西経45度の都市の時差は何時間？",
+      answer: "4",
+      calc: "(15+45)/15",
+      choices: ["4","2","3","60"],
+      explanation: "東経と西経なので経度をたす：(15＋45)÷15＝4時間。" }
   ]
 );
