@@ -119,6 +119,23 @@ StudyData.add(
       question: "ある数がどの程度起こりやすいかを表す、多数回の実験の相対度数をもとにした値を何という？",
       choices: ["確率（起こりやすさ）","平均値","中央値","範囲"],
       answer: "確率（起こりやすさ）",
-      explanation: "実験の回数を多くすると、相対度数はある値に近づく。それを起こりやすさ（確率）とみる。" }
+      explanation: "実験の回数を多くすると、相対度数はある値に近づく。それを起こりやすさ（確率）とみる。" },
+    { id: "MATH-DATA-FREQ-015",
+      type: "choice",
+      difficulty: 1,
+      importance: 2,
+      question: "相対度数をすべての階級についてたすと、いくつになる？",
+      choices: ["1","100","度数の合計","0"],
+      answer: "1",
+      explanation: "相対度数は全体に対する割合なので、合計は1（100％）になる。" },
+    { id: "MATH-DATA-FREQ-016",
+      type: "choice",
+      difficulty: 3,
+      importance: 1,
+      question: "30人の記録で、15m以上20m未満の階級の相対度数が0.3、20m以上の階級の度数が6人だった。15m以上の人は何人？",
+      answer: "15",
+      calc: "30*0.3+6",
+      choices: ["15","9","36","12"],
+      explanation: "15〜20mは 30×0.3＝9人。9＋6＝15人。" }
   ]
 );

@@ -81,6 +81,22 @@ StudyData.add(
       importance: 2,
       question: "比 6:9 と 2:3 は等しい比である。",
       answer: true,
-      explanation: "○。6:9 の両方を3でわると 2:3。" }
+      explanation: "○。6:9 の両方を3でわると 2:3。" },
+    { id: "MATH-EQ-RATIO-011",
+      type: "choice",
+      difficulty: 3,
+      importance: 2,
+      question: "比例式 x:4＝(x＋6):10 の x の値は？",
+      choices: ["x＝4","x＝6","x＝24/14","x＝10"],
+      answer: "x＝4",
+      explanation: "10x＝4(x＋6)、6x＝24、x＝4。" },
+    { id: "MATH-EQ-RATIO-012",
+      type: "choice",
+      difficulty: 2,
+      importance: 1,
+      question: "比例式 0.6:x＝3:5 の x の値は？",
+      choices: ["x＝1","x＝0.36","x＝9","x＝2.5"],
+      answer: "x＝1",
+      explanation: "0.6×5＝3x、3x＝3、x＝1。" }
   ]
 );

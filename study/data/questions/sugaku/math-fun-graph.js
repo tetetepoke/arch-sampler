@@ -89,6 +89,22 @@ StudyData.add(
       importance: 1,
       question: "y＝3x と y＝−3x のグラフは、どちらも原点を通る。",
       answer: true,
-      explanation: "○。比例のグラフはどれも原点を通る。" }
+      explanation: "○。比例のグラフはどれも原点を通る。" },
+    { id: "MATH-FUN-GRAPH-012",
+      type: "choice",
+      difficulty: 3,
+      importance: 1,
+      question: "2点 (2, 3) と (−2, 3) の間の距離は？",
+      choices: ["4","0","6","2"],
+      answer: "4",
+      explanation: "y座標が同じなので、x座標の差 2−(−2)＝4。" },
+    { id: "MATH-FUN-GRAPH-013",
+      type: "choice",
+      difficulty: 2,
+      importance: 2,
+      question: "y＝−3x のグラフ上で、x座標が −2 の点の座標は？",
+      choices: ["(−2, 6)","(−2, −6)","(6, −2)","(2, 6)"],
+      answer: "(−2, 6)",
+      explanation: "y＝−3×(−2)＝6。" }
   ]
 );
