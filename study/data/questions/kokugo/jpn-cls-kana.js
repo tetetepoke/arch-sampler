@@ -102,6 +102,27 @@ StudyData.add(
       importance: 1,
       question: "「なむ」の「む」は「ん」と読むことがある。",
       answer: true,
-      explanation: "○。助動詞や助詞の「む」は「ん」と読む（例：行かむ→行かん）。" }
+      explanation: "○。助動詞や助詞の「む」は「ん」と読む（例：行かむ→行かん）。" },
+    { id: "JPN-CLS-KANA-015",
+      type: "fill",
+      difficulty: 1,
+      importance: 2,
+      question: "「おもふ」を現代仮名遣いに直しなさい。",
+      answer: "おもう",
+      explanation: "語頭以外の「ふ」は「う」。" },
+    { id: "JPN-CLS-KANA-016",
+      type: "fill",
+      difficulty: 2,
+      importance: 2,
+      question: "「いはく」を現代仮名遣いに直しなさい。",
+      answer: "いわく",
+      explanation: "語頭以外の「は」は「わ」。" },
+    { id: "JPN-CLS-KANA-017",
+      type: "fill",
+      difficulty: 2,
+      importance: 2,
+      question: "「にほひ」を現代仮名遣いに直しなさい。",
+      answer: "におい",
+      explanation: "「ほ」→「お」、「ひ」→「い」。" }
   ]
 );
