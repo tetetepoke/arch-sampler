@@ -5,12 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="テスト対策">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#f6f6f3">
 <title>テスト対策ドリル</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
 <div id="app" aria-live="polite"></div>
+<div id="fb" class="fb" hidden></div>
 <nav class="tabbar" id="tabbar">
   <button data-tab="home" class="on"><svg viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v9h-5v-6H9v6H4z"/></svg>学習</button>
   <button data-tab="stats"><svg viewBox="0 0 24 24"><path d="M5 20V11h3v9zm5.5 0V5h3v15zM16 20v-6h3v6z"/></svg>成績</button>
@@ -18,11 +19,11 @@
 <div id="modal" class="modal" hidden></div>
 <div id="toast" class="toast" hidden></div>
 
-<!-- ① 問題データ（ここにファイルを足していくだけで単元が増える） -->
-<script src="data/registry.js"></script>
-<script src="data/j1-social-geo-asia-southeast.js"></script>
-<script src="data/j1-social-geo-asia-regions.js"></script>
-<!-- ② アプリ本体 -->
-<script src="app.js"></script>
+<!-- 問題データまわり（問題ファイル自体は data/manifest.js に書いたものを app.js が読み込む） -->
+<script src="data/registry.js?v=2"></script>
+<script src="data/catalog.js?v=2"></script>
+<script src="data/manifest.js?v=2"></script>
+<!-- アプリ本体 -->
+<script src="app.js?v=2"></script>
 </body>
 </html>
