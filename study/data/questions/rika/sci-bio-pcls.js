@@ -97,6 +97,22 @@ StudyData.add(
       importance: 1,
       question: "双子葉類は、さらに花弁が分かれている離弁花類と、くっついている合弁花類に分けられる。",
       answer: true,
-      explanation: "○。離弁花類：アブラナ・サクラ、合弁花類：アサガオ・ツツジ。" }
+      explanation: "○。離弁花類：アブラナ・サクラ、合弁花類：アサガオ・ツツジ。" },
+    { id: "SCI-BIO-PCLS-013",
+      type: "choice",
+      difficulty: 2,
+      importance: 2,
+      question: "シダ植物とコケ植物に共通する特徴は？",
+      choices: ["胞子でふえる","維管束がある","種子をつくる","根・茎・葉の区別がある"],
+      answer: "胞子でふえる",
+      explanation: "どちらも種子をつくらず胞子でふえる。維管束や根・茎・葉の区別はシダ植物だけにある。" },
+    { id: "SCI-BIO-PCLS-014",
+      type: "choice",
+      difficulty: 3,
+      importance: 2,
+      question: "コケ植物が水を吸収するのはどこから？",
+      choices: ["体の表面全体","仮根","根毛","気孔だけ"],
+      answer: "体の表面全体",
+      explanation: "維管束がないので、体の表面から直接吸収する。" }
   ]
 );
